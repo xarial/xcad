@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Features.CustomFeature.Structures;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
@@ -18,10 +17,6 @@ namespace Xarial.XCad.Documentation
     public class PrimitiveParametersMacroFeature : SwMacroFeatureDefinition<MacroFeaturePrimitiveParams>
     {
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model,
-            ISwMacroFeature<MacroFeaturePrimitiveParams> feature, out AlignDimensionDelegate<MacroFeaturePrimitiveParams> alignDim)
-        {
-            alignDim = null;
-            return new CustomFeatureRebuildResult();
-        }
+            ISwMacroFeature<MacroFeaturePrimitiveParams> feature) => new CustomFeatureRebuildResult();
     }
 }

@@ -11,7 +11,6 @@ using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Features;
-using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Features.CustomFeature.Structures;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;

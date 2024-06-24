@@ -15,10 +15,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad;
+using Xarial.XCad.Annotations;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Attributes;
-using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Features.CustomFeature.Enums;
 using Xarial.XCad.Features.CustomFeature.Services;
 using Xarial.XCad.Geometry;
@@ -191,7 +191,7 @@ namespace SwAddInExample
             };
 
         public override ISwBody[] CreateGeometry(ISwApplication app, ISwDocument model,
-            ISwMacroFeature<BoxMacroFeatureData> feat, out AlignDimensionDelegate<BoxMacroFeatureData> alignDim)
+            ISwMacroFeature<BoxMacroFeatureData> feat)
         {
             var data = feat.Parameters;
 
@@ -255,13 +255,8 @@ namespace SwAddInExample
                 }
             }
 
-            alignDim = new AlignDimensionDelegate<BoxMacroFeatureData>((p, d) => 
-            {
-                if (string.Equals(p, nameof(BoxMacroFeatureData.Length))) 
-                {
-                    this.AlignLinearDimension(d, pt, dir);
-                }
-            });
+            feat.Tags.Put("pt", pt);
+            feat.Tags.Put("dir", dir);
 
             data.Increment++;
             feat.Parameters = data;
@@ -269,23 +264,33 @@ namespace SwAddInExample
             return res.ToArray();
         }
 
+        public override void OnAlignDimension(IXCustomFeature<BoxMacroFeatureData> feat, string paramName, IXDimension dim)
+        {
+            var pt = feat.Tags.Pop<Xarial.XCad.Geometry.Structures.Point>("pt");
+            var dir = feat.Tags.Pop<Vector>("dir");
+
+            if (string.Equals(paramName, nameof(BoxMacroFeatureData.Length)))
+            {
+                this.AlignLinearDimension(dim, pt, dir);
+            }
+        }
+
         protected override BoxMacroFeatureData HandleEditingException(IXCustomFeature<BoxMacroFeatureData> feat, Exception ex)
         {
             return new BoxMacroFeatureData();
         }
 
-        public override ISwTempBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxMacroFeatureData> feat, BoxPage page,
-            out ShouldHidePreviewEditBodyDelegate<BoxMacroFeatureData, BoxPage> shouldHidePreviewEdit, out AssignPreviewBodyColorDelegate assignPreviewColor)
+        public override ISwTempBody[] CreatePreviewGeometry(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxMacroFeatureData> feat, BoxPage page)
         {
             var date = feat.Parameters;
-            shouldHidePreviewEdit = null;
-            assignPreviewColor = AssignPreviewBodyColor;
             page.Parameters.UpdateSize();
-            return CreateGeometry(app, model, feat, out _)?.Cast<ISwTempBody>().ToArray();
+            return CreateGeometry(app, model, feat)?.Cast<ISwTempBody>().ToArray();
         }
 
-        private void AssignPreviewBodyColor(IXBody body, out Color color)
-            => color = Color.FromArgb(100, Color.Green);
+        public override void OnAssignPreviewBodyColorDelegate(IXCustomFeature<BoxMacroFeatureData> feat, IXBody body, out Color color)
+        {
+            color = Color.FromArgb(100, Color.Green);
+        }
 
         private void OnPostRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxMacroFeatureData> feature, BoxMacroFeatureData parameters)
         { 

@@ -11,7 +11,6 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Extensions;
 using Xarial.XCad.Features.CustomFeature;
-using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Services;
 using Xarial.XCad.Toolkit.CustomFeature;
@@ -47,7 +46,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         where TData : class
         where TPage : class;
 
-    public delegate bool ShouldUpdatePreviewDelegate<TData, TPage>(TData oldData, TData newData, TPage page, bool dataChanged)
+    public delegate bool ShouldUpdatePreviewDelegate<TData, TPage>(IXCustomFeature<TData> feat, TData oldData, TPage page, bool dataChanged)
         where TData : class
         where TPage : class;
 
@@ -139,6 +138,14 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private IEditor<IXFeature> m_CurEditor;
 
+        /// <summary>
+        /// Constructor for the custom feature editor
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="featDefType">Type of feature definition</param>
+        /// <param name="svcProvider">Service provider</param>
+        /// <param name="page">Feature page</param>
+        /// <param name="behavior">Feature editor behavior</param>
         public BaseCustomFeatureEditor(IXApplication app,
             Type featDefType,
             IServiceProvider svcProvider, IXPropertyPage<TPage> page, CustomFeatureEditorBehavior_e behavior)
@@ -242,9 +249,12 @@ namespace Xarial.XCad.Utils.CustomFeature
             UpdatePreview();
         }
 
+        /// <summary>
+        /// Object to render current preview
+        /// </summary>
         protected virtual IXObject CurrentPreviewContext => CurrentDocument;
 
-        private void DisplayPreview(IXMemoryBody[] bodies, AssignPreviewBodyColorDelegate assignPreviewBodyColorDelegateFunc)
+        private void DisplayPreview(IXMemoryBody[] bodies)
         {
             if (bodies?.Any() == true)
             {
@@ -257,7 +267,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
                 foreach (var body in bodies)
                 {
-                    assignPreviewBodyColorDelegateFunc.Invoke(body, out Color color);
+                    Definition.OnAssignPreviewBodyColorDelegate(CurrentFeature, body, out Color color);
 
                     body.Preview(previewContext, color);
                 }
@@ -294,7 +304,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             body.Dispose();
         }
 
-        private void HideEditBodies(ShouldHidePreviewEditBodyDelegate<TData, TPage> shouldHidePreviewEditBodyFunc)
+        private void HideEditBodies()
         {
             IXBody[] editBodies;
 
@@ -315,9 +325,9 @@ namespace Xarial.XCad.Utils.CustomFeature
             {
                 var hide = body.Visible;
 
-                if (hide && shouldHidePreviewEditBodyFunc != null) 
+                if (hide) 
                 {
-                    hide &= shouldHidePreviewEditBodyFunc.Invoke(body, CurrentFeature.Parameters, m_CurPageData);
+                    hide &= Definition.OnShouldHidePreviewEditBodyDelegate(CurrentFeature, body, m_CurPageData);
                 }
 
                 if (hide)
@@ -359,11 +369,9 @@ namespace Xarial.XCad.Utils.CustomFeature
 
                 var dataChanged = AreParametersChanged(oldParams, newParams);
 
-                var needUpdatePreview = ShouldUpdatePreview.Invoke(oldParams, newParams, m_CurPageData, dataChanged);
-
                 CurrentFeature.Parameters = newParams;
 
-                if (needUpdatePreview)
+                if (ShouldUpdatePreview.Invoke(CurrentFeature, oldParams, m_CurPageData, dataChanged))
                 {
                     UpdatePreview();
 
@@ -512,9 +520,6 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private bool m_IsApplying;
 
-        private void DefaultAssignPreviewBodyColor(IXBody body, out Color color)
-            => color = Color.FromArgb(100, Color.Yellow);
-
         private void UpdatePreview()
         {
             if (m_IsPageActive)
@@ -528,19 +533,13 @@ namespace Xarial.XCad.Utils.CustomFeature
                         HidePreviewBodies();
 
                         m_PreviewBodies = Definition.CreatePreviewGeometry(m_App, CurrentDocument,
-                            CurrentFeature, m_CurPageData, out var shouldHidePreviewEdit,
-                            out var assignPreviewColor);
+                            CurrentFeature, m_CurPageData);
 
-                        if (assignPreviewColor == null)
-                        {
-                            assignPreviewColor = DefaultAssignPreviewBodyColor;
-                        }
-
-                        HideEditBodies(shouldHidePreviewEdit);
+                        HideEditBodies();
 
                         if (m_PreviewBodies?.Any() == true)
                         {
-                            DisplayPreview(m_PreviewBodies, assignPreviewColor);
+                            DisplayPreview(m_PreviewBodies);
                         }
                     }
                     catch (Exception ex)

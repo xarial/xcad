@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Features.CustomFeature.Structures;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks;
@@ -28,11 +27,7 @@ namespace Xarial.XCad.Documentation.CustomFeature
     [ComVisible(true)]
     public class EditBodiesMacroFeature : SwMacroFeatureDefinition<MacroFeatureEditBodiesParams>
     {
-        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, 
-            ISwMacroFeature<MacroFeatureEditBodiesParams> feature, out AlignDimensionDelegate<MacroFeatureEditBodiesParams> alignDim)
-        {
-            alignDim = null;
-            return new CustomFeatureRebuildResult();
-        }
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model,
+            ISwMacroFeature<MacroFeatureEditBodiesParams> feature) => new CustomFeatureRebuildResult();
     }
 }

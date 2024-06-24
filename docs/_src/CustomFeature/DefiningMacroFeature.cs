@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Documentation.Properties;
 using Xarial.XCad.Features.CustomFeature.Attributes;
-using Xarial.XCad.Features.CustomFeature.Delegates;
 using Xarial.XCad.Features.CustomFeature.Enums;
 using Xarial.XCad.Features.CustomFeature.Structures;
 using Xarial.XCad.SolidWorks;
@@ -26,11 +25,6 @@ namespace Xarial.XCad.Documentation
     public class MySimpleMacroFeature : SwMacroFeatureDefinition<MySimpleMacroFeatureParameters>
     {
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, 
-            ISwMacroFeature<MySimpleMacroFeatureParameters> feature,
-            out AlignDimensionDelegate<MySimpleMacroFeatureParameters> alignDim)
-        {
-            alignDim = null;
-            return new CustomFeatureRebuildResult() { Result = true };
-        }
+            ISwMacroFeature<MySimpleMacroFeatureParameters> feature) => new CustomFeatureRebuildResult() { Result = true };
     }
 }
