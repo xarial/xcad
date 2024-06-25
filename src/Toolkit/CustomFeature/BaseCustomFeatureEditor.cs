@@ -267,7 +267,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
                 foreach (var body in bodies)
                 {
-                    Definition.OnAssignPreviewBodyColorDelegate(CurrentFeature, body, out Color color);
+                    Definition.OnAssignPreviewBodyColor(CurrentFeature, body, out Color color);
 
                     body.Preview(previewContext, color);
                 }
@@ -327,7 +327,7 @@ namespace Xarial.XCad.Utils.CustomFeature
 
                 if (hide) 
                 {
-                    hide &= Definition.OnShouldHidePreviewEditBodyDelegate(CurrentFeature, body, m_CurPageData);
+                    hide &= Definition.OnShouldHidePreviewEditBody(CurrentFeature, body, m_CurPageData);
                 }
 
                 if (hide)

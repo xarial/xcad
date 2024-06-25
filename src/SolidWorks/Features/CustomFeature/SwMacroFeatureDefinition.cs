@@ -135,7 +135,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <summary>
         /// DI services
         /// </summary>
-        protected readonly IServiceProvider m_SvcProvider;
+        protected IServiceProvider Services { get; }
 
         internal readonly List<MacroFeatureRegenerateData> m_RebuildFeaturesQueue;
 
@@ -166,13 +166,13 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             OnConfigureServices(svcColl);
 
-            m_SvcProvider = svcColl.CreateProvider();
+            Services = svcColl.CreateProvider();
 
-            Logger = m_SvcProvider.GetService<IXLogger>();
+            Logger = Services.GetService<IXLogger>();
 
             CustomFeatureDefinitionInstanceCache.RegisterInstance(this);
 
-            TryCreateIcons(m_SvcProvider.GetService<IIconsCreator>(), MacroFeatureIconInfo.GetLocation(this.GetType()));
+            TryCreateIcons(Services.GetService<IIconsCreator>(), MacroFeatureIconInfo.GetLocation(this.GetType()));
         }
 
         private void TryCreateIcons(IIconsCreator iconsConverter, string folder)
@@ -671,11 +671,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             m_Editor = new Lazy<SwMacroFeatureEditor<TParams, TPage>>(() => 
             {
-                var page = new SwPropertyManagerPage<TPage>(Application, m_SvcProvider, CreatePageHandler(), CreateDynamicControls);
+                var page = new SwPropertyManagerPage<TPage>(Application, Services, CreatePageHandler(), CreateDynamicControls);
 
                 var editor = new SwMacroFeatureEditor<TParams, TPage>(
                     Application, this.GetType(),
-                    m_SvcProvider, page, EditorBehavior);
+                    Services, page, EditorBehavior);
 
                 editor.EditingStarted += OnEditingStarted;
                 editor.EditingCompleting += OnEditingCompleting;
@@ -710,7 +710,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// </summary>
         /// <returns>Page handler</returns>
         public virtual SwPropertyManagerPageHandler CreatePageHandler()
-            => m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application, typeof(TPage));
+            => Services.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application, typeof(TPage));
 
         /// <inheritdoc/>
         public virtual TParams CreateParameters(IXApplication app, IXDocument doc, TPage page, TParams curParams)
@@ -834,13 +834,13 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public virtual IControlDescriptor[] CreateDynamicControls(object tag) => null;
 
         /// <inheritdoc/>
-        public virtual void OnAssignPreviewBodyColorDelegate(IXCustomFeature<TParams> feat, IXBody body, out System.Drawing.Color color)
+        public virtual void OnAssignPreviewBodyColor(IXCustomFeature<TParams> feat, IXBody body, out System.Drawing.Color color)
         {
             color = System.Drawing.Color.FromArgb(100, System.Drawing.Color.Yellow);
         }
 
         /// <inheritdoc/>
-        public virtual bool OnShouldHidePreviewEditBodyDelegate(IXCustomFeature<TParams> feat, IXBody body, TPage page)
+        public virtual bool OnShouldHidePreviewEditBody(IXCustomFeature<TParams> feat, IXBody body, TPage page)
             => true;
 
         /// <summary>

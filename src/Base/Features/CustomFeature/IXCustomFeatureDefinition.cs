@@ -158,7 +158,7 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <param name="feat">Feature to align dimensions for</param>
         /// <param name="body">Body to assign preview to</param>
         /// <param name="color">Color of the preview body</param>
-        void OnAssignPreviewBodyColorDelegate(IXCustomFeature<TParams> feat, IXBody body, out System.Drawing.Color color);
+        void OnAssignPreviewBodyColor(IXCustomFeature<TParams> feat, IXBody body, out System.Drawing.Color color);
 
         /// <summary>
         /// Handler function to control if the edit body should be hidden during the preview
@@ -169,7 +169,7 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <returns>True to hide body, false to kepe the body visible</returns>
         /// <remarks>usually edit body is hidden during the preview as it is replaced by the macro feature geometry
         /// In some cases user might need to perform multiple selections on edit body and thus hiding it preventing the further selections</remarks>
-        bool OnShouldHidePreviewEditBodyDelegate(IXCustomFeature<TParams> feat, IXBody body, TPage page);
+        bool OnShouldHidePreviewEditBody(IXCustomFeature<TParams> feat, IXBody body, TPage page);
 
         /// <summary>
         /// Checks if the preview should be updated

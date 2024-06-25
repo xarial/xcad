@@ -287,7 +287,7 @@ namespace SwAddInExample
             return CreateGeometry(app, model, feat)?.Cast<ISwTempBody>().ToArray();
         }
 
-        public override void OnAssignPreviewBodyColorDelegate(IXCustomFeature<BoxMacroFeatureData> feat, IXBody body, out Color color)
+        public override void OnAssignPreviewBodyColor(IXCustomFeature<BoxMacroFeatureData> feat, IXBody body, out Color color)
         {
             color = Color.FromArgb(100, Color.Green);
         }

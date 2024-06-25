@@ -146,6 +146,14 @@ namespace Xarial.XCad.SolidWorks.Annotations
         protected virtual IAnnotation CreateAnnotation(CancellationToken arg)
             => throw new NotSupportedException("Creating of this annotation is not supported");
 
+        internal override void Select(bool append, ISelectData selData)
+        {
+            if (!Annotation.Select3(append, (SelectData)selData)) 
+            {
+                throw new Exception("Failed to select annotation");
+            }
+        }
+
         protected void SetPosition(IAnnotation ann, Point value)
         {
             if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014, 3))
