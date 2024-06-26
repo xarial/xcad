@@ -613,6 +613,94 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public bool? LengthRoundToNearestFraction
+        {
+            get
+            {
+                if (m_Document.Model.Extension.GetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalDisplay,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified) == (int)swFractionDisplay_e.swFRACTION)
+                {
+                    return m_Document.Model.Extension.GetUserPreferenceToggle(
+                        (int)swUserPreferenceToggle_e.swUnitsLinearRoundToNearestFraction,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            set
+            {
+                if (value.HasValue)
+                {
+                    if (m_Document.Model.Extension.SetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swUnitsLinearDecimalDisplay,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)swFractionDisplay_e.swFRACTION))
+                    {
+                        if (!m_Document.Model.Extension.SetUserPreferenceToggle(
+                            (int)swUserPreferenceToggle_e.swUnitsLinearRoundToNearestFraction,
+                            (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value.Value))
+                        {
+                            throw new Exception("Failed to change length round to nearest fraction");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Failed to change length round to nearest fraction");
+                    }
+                }
+                else
+                {
+                    throw new NotSupportedException("Failed to set length round to nearest fraction");
+                }
+            }
+        }
+
+        public bool? LengthConvertFeetAndInchesFormat
+        {
+            get
+            {
+                if (m_Document.Model.Extension.GetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsLinear,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified) == (int)swLengthUnit_e.swFEETINCHES)
+                {
+                    return m_Document.Model.Extension.GetUserPreferenceToggle(
+                        (int)swUserPreferenceToggle_e.swUnitsLinearFeetAndInchesFormat,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            set
+            {
+                if (value.HasValue)
+                {
+                    if (m_Document.Model.Extension.GetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swUnitsLinear,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified) == (int)swLengthUnit_e.swFEETINCHES)
+                    {
+                        if (!m_Document.Model.Extension.SetUserPreferenceToggle(
+                            (int)swUserPreferenceToggle_e.swUnitsLinearFeetAndInchesFormat,
+                            (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value.Value))
+                        {
+                            throw new Exception("Failed to change length convert feet & inches format");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Failed to change length convert feet & inches format");
+                    }
+                }
+                else
+                {
+                    throw new NotSupportedException("Failed to set length convert feet & inches format");
+                }
+            }
+        }
+
         public int? DualDimensionLengthFractions
         {
             get
@@ -662,6 +750,93 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public bool? DualDimensionLengthRoundToNearestFraction
+        {
+            get
+            {
+                if (m_Document.Model.Extension.GetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearDecimalDisplay,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified) == (int)swFractionDisplay_e.swFRACTION)
+                {
+                    return m_Document.Model.Extension.GetUserPreferenceToggle(
+                        (int)swUserPreferenceToggle_e.swUnitsDualLinearRoundToNearestFraction,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            set
+            {
+                if (value.HasValue)
+                {
+                    if (m_Document.Model.Extension.SetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swUnitsDualLinearDecimalDisplay,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, (int)swFractionDisplay_e.swFRACTION))
+                    {
+                        if (!m_Document.Model.Extension.SetUserPreferenceToggle(
+                            (int)swUserPreferenceToggle_e.swUnitsDualLinearRoundToNearestFraction,
+                            (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value.Value))
+                        {
+                            throw new Exception("Failed to change dual dimension length round to nearest fraction");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Failed to change dual dimension length round to nearest fraction");
+                    }
+                }
+                else
+                {
+                    throw new NotSupportedException("Failed to set dual dimension length round to nearest fraction");
+                }
+            }
+        }
+
+        public bool? DualDimensionLengthConvertFeetAndInchesFormat
+        {
+            get
+            {
+                if (m_Document.Model.Extension.GetUserPreferenceInteger(
+                    (int)swUserPreferenceIntegerValue_e.swUnitsDualLinear,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified) == (int)swLengthUnit_e.swFEETINCHES)
+                {
+                    return m_Document.Model.Extension.GetUserPreferenceToggle(
+                        (int)swUserPreferenceToggle_e.swUnitsDualLinearFeetAndInchesFormat,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            set
+            {
+                if (value.HasValue)
+                {
+                    if (m_Document.Model.Extension.GetUserPreferenceInteger(
+                        (int)swUserPreferenceIntegerValue_e.swUnitsDualLinear,
+                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified) == (int)swLengthUnit_e.swFEETINCHES)
+                    {
+                        if (!m_Document.Model.Extension.SetUserPreferenceToggle(
+                            (int)swUserPreferenceToggle_e.swUnitsDualLinearFeetAndInchesFormat,
+                            (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, value.Value))
+                        {
+                            throw new Exception("Failed to change dual dimension length convert feet & inches format");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Failed to change dual dimension length convert feet & inches format");
+                    }
+                }
+                else
+                {
+                    throw new NotSupportedException("Failed to set dual dimension length convert feet & inches format");
+                }
+            }
+        }
 
         private readonly ISwDocument m_Document;
 

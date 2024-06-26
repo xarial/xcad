@@ -117,7 +117,7 @@ namespace Xarial.XCad.Utils.CustomFeature
             TraverseParametersDefinition(resParams,
                 (obj, prp) =>
                 {
-                    AssignObjectsToProperty(obj, featSelsLocal.Select(s => s.Selection).ToArray(), prp, parameters);
+                    AssignObjectsToProperty(obj, featSelsLocal.Select(s => s?.Selection).ToArray(), prp, parameters);
                 },
                 (dimType, obj, prp) =>
                 {

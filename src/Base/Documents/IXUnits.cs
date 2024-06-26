@@ -260,10 +260,34 @@ namespace Xarial.XCad.Documents
         int? LengthFractions { get; set; }
 
         /// <summary>
+        /// Option to round length fraction to nearest value
+        /// </summary>
+        /// <remarks>Null if decimal units display</remarks>
+        bool? LengthRoundToNearestFraction { get; set; }
+
+        /// <summary>
+        /// Option to convert length of <see cref="Length_e.FeetInches"/> from 2'4" to 2'-4"
+        /// </summary>
+        /// <remarks>Null if length is not <see cref="Length_e.FeetInches"/></remarks>
+        bool? LengthConvertFeetAndInchesFormat { get; set; }
+
+        /// <summary>
         /// Fractions of the dual dimension length (for the Inch units)
         /// </summary>
         /// <remarks>Null if decimal units display</remarks>
         int? DualDimensionLengthFractions { get; set; }
+
+        /// <summary>
+        /// Option to round dual dimension length fraction to nearest value
+        /// </summary>
+        /// <remarks>Null if decimal units display</remarks>
+        bool? DualDimensionLengthRoundToNearestFraction { get; set; }
+
+        /// <summary>
+        /// Option to convert dual dimension length of <see cref="Length_e.FeetInches"/> from 2'4" to 2'-4"
+        /// </summary>
+        /// <remarks>Null if length is not <see cref="Length_e.FeetInches"/></remarks>
+        bool? DualDimensionLengthConvertFeetAndInchesFormat { get; set; }
     }
 
     /// <summary>

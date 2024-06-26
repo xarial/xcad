@@ -95,26 +95,29 @@ namespace Xarial.XCad.SolidWorks
 
         public void Untrack(IXObject obj)
         {
-            switch (obj)
+            if (obj.IsAlive)
             {
-                case ISwFace face:
-                    face.Face.RemoveTrackingID(m_TrackDefId);
-                    break;
+                switch (obj)
+                {
+                    case ISwFace face:
+                        face.Face.RemoveTrackingID(m_TrackDefId);
+                        break;
 
-                case ISwEdge edge:
-                    edge.Edge.RemoveTrackingID(m_TrackDefId);
-                    break;
+                    case ISwEdge edge:
+                        edge.Edge.RemoveTrackingID(m_TrackDefId);
+                        break;
 
-                case ISwVertex vertex:
-                    vertex.Vertex.RemoveTrackingID(m_TrackDefId);
-                    break;
+                    case ISwVertex vertex:
+                        vertex.Vertex.RemoveTrackingID(m_TrackDefId);
+                        break;
 
-                case ISwBody body:
-                    body.Body.RemoveTrackingID(m_TrackDefId);
-                    break;
+                    case ISwBody body:
+                        body.Body.RemoveTrackingID(m_TrackDefId);
+                        break;
 
-                default:
-                    throw new NotSupportedException("Cannot track this type of object (supported types: faces, edges, vertices and bodies)");
+                    default:
+                        throw new NotSupportedException("Cannot track this type of object (supported types: faces, edges, vertices and bodies)");
+                }
             }
 
             if (m_TrackedObjects.Contains(obj))
