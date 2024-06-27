@@ -13,6 +13,9 @@ namespace Xarial.XCad.SolidWorks.Utils
 {
     internal class SwTextFormat : IFont
     {
+        internal static SwTextFormat Load(ITextFormat txtFormat, IFont baseFont) 
+            => new SwTextFormat(txtFormat, baseFont);
+
         internal ITextFormat TextFormat { get; }
 
         public string Name
@@ -21,9 +24,9 @@ namespace Xarial.XCad.SolidWorks.Utils
             set => TextFormat.TypeFaceName = value;
         }
 
-        public double? Size 
+        public double? Size
         {
-            get 
+            get
             {
                 if (TextFormat.IsHeightSpecifiedInPts())
                 {
@@ -34,13 +37,13 @@ namespace Xarial.XCad.SolidWorks.Utils
                     return TextFormat.CharHeight;
                 }
             }
-            set 
+            set
             {
                 if (value.HasValue)
                 {
                     TextFormat.CharHeight = value.Value;
                 }
-                else 
+                else
                 {
                     throw new Exception($"Use '{nameof(SizeInPoints)}' to specify size in points");
                 }
@@ -73,9 +76,9 @@ namespace Xarial.XCad.SolidWorks.Utils
             }
         }
 
-        public FontStyle_e Style 
+        public FontStyle_e Style
         {
-            get 
+            get
             {
                 var style = FontStyle_e.Regular;
 
@@ -110,7 +113,7 @@ namespace Xarial.XCad.SolidWorks.Utils
             }
         }
 
-        internal SwTextFormat(ITextFormat txtFormat) 
+        internal SwTextFormat(ITextFormat txtFormat)
         {
             if (txtFormat == null)
             {
@@ -119,32 +122,22 @@ namespace Xarial.XCad.SolidWorks.Utils
 
             TextFormat = txtFormat;
         }
-    }
 
-    internal class SwFontHelper
-    {
-        internal static void FillTextFormat(IFont font, ITextFormat txtFormat) 
+        private SwTextFormat(ITextFormat txtFormat, IFont baseFont) : this(txtFormat)
         {
-            if (font == null) 
+            Name = baseFont.Name;
+
+            if (baseFont.Size.HasValue)
             {
-                throw new ArgumentNullException(nameof(font));
+                Size = baseFont.Size;
             }
 
-            var swTextFormat = new SwTextFormat(txtFormat);
-
-            swTextFormat.Name = font.Name;
-            
-            if (font.Size.HasValue)
+            if (baseFont.SizeInPoints.HasValue)
             {
-                swTextFormat.Size = font.Size;
+                SizeInPoints = baseFont.SizeInPoints;
             }
 
-            if (font.SizeInPoints.HasValue) 
-            {
-                swTextFormat.SizeInPoints = font.SizeInPoints;
-            }
-
-            swTextFormat.Style = font.Style;
+            Style = baseFont.Style;
         }
     }
 }

@@ -152,11 +152,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else 
             {
-                textFormat = doc.Model.Extension.GetUserPreferenceTextFormat(
+                textFormat = (TextFormat)SwTextFormat.Load(doc.Model.Extension.GetUserPreferenceTextFormat(
                     (int)pref,
-                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
-
-                SwFontHelper.FillTextFormat(font, textFormat);
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified), font).TextFormat;
             }
 
             if (!doc.Model.Extension.SetUserPreferenceTextFormat(

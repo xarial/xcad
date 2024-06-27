@@ -173,9 +173,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
             if (Font != null) 
             {
-                var textFormat = (ITextFormat)ann.GetTextFormat(0);
-
-                SwFontHelper.FillTextFormat(Font, textFormat);
+                var textFormat = SwTextFormat.Load((ITextFormat)ann.GetTextFormat(0), Font).TextFormat;
 
                 ann.SetTextFormat(0, false, textFormat);
             }

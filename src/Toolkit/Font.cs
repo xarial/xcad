@@ -22,24 +22,31 @@ namespace Xarial.XCad.Toolkit
         /// <summary>
         /// Font name
         /// </summary>
-        public string Name { get; }
+        public string Name { get; set; }
         
         /// <summary>
         /// Font size
         /// </summary>
         /// <remarks>Null if size is in points</remarks>
-        public double? Size { get; }
+        public double? Size { get; set; }
 
         /// <summary>
         /// Size in points
         /// </summary>
         /// <remarks>Null if size is not in points</remarks>
-        public int? SizeInPoints { get; }
+        public int? SizeInPoints { get; set; }
         
         /// <summary>
         /// Style of the font
         /// </summary>
-        public FontStyle_e Style { get; }
+        public FontStyle_e Style { get; set; }
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public Font() 
+        {
+        }
 
         /// <summary>
         /// Constructor

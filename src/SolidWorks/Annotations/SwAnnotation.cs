@@ -136,7 +136,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
                         if (value != null)
                         {
-                            SwFontHelper.FillTextFormat(value, textFormat);
+                            textFormat = SwTextFormat.Load(textFormat, value).TextFormat;
                         }
                     }
                     
