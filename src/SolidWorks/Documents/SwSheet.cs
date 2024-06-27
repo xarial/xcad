@@ -199,11 +199,18 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
+                    var sheetFormatVisible = Sheet.SheetFormatVisible;
+
                     SetupSheet(Sheet, Name, PaperSize, Scale, value, ViewsProjectionType);
 
                     var res = Sheet.ReloadTemplate(false);
-                    
-                    if (res != (int)swReloadTemplateResult_e.swReloadTemplate_Success) 
+
+                    if (res == (int)swReloadTemplateResult_e.swReloadTemplate_Success)
+                    {
+                        //NOTE: in some cases sheet format visibility is reset after changing the sheet format
+                        Sheet.SheetFormatVisible = sheetFormatVisible;
+                    }
+                    else 
                     {
                         throw new Exception($"Failed to reload template: {res}");
                     }

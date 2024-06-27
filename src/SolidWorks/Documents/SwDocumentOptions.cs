@@ -5,9 +5,11 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using Xarial.XCad.Documents;
+using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -129,16 +131,143 @@ namespace Xarial.XCad.SolidWorks.Documents
             => m_Doc.SetUserPreferenceToggle(swUserPreferenceToggle_e.swDisplayAllAnnotations, true);
     }
 
+    internal static class TextFormatUserPreferences 
+    {
+        internal static IFont GetFont(SwDocument doc, swUserPreferenceTextFormat_e pref) 
+        {
+            var textFormat = doc.Model.Extension.GetUserPreferenceTextFormat(
+                    (int)pref,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+
+            return new SwTextFormat(textFormat);
+        }
+
+        internal static void SetFont(SwDocument doc, swUserPreferenceTextFormat_e pref, IFont font) 
+        {
+            TextFormat textFormat;
+
+            if (font is SwTextFormat)
+            {
+                textFormat = (TextFormat)((SwTextFormat)font).TextFormat;
+            }
+            else 
+            {
+                textFormat = doc.Model.Extension.GetUserPreferenceTextFormat(
+                    (int)pref,
+                    (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
+
+                SwFontHelper.FillTextFormat(font, textFormat);
+            }
+
+            if (!doc.Model.Extension.SetUserPreferenceTextFormat(
+                (int)pref,
+                (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, textFormat))
+            {
+                throw new Exception($"Failed to set text format '{pref}'");
+            }
+        }
+    }
+
+    internal class SwAnnotationsDraftingStandardOptions : IXAnnotationsDraftingStandardOptions 
+    {
+        private readonly SwDocument m_Doc;
+
+        internal SwAnnotationsDraftingStandardOptions(SwDocument doc) 
+        {
+            m_Doc = doc;
+        }
+
+        public IFont TextFont
+        {
+            get => TextFormatUserPreferences.GetFont(m_Doc, swUserPreferenceTextFormat_e.swDetailingAnnotationTextFormat);
+            set => TextFormatUserPreferences.SetFont(m_Doc, swUserPreferenceTextFormat_e.swDetailingAnnotationTextFormat, value);
+        }
+    }
+
+    internal class SwDimensionsDraftingStandardOptions : IXDimensionsDraftingStandardOptions 
+    {
+        private readonly SwDocument m_Doc;
+
+        internal SwDimensionsDraftingStandardOptions(SwDocument doc)
+        {
+            m_Doc = doc;
+        }
+
+        public IFont TextFont
+        {
+            get => TextFormatUserPreferences.GetFont(m_Doc, swUserPreferenceTextFormat_e.swDetailingDimensionTextFormat);
+            set => TextFormatUserPreferences.SetFont(m_Doc, swUserPreferenceTextFormat_e.swDetailingDimensionTextFormat, value);
+        }
+    }
+
+    internal class SwTablesDraftingStandardOptions : IXTablesDraftingStandardOptions 
+    {
+        private readonly SwDocument m_Doc;
+
+        internal SwTablesDraftingStandardOptions(SwDocument doc)
+        {
+            m_Doc = doc;
+        }
+
+        public IFont TextFont
+        {
+            get => TextFormatUserPreferences.GetFont(m_Doc, swUserPreferenceTextFormat_e.swDetailingTableTextFormat);
+            set => TextFormatUserPreferences.SetFont(m_Doc, swUserPreferenceTextFormat_e.swDetailingTableTextFormat, value);
+        }
+    }
+
+    internal class SwViewsDraftingStandardOptions : IXViewsDraftingStandardOptions 
+    {
+        private readonly SwDocument m_Doc;
+
+        internal SwViewsDraftingStandardOptions(SwDocument doc)
+        {
+            m_Doc = doc;
+        }
+
+        public IFont TextFont
+        {
+            get => TextFormatUserPreferences.GetFont(m_Doc, swUserPreferenceTextFormat_e.swDetailingViewTextFormat);
+            set => TextFormatUserPreferences.SetFont(m_Doc, swUserPreferenceTextFormat_e.swDetailingViewTextFormat, value);
+        }
+    }
+
+    internal class SwSheetMetalDraftingStandardOptions : IXSheetMetalDraftingStandardOptions 
+    {
+        private readonly SwDocument m_Doc;
+
+        internal SwSheetMetalDraftingStandardOptions(SwDocument doc)
+        {
+            m_Doc = doc;
+        }
+
+        public IFont TextFont
+        {
+            get => TextFormatUserPreferences.GetFont(m_Doc, swUserPreferenceTextFormat_e.swSheetMetalBendNotesTextFormat);
+            set => TextFormatUserPreferences.SetFont(m_Doc, swUserPreferenceTextFormat_e.swSheetMetalBendNotesTextFormat, value);
+        }
+    }
+
     internal class SwDocumentOptions : SwOptions, ISwDocumentOptions 
     {
         protected readonly SwDocument m_Doc;
 
-        internal SwDocumentOptions(SwDocument doc) 
+        internal SwDocumentOptions(SwDocument doc)
         {
             m_Doc = doc;
             ViewEntityKindVisibility = new SwViewEntityKindVisibilityOptions(doc);
+            AnnotationsDraftingStandard = new SwAnnotationsDraftingStandardOptions(doc);
+            DimensionsDraftingStandard = new SwDimensionsDraftingStandardOptions(doc);
+            TablesDraftingStandard = new SwTablesDraftingStandardOptions(doc);
+            ViewsDraftingStandard = new SwViewsDraftingStandardOptions(doc);
+            SheetMetalDraftingStandard = new SwSheetMetalDraftingStandardOptions(doc);
         }
 
         public IXViewEntityKindVisibilityOptions ViewEntityKindVisibility { get; }
+        public IXAnnotationsDraftingStandardOptions AnnotationsDraftingStandard { get; }
+        public IXDimensionsDraftingStandardOptions DimensionsDraftingStandard { get; }
+        public IXTablesDraftingStandardOptions TablesDraftingStandard { get; }
+        public IXViewsDraftingStandardOptions ViewsDraftingStandard { get; }
+        public IXSheetMetalDraftingStandardOptions SheetMetalDraftingStandard { get; }
     }
 }

@@ -113,7 +113,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
             {
                 if (IsCommitted)
                 {
-                    return SwFontHelper.FromTextFormat((ITextFormat)Annotation.GetTextFormat(0));
+                    return new SwTextFormat((ITextFormat)Annotation.GetTextFormat(0));
                 }
                 else
                 {
@@ -124,13 +124,22 @@ namespace Xarial.XCad.SolidWorks.Annotations
             {
                 if (IsCommitted)
                 {
-                    var textFormat = (ITextFormat)Annotation.GetTextFormat(0);
-                    
-                    if (value != null)
-                    {
-                        SwFontHelper.FillTextFormat(value, textFormat);
-                    }
+                    ITextFormat textFormat;
 
+                    if (value is SwTextFormat)
+                    {
+                        textFormat = ((SwTextFormat)value).TextFormat;
+                    }
+                    else 
+                    {
+                        textFormat = (ITextFormat)Annotation.GetTextFormat(0);
+
+                        if (value != null)
+                        {
+                            SwFontHelper.FillTextFormat(value, textFormat);
+                        }
+                    }
+                    
                     Annotation.SetTextFormat(0, value == null, textFormat);
                 }
                 else

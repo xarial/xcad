@@ -32,7 +32,7 @@ namespace Xarial.XCad
         /// <summary>
         /// Size of the font in points if <see cref="Size"/> is null
         /// </summary>
-        double? SizeInPoints { get; }
+        int? SizeInPoints { get; }
 
         /// <summary>
         /// Font style

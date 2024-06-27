@@ -103,6 +103,86 @@ namespace Xarial.XCad.Documents
         /// Visibility of the specific entity kinds
         /// </summary>
         IXViewEntityKindVisibilityOptions ViewEntityKindVisibility { get; }
+
+        /// <summary>
+        /// Annotations drafting standard
+        /// </summary>
+        IXAnnotationsDraftingStandardOptions AnnotationsDraftingStandard { get; }
+
+        /// <summary>
+        /// Dimensions drafting standard
+        /// </summary>
+        IXDimensionsDraftingStandardOptions DimensionsDraftingStandard { get; }
+
+        /// <summary>
+        ///  Tables drafting standard
+        /// </summary>
+        IXTablesDraftingStandardOptions TablesDraftingStandard { get; }
+
+        /// <summary>
+        /// Views drafting standard
+        /// </summary>
+        IXViewsDraftingStandardOptions ViewsDraftingStandard { get; }
+
+        /// <summary>
+        ///  Sheet Metal drafting standard
+        /// </summary>
+        IXSheetMetalDraftingStandardOptions SheetMetalDraftingStandard { get; }
+    }
+
+    /// <summary>
+    /// Annotations drafting standard options
+    /// </summary>
+    public interface IXAnnotationsDraftingStandardOptions 
+    {
+        /// <summary>
+        /// Fond of annotations
+        /// </summary>
+        IFont TextFont { get; set; }
+    }
+
+    /// <summary>
+    /// Dimensions drafting standard options
+    /// </summary>
+    public interface IXDimensionsDraftingStandardOptions
+    {
+        /// <summary>
+        /// Font of text format
+        /// </summary>
+        IFont TextFont { get; set; }
+    }
+
+    /// <summary>
+    /// Tables drafting standard options
+    /// </summary>
+    public interface IXTablesDraftingStandardOptions
+    {
+        /// <summary>
+        /// Font of text format
+        /// </summary>
+        IFont TextFont { get; set; }
+    }
+
+    /// <summary>
+    /// Views drafting standard options
+    /// </summary>
+    public interface IXViewsDraftingStandardOptions
+    {
+        /// <summary>
+        /// Font of text format
+        /// </summary>
+        IFont TextFont { get; set; }
+    }
+
+    /// <summary>
+    /// Sheet Metal drafting standard options
+    /// </summary>
+    public interface IXSheetMetalDraftingStandardOptions
+    {
+        /// <summary>
+        /// Font of text format
+        /// </summary>
+        IFont TextFont { get; set; }
     }
 
     /// <summary>

@@ -14,14 +14,41 @@ using Xarial.XCad.Enums;
 
 namespace Xarial.XCad.Toolkit
 {
+    /// <summary>
+    /// Represents instance of the font
+    /// </summary>
     public class Font : IFont
     {
+        /// <summary>
+        /// Font name
+        /// </summary>
         public string Name { get; }
+        
+        /// <summary>
+        /// Font size
+        /// </summary>
+        /// <remarks>Null if size is in points</remarks>
         public double? Size { get; }
-        public double? SizeInPoints { get; }
+
+        /// <summary>
+        /// Size in points
+        /// </summary>
+        /// <remarks>Null if size is not in points</remarks>
+        public int? SizeInPoints { get; }
+        
+        /// <summary>
+        /// Style of the font
+        /// </summary>
         public FontStyle_e Style { get; }
 
-        public Font(string name, double? size, double? sizeInPoints, FontStyle_e style)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="name">Name</param>
+        /// <param name="size">Size</param>
+        /// <param name="sizeInPoints">Size in points</param>
+        /// <param name="style">Style</param>
+        public Font(string name, double? size, int? sizeInPoints, FontStyle_e style)
         {
             Name = name;
             Size = size;

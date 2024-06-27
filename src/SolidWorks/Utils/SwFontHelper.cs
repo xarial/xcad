@@ -7,63 +7,122 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xarial.XCad.Enums;
-using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.SolidWorks.Utils
 {
-    internal class SwFontHelper
+    internal class SwTextFormat : IFont
     {
-        internal static IFont FromTextFormat(ITextFormat txtFormat)
+        internal ITextFormat TextFormat { get; }
+
+        public string Name
         {
-            if (txtFormat == null) 
+            get => TextFormat.TypeFaceName;
+            set => TextFormat.TypeFaceName = value;
+        }
+
+        public double? Size 
+        {
+            get 
+            {
+                if (TextFormat.IsHeightSpecifiedInPts())
+                {
+                    return null;
+                }
+                else
+                {
+                    return TextFormat.CharHeight;
+                }
+            }
+            set 
+            {
+                if (value.HasValue)
+                {
+                    TextFormat.CharHeight = value.Value;
+                }
+                else 
+                {
+                    throw new Exception($"Use '{nameof(SizeInPoints)}' to specify size in points");
+                }
+            }
+        }
+
+        public int? SizeInPoints
+        {
+            get
+            {
+                if (TextFormat.IsHeightSpecifiedInPts())
+                {
+                    return TextFormat.CharHeightInPts;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            set
+            {
+                if (value.HasValue)
+                {
+                    TextFormat.CharHeightInPts = value.Value;
+                }
+                else
+                {
+                    throw new Exception($"Use '{nameof(Size)}' to specify size in points");
+                }
+            }
+        }
+
+        public FontStyle_e Style 
+        {
+            get 
+            {
+                var style = FontStyle_e.Regular;
+
+                if (TextFormat.Bold)
+                {
+                    style |= FontStyle_e.Bold;
+                }
+
+                if (TextFormat.Italic)
+                {
+                    style |= FontStyle_e.Italic;
+                }
+
+                if (TextFormat.Strikeout)
+                {
+                    style |= FontStyle_e.Strikeout;
+                }
+
+                if (TextFormat.Underline)
+                {
+                    style |= FontStyle_e.Underline;
+                }
+
+                return style;
+            }
+            set
+            {
+                TextFormat.Bold = value.HasFlag(FontStyle_e.Bold);
+                TextFormat.Italic = value.HasFlag(FontStyle_e.Italic);
+                TextFormat.Underline = value.HasFlag(FontStyle_e.Underline);
+                TextFormat.Strikeout = value.HasFlag(FontStyle_e.Strikeout);
+            }
+        }
+
+        internal SwTextFormat(ITextFormat txtFormat) 
+        {
+            if (txtFormat == null)
             {
                 throw new ArgumentNullException(nameof(txtFormat));
             }
 
-            var style = FontStyle_e.Regular;
-
-            if (txtFormat.Bold) 
-            {
-                style |= FontStyle_e.Bold;
-            }
-
-            if (txtFormat.Italic) 
-            {
-                style |= FontStyle_e.Italic;
-            }
-
-            if (txtFormat.Strikeout) 
-            {
-                style |= FontStyle_e.Strikeout;
-            }
-
-            if (txtFormat.Underline)
-            {
-                style |= FontStyle_e.Underline;
-            }
-
-            double? height;
-            double? heightInPts;
-
-            if (txtFormat.IsHeightSpecifiedInPts())
-            {
-                heightInPts = txtFormat.CharHeightInPts;
-                height = null;
-            }
-            else 
-            {
-                heightInPts = null;
-                height = txtFormat.CharHeight;
-            }
-
-            return new Font(txtFormat.TypeFaceName, height, heightInPts, style);
+            TextFormat = txtFormat;
         }
+    }
 
+    internal class SwFontHelper
+    {
         internal static void FillTextFormat(IFont font, ITextFormat txtFormat) 
         {
             if (font == null) 
@@ -71,26 +130,21 @@ namespace Xarial.XCad.SolidWorks.Utils
                 throw new ArgumentNullException(nameof(font));
             }
 
-            if (txtFormat == null)
-            {
-                throw new ArgumentNullException(nameof(txtFormat));
-            }
+            var swTextFormat = new SwTextFormat(txtFormat);
+
+            swTextFormat.Name = font.Name;
             
-            txtFormat.TypeFaceName = font.Name;
-
-            if (font.Size.HasValue) 
+            if (font.Size.HasValue)
             {
-                txtFormat.CharHeight = font.Size.Value;
-            }
-            else if (font.SizeInPoints.HasValue)
-            {
-                txtFormat.CharHeightInPts = Convert.ToInt32(font.SizeInPoints.Value);
+                swTextFormat.Size = font.Size;
             }
 
-            txtFormat.Bold = font.Style.HasFlag(FontStyle_e.Bold);
-            txtFormat.Italic = font.Style.HasFlag(FontStyle_e.Italic);
-            txtFormat.Underline = font.Style.HasFlag(FontStyle_e.Underline);
-            txtFormat.Strikeout = font.Style.HasFlag(FontStyle_e.Strikeout);
+            if (font.SizeInPoints.HasValue) 
+            {
+                swTextFormat.SizeInPoints = font.SizeInPoints;
+            }
+
+            swTextFormat.Style = font.Style;
         }
     }
 }
