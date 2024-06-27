@@ -16,6 +16,8 @@ using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Utils;
 
@@ -99,11 +101,14 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (m_Sheet.IsCommitted)
             {
-                m_Draw.Selections.AddRange(ents);
-
-                if (!m_Draw.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed)) 
+                using (var selGrp = new SelectionGroup(m_Draw, true))
                 {
-                    throw new Exception("Failed to delete views");
+                    selGrp.AddRange(ents.Cast<SwDrawingView>().Select(e => e.DrawingView).ToArray());
+
+                    if (!m_Draw.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+                    {
+                        throw new Exception("Failed to delete views");
+                    }
                 }
             }
             else 

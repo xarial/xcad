@@ -98,24 +98,31 @@ namespace Xarial.XCad.SolidWorks.Documents
                 throw new ArgumentNullException(nameof(ents));
             }
 
-            var disps = ents.Cast<SwSelObject>().Select(e => new DispatchWrapper(e.Dispatch)).ToArray();
-
-            int curSelCount;
-
-            if (append)
+            if (ents.Any())
             {
-                curSelCount = SelMgr.GetSelectedObjectCount2(-1);
+                var disps = ents.Cast<SwSelObject>().Select(e => new DispatchWrapper(e.Dispatch)).ToArray();
+
+                int curSelCount;
+
+                if (append)
+                {
+                    curSelCount = SelMgr.GetSelectedObjectCount2(-1);
+                }
+                else
+                {
+                    curSelCount = 0;
+                }
+
+                var selCount = Model.Extension.MultiSelect2(disps, append, null) - curSelCount;
+
+                if (selCount != disps.Length)
+                {
+                    throw new Exception("Selection failed");
+                }
             }
             else 
             {
-                curSelCount = 0;
-            }
-
-            var selCount = Model.Extension.MultiSelect2(disps, append, null) - curSelCount;
-
-            if (selCount != disps.Length)
-            {
-                throw new Exception("Selection failed");
+                throw new Exception("No entitites to select");
             }
         }
 
