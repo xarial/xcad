@@ -62,7 +62,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
 
             if (Profiles.Length > 1)
             {
-                var profiles = Profiles.Select(p => GetSingleCurve(p.OuterLoop.Curves.SelectMany(c => c.Curves).ToArray()).MakeBsplineCurve2()).ToArray();
+                var profiles = Profiles.Select(p => GetSingleCurve(p.OuterLoop.IterateCurves().SelectMany(c => c.Curves).ToArray()).MakeBsplineCurve2()).ToArray();
 
                 var guides = new ICurve[] { };
                 var surf = (ISurface)m_Modeler.CreateLoftSurface(profiles, false, false, guides, 0, 0,

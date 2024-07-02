@@ -303,7 +303,7 @@ namespace SolidWorks.Tests.Integration
             polyline.Commit();
 
             var outerLoop = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLoop();
-            outerLoop.Segments = new Xarial.XCad.Geometry.Wires.IXSegment[] { polyline };
+            outerLoop.Segments = new IXSegment[] { polyline };
             outerLoop.Commit();
 
             var innerSeg1 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
@@ -311,7 +311,7 @@ namespace SolidWorks.Tests.Integration
             innerSeg1.Commit();
 
             var innerLoop1 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLoop();
-            innerLoop1.Segments = new Xarial.XCad.Geometry.Wires.IXSegment[]
+            innerLoop1.Segments = new IXSegment[]
             {
                 innerSeg1
             };
@@ -409,16 +409,16 @@ namespace SolidWorks.Tests.Integration
             }
 
             Assert.AreEqual(4, faceOuterLoop.Length);
-            Assert.That(faceOuterLoop.All(x => typeof(ISwLineCurve).IsAssignableFrom(x)));
+            Assert.That(faceOuterLoop.All(x => typeof(ISwLinearEdge).IsAssignableFrom(x)));
             Assert.AreEqual(2, faceInnerLoops.Length);
-            Assert.That(faceInnerLoops.Any(l => l.Length == 1) && faceInnerLoops.First(l => l.Length == 1).All(x => typeof(ISwCircleCurve).IsAssignableFrom(x)));
-            Assert.That(faceInnerLoops.Any(l => l.Length == 3) && faceInnerLoops.First(l => l.Length == 3).All(x => typeof(ISwLineCurve).IsAssignableFrom(x)));
+            Assert.That(faceInnerLoops.Any(l => l.Length == 1) && faceInnerLoops.First(l => l.Length == 1).All(x => typeof(ISwCircularEdge).IsAssignableFrom(x)));
+            Assert.That(faceInnerLoops.Any(l => l.Length == 3) && faceInnerLoops.First(l => l.Length == 3).All(x => typeof(ISwLinearEdge).IsAssignableFrom(x)));
 
             Assert.AreEqual(4, skRegOuterLoop.Length);
-            Assert.That(skRegOuterLoop.All(x => typeof(ISwLineCurve).IsAssignableFrom(x)));
+            Assert.That(skRegOuterLoop.All(x => typeof(ISwLinearEdge).IsAssignableFrom(x)));
             Assert.AreEqual(2, skRegInnerLoops.Length);
-            Assert.That(skRegInnerLoops.Any(l => l.Length == 1) && faceInnerLoops.First(l => l.Length == 1).All(x => typeof(ISwCircleCurve).IsAssignableFrom(x)));
-            Assert.That(skRegInnerLoops.Any(l => l.Length == 3) && faceInnerLoops.First(l => l.Length == 3).All(x => typeof(ISwLineCurve).IsAssignableFrom(x)));
+            Assert.That(skRegInnerLoops.Any(l => l.Length == 1) && faceInnerLoops.First(l => l.Length == 1).All(x => typeof(ISwCircularEdge).IsAssignableFrom(x)));
+            Assert.That(skRegInnerLoops.Any(l => l.Length == 3) && faceInnerLoops.First(l => l.Length == 3).All(x => typeof(ISwLinearEdge).IsAssignableFrom(x)));
         }
 
         [Test]

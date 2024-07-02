@@ -197,7 +197,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
                     {
                         foreach (var loop in new ISwLoop[] { sheetProfile.OuterLoop }.Union(sheetProfile.InnerLoops ?? new ISwLoop[0]))
                         {
-                            bodies.Add(CreateExtrusionFromCurves(loop.Curves, Direction, length));
+                            bodies.Add(CreateExtrusionFromCurves(loop.IterateCurves().ToArray(), Direction, length));
                         }
                     }
                 }

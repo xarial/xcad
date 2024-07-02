@@ -18,6 +18,7 @@ using System.Windows.Forms;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.SolidWorks.Annotations;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -123,11 +124,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void RemoveRange(IEnumerable<IXAnnotation> ents, CancellationToken cancellationToken)
         {
-            m_Doc.Selections.ReplaceRange(ents, cancellationToken);
-            
-            if (!m_Doc.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+            using (var selGrp = new SelectionGroup(m_Doc, true))
             {
-                throw new Exception("Failed to delete annotations");
+                selGrp.AddRange(ents.Cast<SwAnnotation>().Select(e => e.Annotation).ToArray());
+
+                if (!m_Doc.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed))
+                {
+                    throw new Exception("Failed to delete annotations");
+                }
             }
         }
 

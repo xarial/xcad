@@ -53,7 +53,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 var outerLoop = OuterLoop;
 
-                var firstCurve = outerLoop.Curves.First() as SwCurve;
+                var firstCurve = outerLoop.IterateCurves().First() as SwCurve;
 
                 if (firstCurve?.TryGetPlane(out plane) == true)
                 {
@@ -65,11 +65,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
                     //TODO: check if all on the same plane
                     //TODO: fix if a single curve
 
-                    var refVec1 = outerLoop.Curves[0].EndPoint.Coordinate - outerLoop.Curves[0].StartPoint.Coordinate;
-                    var refVec2 = outerLoop.Curves[1].EndPoint.Coordinate - outerLoop.Curves[1].StartPoint.Coordinate;
+                    var refVec1 = outerLoop.Segments[0].EndPoint.Coordinate - outerLoop.Segments[0].StartPoint.Coordinate;
+                    var refVec2 = outerLoop.Segments[1].EndPoint.Coordinate - outerLoop.Segments[1].StartPoint.Coordinate;
                     var normVec = refVec1.Cross(refVec2);
 
-                    return new Plane(outerLoop.Curves[0].StartPoint.Coordinate, normVec, refVec1);
+                    return new Plane(outerLoop.Segments[0].StartPoint.Coordinate, normVec, refVec1);
                 }
             }
         }
@@ -166,30 +166,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private bool? CreateRegion(CancellationToken cancellationToken) => true;
 
-        private IEnumerable<ICurve> IterateCurves(IXLoop loop) 
+        private IEnumerable<ICurve> IterateCurves(ISwLoop loop) 
         {
-            foreach (var seg in loop.Segments) 
+            foreach (var segCurve in loop.IterateCurves()) 
             {
-                ISwCurve segCurve;
-
-                switch (seg)
-                {
-                    case ISwCurve curve:
-                        segCurve = curve;
-                        break;
-
-                    case ISwEdge edge:
-                        segCurve = edge.Definition;
-                        break;
-
-                    case ISwSketchSegment skSeg:
-                        segCurve = skSeg.Definition;
-                        break;
-
-                    default:
-                        throw new NotSupportedException();
-                }
-
                 foreach (var subSegCurve in segCurve.Curves) 
                 {
                     yield return subSegCurve.ICopy();

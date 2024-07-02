@@ -21,29 +21,27 @@ using Xarial.XCad.UI.Structures;
 namespace Xarial.XCad.UI.Commands
 {
     /// <summary>
+    /// Specific command spec associated with enumeration
+    /// </summary>
+    public class EnumCommandSpec : CommandSpec
+    {
+        /// <summary>
+        /// Enumeration value of this command spec
+        /// </summary>
+        public Enum Value { get; }
+
+        internal EnumCommandSpec(Enum value, int userId) : base(userId)
+        {
+            Value = value;
+        }
+    }
+
+    /// <summary>
     /// Additional methods for <see cref="IXCommandManager"/>
     /// </summary>
     public static class XCommandManagerExtension
     {
         //TODO: think of a way to call Dispose on all wrapped enum groups
-
-        /// <summary>
-        /// Specific command spec associated with enumeration
-        /// </summary>
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public class EnumCommandSpec : CommandSpec
-        {
-            /// <summary>
-            /// Enumeration value of this command spec
-            /// </summary>
-            [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-            public Enum Value { get; }
-
-            internal EnumCommandSpec(Enum value, int userId) : base(userId)
-            {
-                Value = value;
-            }
-        }
 
         internal class EnumCommandSpec<TEnum> : EnumCommandSpec
             where TEnum : Enum
@@ -121,7 +119,6 @@ namespace Xarial.XCad.UI.Commands
         /// <param name="id">Id or null to read the data from enum itself</param>
         /// <returns>Specification</returns>
         /// <exception cref="GroupUserIdNotAssignedException"/>
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public static EnumCommandGroupSpec CreateSpecFromEnum<TCmdEnum>(this IXCommandManager cmdMgr, CommandGroupSpec parent, int? id)
             where TCmdEnum : Enum
         {

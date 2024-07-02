@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Exceptions;
@@ -18,23 +19,23 @@ using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
+using Xarial.XCad.SolidWorks.Sketch;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
+    /// <summary>
+    /// SOLIDWORKS-specific loop
+    /// </summary>
     public interface ISwLoop : IXLoop, ISwSelObject
     {
+        /// <summary>
+        /// Pointer to SOLIDWORKS loop
+        /// </summary>
         ILoop2 Loop { get; }
-        ISwCurve[] Curves { get; set; }
     }
 
     internal class SwLoop : SwSelObject, ISwLoop
     {
-        IXSegment[] IXLoop.Segments
-        {
-            get => Curves;
-            set => Curves = value?.Cast<ISwCurve>().ToArray();
-        }
-
         public ILoop2 Loop 
         {
             get 
@@ -58,10 +59,47 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         public override bool IsCommitted => m_Creator.IsCreated;
+                
+        public IXSegment[] Segments
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    if (!m_IsVirtual)
+                    {
+                        return (Loop.GetEdges() as object[])
+                            .Cast<IEdge>()
+                            .Select(e => OwnerApplication.CreateObjectFromDispatch<ISwEdge>(e, OwnerDocument))
+                            .ToArray();
+                    }
+                    else
+                    {
+                        return m_VirtualSegments;
+                    }
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<IXSegment[]>();
+                }
+            }
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
 
         private readonly ElementCreator<ILoop2> m_Creator;
 
         private bool m_IsVirtual;
+        private IXSegment[] m_VirtualSegments;
 
         internal SwLoop(ILoop2 loop, SwDocument doc, SwApplication app) : base(loop, doc, app)
         {
@@ -70,37 +108,50 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_Creator = new ElementCreator<ILoop2>(CreateLoop, loop, loop != null);
         }
 
-        private ILoop2 CreateLoop(CancellationToken cancellationToken) => null;
-
-        public ISwCurve[] Curves
+        private ILoop2 CreateLoop(CancellationToken cancellationToken) 
         {
-            get
+            if (m_IsVirtual)
             {
-                if (!m_IsVirtual)
-                {
-                    return (Loop.GetEdges() as object[])
-                        .Cast<IEdge>()
-                        .Select(e => OwnerApplication.CreateObjectFromDispatch<ISwCurve>(e.IGetCurve().ICopy(), OwnerDocument))
-                        .ToArray();
-                }
-                else
-                {
-                    return m_Creator.CachedProperties.Get<ISwCurve[]>();
-                }
+                m_VirtualSegments = m_Creator.CachedProperties.Get<IXSegment[]>(nameof(Segments));
+                return null;
             }
-            set 
+            else 
             {
-                if (!IsCommitted)
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-                else 
-                {
-                    throw new CommitedElementReadOnlyParameterException();
-                }
+                throw new NotSupportedException();
             }
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+    }
+
+    internal static class SwLoopExtension 
+    {
+        internal static IEnumerable<ISwCurve> IterateCurves(this ISwLoop loop)
+        {
+            foreach (var seg in loop.Segments)
+            {
+                ISwCurve segCurve;
+
+                switch (seg)
+                {
+                    case ISwCurve curve:
+                        segCurve = curve;
+                        break;
+
+                    case ISwEdge edge:
+                        segCurve = edge.Definition;
+                        break;
+
+                    case ISwSketchSegment skSeg:
+                        segCurve = skSeg.Definition;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                yield return segCurve;
+            }
+        }
     }
 }

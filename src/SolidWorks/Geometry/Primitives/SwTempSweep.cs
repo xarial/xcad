@@ -102,7 +102,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Primitives
                         throw new NotSupportedException("Only single loop is supported for the profile");
                     }
 
-                    var profileCurve = GetSingleCurve(profile.OuterLoop.Curves.SelectMany(c => c.Curves).ToArray());
+                    var profileCurve = GetSingleCurve(profile.OuterLoop.IterateCurves().SelectMany(c => c.Curves).ToArray());
                     var profileBody = profileCurve.CreateWireBody();
 
                     selData.Mark = 1;
