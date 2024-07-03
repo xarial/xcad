@@ -10,26 +10,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Enums;
 
-namespace Xarial.XCad.Exceptions
+namespace Xarial.XCad.UI.PropertyPage.Attributes
 {
     /// <summary>
-    /// Indicates error with the operation of the table row or column
+    /// Customizing proeprty page buttons
     /// </summary>
-    public class TableElementOperationException : Exception
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    public class PageButtonsAttribute : Attribute, IAttribute
     {
         /// <summary>
-        /// Constructor
+        /// List of buttons
         /// </summary>
-        public TableElementOperationException(string message) : base(message)
-        {
-        }
+        public PageButtons_e Buttons { get; }
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public TableElementOperationException(string msg, Exception inner) : base(msg, inner)
+        /// <param name="buttons">Buttons list</param>
+        public PageButtonsAttribute(PageButtons_e buttons) 
         {
+            Buttons = buttons;
         }
     }
 }

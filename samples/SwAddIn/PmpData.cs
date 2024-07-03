@@ -257,9 +257,31 @@ namespace SwAddInExample
 
     [ComVisible(true)]
     [Help("https://xcad.net/")]
-    //[PageOptions(PageOptions_e.OkayButton | PageOptions_e.CancelButton | PageOptions_e.HandleKeystrokes)]
+    [PageOptions(PageOptions_e.HandleKeystrokes)]
+    [PageButtons(PageButtons_e.Okay | PageButtons_e.Cancel | PageButtons_e.Pushpin | PageButtons_e.Preview)]
+    [LockedPage(LockPageStrategy_e.Restorable)]
     public class PmpData : SwPropertyManagerPageHandler, INotifyPropertyChanged
     {
+        public class ListsGroup 
+        {
+            [Metadata("_SRC_")]
+            public MyItem1[] Source { get; } = new MyItem1[] { new MyItem1("X"), new MyItem1("Y"), new MyItem1("Z") };
+
+            [ComboBox(ItemsSource = "_SRC_")]
+            public MyItem1 ItemsSourceComboBox { get; set; }
+
+            [ListBox(ItemsSource = "_SRC_", DisplayMemberPath = "DisplayName.Name")]
+            [Label("List Box1:", ControlLeftAlign_e.LeftEdge, FontStyle_e.Bold)]
+            [ControlOptions(align: ControlLeftAlign_e.Indent)]
+            public MyItem1 ListBox1 { get; set; }
+
+            [ListBox("A1", "A2", "A3")]
+            public string ListBox2 { get; set; }
+
+            [ListBox(1, 2, 3, 4)]
+            public List<int> ListBox3 { get; set; }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         //[SelectionBoxOptions(Filters = new Type[] { typeof(IXFace) })]
@@ -328,22 +350,7 @@ namespace SwAddInExample
         [Label("Static Combo Box:", ControlLeftAlign_e.Indent)]
         public int StaticComboBox { get; set; }
 
-        [Metadata("_SRC_")]
-        public MyItem1[] Source { get; } = new MyItem1[] { new MyItem1("X"), new MyItem1("Y"), new MyItem1("Z") };
-
-        [ComboBox(ItemsSource = "_SRC_")]
-        public MyItem1 ItemsSourceComboBox { get; set; }
-
-        [ListBox(ItemsSource = "_SRC_", DisplayMemberPath = "DisplayName.Name")]
-        [Label("List Box1:", ControlLeftAlign_e.LeftEdge, FontStyle_e.Bold)]
-        [ControlOptions(align: ControlLeftAlign_e.Indent)]
-        public MyItem1 ListBox1 { get; set; }
-
-        [ListBox("A1", "A2", "A3")]
-        public string ListBox2 { get; set; }
-
-        [ListBox(1, 2, 3, 4)]
-        public List<int> ListBox3 { get; set; }
+        public ListsGroup Lists { get; }
 
         //[ListBox]
         [OptionBox]
@@ -403,6 +410,8 @@ namespace SwAddInExample
             {
                 { "A", "Hello" }
             };
+
+            Lists = new ListsGroup();
 
             Button1 = () =>
             {

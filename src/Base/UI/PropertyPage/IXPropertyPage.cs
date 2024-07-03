@@ -37,8 +37,19 @@ namespace Xarial.XCad.UI.PropertyPage
         event KeystrokeHookDelegate KeystrokeHook;
 
         /// <summary>
+        /// Raised when preview button is clicked
+        /// </summary>
+        event PagePreviewDelegate Preview;
+
+        /// <summary>
+        /// Raised when undo or redo action is clicked
+        /// </summary>
+        event PageUndoDelegate Undo;
+
+        /// <summary>
         /// Checks if page is pinned
         /// </summary>
+        /// <remarks>Set the <see cref="Enums.PageButtons_e.Pushpin"/> button in the <see cref="Attributes.PageButtonsAttribute"/></remarks>
         bool IsPinned { get; set; }
 
         /// <summary>

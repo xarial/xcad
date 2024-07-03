@@ -66,6 +66,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         /// <inheritdoc/>
         public event KeystrokeHookDelegate KeystrokeHook;
 
+        /// <inheritdoc/>
+        public event PagePreviewDelegate Preview;
+
+        /// <inheritdoc/>
+        public event PageUndoDelegate Undo;
+
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public event Action<IAutoDisposable> Disposed;
 
@@ -95,6 +101,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         private readonly IContextProvider m_ContextProvider;
 
         private readonly IReadOnlyDictionary<int, IControl> m_Controls;
+
+        private bool m_IsPreviewEnabled;
 
         private bool m_IsShown;
 
@@ -126,6 +134,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             ValidateHandler(Handler);
 
             Handler.Keystroke += OnKeystroke;
+            Handler.Preview += OnPreview;
+            Handler.Undo += OnUndo;
+            Handler.Redo += OnRedo;
             Handler.Closed += OnClosed;
             Handler.Closing += OnClosing;
             m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, Handler, pageSpec, m_Logger);
@@ -199,6 +210,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                 m_Page.Dispose();
 
                 Handler.Keystroke -= OnKeystroke;
+                Handler.Preview -= OnPreview;
+                Handler.Undo -= OnUndo;
+                Handler.Redo -= OnRedo;
                 Handler.Closed -= OnClosed;
                 Handler.Closing -= OnClosing;
 
@@ -256,19 +270,30 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         private void OnClosed(swPropertyManagerPageCloseReasons_e reason)
         {
+            m_IsShown = false;
+
             if (!m_IsSuppressed)
             {
-                Closed?.Invoke(ConvertReason(reason));
+                if (m_Page.IsRestorable && reason == swPropertyManagerPageCloseReasons_e.swPropertyManagerPageClose_UnknownReason)
+                {
+                    Show(Model);
+                }
+                else 
+                {
+                    Closed?.Invoke(ConvertReason(reason));
+                }
             }
-
-            m_IsShown = false;
         }
 
         private void OnClosing(swPropertyManagerPageCloseReasons_e reason, PageClosingArg arg)
         {
             if (!m_IsSuppressed)
             {
-                Closing?.Invoke(ConvertReason(reason), arg);
+                //do not close the page if it is closed by the system and page is restorable
+                if (!m_Page.IsRestorable || reason != swPropertyManagerPageCloseReasons_e.swPropertyManagerPageClose_UnknownReason)
+                {
+                    Closing?.Invoke(ConvertReason(reason), arg);
+                }
             }
         }
 
@@ -281,6 +306,26 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             KeystrokeHook?.Invoke(ctrl, message, new IntPtr(wParam), new IntPtr(lParam), ref handled);
 
             return handled;
+        }
+
+        private void OnRedo() => Undo?.Invoke(PageUndoRedoAction_e.Redo);
+
+        private void OnUndo() => Undo?.Invoke(PageUndoRedoAction_e.Undo);
+
+        private bool OnPreview()
+        {
+            var cancel = false;
+
+            var newPreviewEnabled = !m_IsPreviewEnabled;
+
+            Preview?.Invoke(newPreviewEnabled, ref cancel);
+
+            if (!cancel) 
+            {
+                m_IsPreviewEnabled = newPreviewEnabled;
+            }
+
+            return !cancel;
         }
 
         public void Close(bool cancel) => m_Page.Page.Close(!cancel);

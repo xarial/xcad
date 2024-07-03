@@ -14,9 +14,8 @@ using Xarial.XCad.UI.PropertyPage.Base;
 
 namespace Xarial.XCad.UI.PropertyPage.Delegates
 {
-
     /// <summary>
-    /// Delegate for the <see cref="IXPropertyPage.KeystrokeHook"/> event
+    /// Delegate for the <see cref="IXPropertyPage{TDataModel}.KeystrokeHook"/> event
     /// </summary>
     /// <param name="ctrl">Control that has focus when keystroke was made</param>
     /// <param name="msg">Message identifier</param>

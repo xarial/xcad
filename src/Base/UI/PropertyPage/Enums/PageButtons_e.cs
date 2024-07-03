@@ -11,36 +11,43 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Xarial.XCad.Documents.Enums
+namespace Xarial.XCad.UI.PropertyPage.Enums
 {
     /// <summary>
-    /// Represents the display mode of the <see cref="IXDrawingView"/> and <see cref="IXModelView"/>
+    /// Buttons of the <see cref="IXPropertyPage{TDataModel}"/>
     /// </summary>
-    public enum ViewDisplayMode_e
+    [Flags]
+    public enum PageButtons_e
     {
         /// <summary>
-        /// Wireframe
+        /// OK button
         /// </summary>
-        Wireframe,
+        Okay = 1,
 
         /// <summary>
-        /// Hidden Lines Visible
+        /// Cancel button
         /// </summary>
-        HiddenLinesVisible,
+        Cancel = 2,
 
         /// <summary>
-        /// Hidden Lines Removed
+        /// Pushpin button
         /// </summary>
-        HiddenLinesRemoved,
+        Pushpin = 4,
 
         /// <summary>
-        /// Shaded With Edges
+        /// Preview button
         /// </summary>
-        ShadedWithEdges,
+        /// <remarks>Handle <see cref="IXPropertyPage{TDataModel}.Preview"/> event to update the preview</remarks>
+        Preview = 8,
 
         /// <summary>
-        /// Shaded
+        /// Undo button
         /// </summary>
-        Shaded
+        Undo = 16,
+
+        /// <summary>
+        /// Redu button
+        /// </summary>
+        Redo = 32
     }
 }

@@ -92,6 +92,16 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
                     Add(new PageOptionsAttribute(pageSpec.Options));
                 }
 
+                if (!Has<PageButtonsAttribute>())
+                {
+                    Add(new PageButtonsAttribute(pageSpec.Buttons));
+                }
+
+                if (!Has<LockedPageAttribute>())
+                {
+                    Add(new LockedPageAttribute(pageSpec.LockPageStrategy));
+                }
+
                 if (string.IsNullOrEmpty(baseAttSet.Name)
                     || baseAttSet.Name == ContextType.Name)
                 {

@@ -10,28 +10,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Xarial.XCad.Geometry;
 
-namespace Xarial.XCad.Enums
+namespace Xarial.XCad.UI.PropertyPage.Delegates
 {
     /// <summary>
-    /// Type of the face sheel
+    /// Delegate of <see cref="IXPropertyPage{TDataModel}.Preview"/> event
     /// </summary>
-    public enum FaceShellType_e
-    {
-        /// <summary>
-        /// Face of the <see cref="IXSheetBody"/>
-        /// </summary>
-        Open,
-
-        /// <summary>
-        /// Cavity face
-        /// </summary>
-        Internal,
-
-        /// <summary>
-        /// External face
-        /// </summary>
-        External
-    }
+    /// <param name="enabled">True if preview is enabled, false if disabled</param>
+    /// <param name="cancel">Cancel the preview state change</param>
+    public delegate void PagePreviewDelegate(bool enabled, ref bool cancel);
 }

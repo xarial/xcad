@@ -15,8 +15,12 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// Property manager page options
     /// </summary>
     /// <remarks>Applied to the main class of the data model</remarks>
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class PageOptionsAttribute : Attribute, IAttribute
     {
+        /// <summary>
+        /// Options of the page
+        /// </summary>
         public PageOptions_e Options { get; private set; }
 
         /// <summary>Constructor for specifying property manager page options</summary>

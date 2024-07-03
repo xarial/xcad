@@ -10,28 +10,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Xarial.XCad.Geometry;
 
-namespace Xarial.XCad.Enums
+namespace Xarial.XCad.UI.PropertyPage.Enums
 {
     /// <summary>
-    /// Type of the face sheel
+    /// Undo or redo action of <see cref="Delegates.PageUndoDelegate"/>
     /// </summary>
-    public enum FaceShellType_e
+    public enum PageUndoRedoAction_e
     {
         /// <summary>
-        /// Face of the <see cref="IXSheetBody"/>
+        /// Undo action
         /// </summary>
-        Open,
+        Undo,
 
         /// <summary>
-        /// Cavity face
+        /// Redo action
         /// </summary>
-        Internal,
-
-        /// <summary>
-        /// External face
-        /// </summary>
-        External
+        Redo
     }
 }

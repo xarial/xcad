@@ -17,6 +17,7 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 using Xarial.XCad.Utils.Reflection;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
@@ -26,6 +27,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         internal SwPropertyManagerPageHandler Handler { get; }
         internal ISldWorks SwApp { get; }
         
+        internal bool IsRestorable { get; }
+
         public override bool Enabled 
         {
             get => throw new NotSupportedException(); 
@@ -53,7 +56,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
             int err = -1;
 
-            swPropertyManagerPageOptions_e opts;
+            swPropertyManagerPageOptions_e opts = 0;
 
             TitleIcon titleIcon = null;
 
@@ -71,13 +74,89 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 var optsAtt = atts.Get<PageOptionsAttribute>();
 
-                //TODO: implement conversion
-                opts = (swPropertyManagerPageOptions_e)optsAtt.Options;
+                if (optsAtt.Options.HasFlag(PageOptions_e.AbortCommands)) 
+                {
+                    opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_AbortCommands;
+                }
+
+                if (optsAtt.Options.HasFlag(PageOptions_e.CanEscapeCancel))
+                {
+                    opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_CanEscapeCancel;
+                }
+
+                if (optsAtt.Options.HasFlag(PageOptions_e.HandleKeystrokes))
+                {
+                    opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_HandleKeystrokes;
+                }
+
+                if (optsAtt.Options.HasFlag(PageOptions_e.SupportsChainSelection))
+                {
+                    opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_SupportsChainSelection;
+                }
+
+                if (optsAtt.Options.HasFlag(PageOptions_e.SupportsIsolate))
+                {
+                    opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_SupportsIsolate;
+                }
+            }
+
+            if (atts.Has<PageButtonsAttribute>())
+            {
+                var buttonsAtt = atts.Get<PageButtonsAttribute>();
+
+                if (buttonsAtt.Buttons.HasFlag(PageButtons_e.Okay)) 
+                {
+                    opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_OkayButton;
+                }
+
+                if (buttonsAtt.Buttons.HasFlag(PageButtons_e.Cancel))
+                {
+                    opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_CancelButton;
+                }
+
+                if (buttonsAtt.Buttons.HasFlag(PageButtons_e.Pushpin))
+                {
+                    opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_PushpinButton;
+                }
+
+                if (buttonsAtt.Buttons.HasFlag(PageButtons_e.Preview))
+                {
+                    opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_PreviewButton;
+                }
+
+                if (buttonsAtt.Buttons.HasFlag(PageButtons_e.Undo))
+                {
+                    opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_UndoButton;
+                }
+
+                if (buttonsAtt.Buttons.HasFlag(PageButtons_e.Redo))
+                {
+                    opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_RedoButton;
+                }
             }
             else
             {
-                //TODO: implement conversion
-                opts = (swPropertyManagerPageOptions_e)(PageOptions_e.OkayButton | PageOptions_e.CancelButton);
+                opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_OkayButton | swPropertyManagerPageOptions_e.swPropertyManagerOptions_CancelButton;
+            }
+
+            if (atts.Has<LockedPageAttribute>())
+            {
+                var lockAtt = atts.Get<LockedPageAttribute>();
+
+                if(lockAtt.Strategy.HasFlag(LockPageStrategy_e.Blocked))
+                {
+                    opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_LockedPage;
+                }
+
+                if (lockAtt.Strategy.HasFlag(LockPageStrategy_e.DisableSelection))
+                {
+                    opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_DisableSelection;
+                }
+
+                if (lockAtt.Strategy.HasFlag(LockPageStrategy_e.Restorable))
+                {
+                    IsRestorable = true;
+                }
             }
 
             if (atts.Has<HelpAttribute>())

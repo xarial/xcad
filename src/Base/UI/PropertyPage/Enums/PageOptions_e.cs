@@ -9,25 +9,36 @@ using System;
 
 namespace Xarial.XCad.UI.PropertyPage.Enums
 {
+    /// <summary>
+    /// options for the proeprty page creation
+    /// </summary>
     [Flags]
     public enum PageOptions_e
     {
-        OkayButton = 1,
-        CancelButton = 2,
-        LockedPage = 4,
-        CloseDialogButton = 8,
-        MultiplePages = 16,
-        PushpinButton = 32,
-        PreviewButton = 128,
-        DisableSelection = 256,
-        AbortCommands = 1024,
-        UndoButton = 2048,
-        CanEscapeCancel = 4096,
-        HandleKeystrokes = 8192,
-        RedoButton = 16384,
-        DisablePageBuildDuringHandlers = 32768,
-        GrayOutDisabledSelectionListboxes = 65536,
-        SupportsChainSelection = 131072,
-        SupportsIsolate = 262144
+        /// <summary>
+        /// Abort all active commands when displaying this page
+        /// </summary>
+        AbortCommands = 1,
+
+        /// <summary>
+        /// Close the page with ESC key
+        /// </summary>
+        CanEscapeCancel = 2,
+
+        /// <summary>
+        /// Handle keystrokes of the page
+        /// </summary>
+        /// <remarks>Use <see cref="IXPropertyPage{TDataModel}.KeystrokeHook"/> to handle the event</remarks>
+        HandleKeystrokes = 4,
+
+        /// <summary>
+        /// Allows selecting the chain entitites while page is active
+        /// </summary>
+        SupportsChainSelection = 8,
+
+        /// <summary>
+        /// Supports isolation of the components
+        /// </summary>
+        SupportsIsolate = 16
     }
 }

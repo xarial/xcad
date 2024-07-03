@@ -5,8 +5,7 @@ using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Enums;
 
 //--- Options
-[PageOptions(PageOptions_e.CancelButton
-| PageOptions_e.OkayButton)]
+[PageButtons(PageButtons_e.Cancel | PageButtons_e.Okay)]
 public class DataModelPageOpts
 {
 }

@@ -10,6 +10,7 @@ Breaking change is marked with &#x26A0; symbol
 
 ## 0.8.1 -
 
+* &#x26A0; Several options from **PageOptionsAttribute** are extracted to **PageButtonsAttribute** and **PageLockedPage** attributes
 * &#x26A0; **AlignDimensionDelegate**, **AssignPreviewBodyColorDelegate**, **ShouldHidePreviewEditBodyDelegate** of **SwMacroFeatureDefinition\<TParams, TPage\>** are replaced with **OnAlignDimensionDelegate**, **OnAssignPreviewBodyColorDelegate**, **OnShouldHidePreviewEditBodyDelegate** virtual methods
 * &#x26A0; ICustomItemsProvider::ProvideItems changed signature (added **IControl ctrl** and **object parameter**)
 * &#x26A0; Removed **SwCustomItemsProvider<TItem>**

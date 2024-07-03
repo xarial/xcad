@@ -531,16 +531,19 @@ namespace SwAddInExample
                     case Commands_e.ShowPmPage:
                         if (m_Page != null) 
                         {
+                            m_Page.KeystrokeHook -= OnPageKeystrokeHook;
+                            m_Page.Preview -= OnPagePreview;
                             m_Page.Closed -= OnPageClosed;
                         }
                         m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
                         m_Page.Closed += OnPageClosed;
                         m_Page.KeystrokeHook += OnPageKeystrokeHook;
+                        m_Page.Preview += OnPagePreview;
                         m_Data = new PmpData()
                         {
                             CoordSystem = Application.Documents.Active.Selections.OfType<IXCoordinateSystem>().FirstOrDefault()
                         };
-                        m_Data.ItemsSourceComboBox = m_Data.Source[1];
+                        m_Data.Lists.ItemsSourceComboBox = m_Data.Lists.Source[1];
                         m_Page.Show(m_Data);
                         m_Page.DataChanged += OnPageDataChanged;
                         break;
@@ -791,6 +794,10 @@ namespace SwAddInExample
             {
                 Debug.Assert(false);
             }
+        }
+
+        private void OnPagePreview(bool enabled, ref bool cancel)
+        {
         }
 
         private void CreateCoordinateSystem()

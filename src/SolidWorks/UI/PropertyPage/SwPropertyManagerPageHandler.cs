@@ -47,6 +47,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         internal event Action<int, bool> CustomControlCreated;
         internal event Action<int, bool> GroupChecked;
         internal event Func<int, int, int, int, bool> Keystroke;
+        internal event Func<bool> Preview;
+        internal event Action Undo;
+        internal event Action Redo;
 
         /// <inheritdoc/>
         internal event PropertyManagerPageClosingDelegate Closing;
@@ -64,6 +67,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         private readonly List<int> m_SuspendedSelIds;
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public SwPropertyManagerPageHandler() 
         {
             m_SuspendedSelIds = new List<int>();
@@ -267,10 +273,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool OnPreview()
-        {
-            return true;
-        }
+        public bool OnPreview() => Preview?.Invoke() ?? true;
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -281,9 +284,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void OnRedo()
-        {
-        }
+        public void OnRedo() => Redo?.Invoke();
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -350,9 +351,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void OnUndo()
-        {
-        }
+        public void OnUndo() => Undo?.Invoke();
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]

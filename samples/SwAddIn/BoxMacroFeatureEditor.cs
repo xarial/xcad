@@ -36,7 +36,8 @@ using Xarial.XCad.UI.PropertyPage.Structures;
 
 namespace SwAddInExample
 {
-    [PageOptions(PageOptions_e.OkayButton | PageOptions_e.PushpinButton | PageOptions_e.CancelButton | PageOptions_e.LockedPage)]
+    [PageButtons(PageButtons_e.Okay | PageButtons_e.Pushpin | PageButtons_e.Cancel)]
+    [LockedPage]
     public class BoxPage
     {
         public BoxParametersPage Parameters { get; set; }
