@@ -36,6 +36,21 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
     {
     }
 
+    internal class SwPropertyManagerPageSuppressor : IDisposable
+    {
+        private readonly Action<SwPropertyManagerPageSuppressor> m_DisposedHandler;
+
+        internal SwPropertyManagerPageSuppressor(Action<SwPropertyManagerPageSuppressor> dispHandler) 
+        {
+            m_DisposedHandler = dispHandler;
+        }
+
+        public void Dispose()
+        {
+            m_DisposedHandler?.Invoke(this);
+        }
+    }
+
     /// <inheritdoc/>
     internal class SwPropertyManagerPage<TModel> : ISwPropertyManagerPage<TModel>, IAutoDisposable
     {
@@ -80,6 +95,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         private readonly IContextProvider m_ContextProvider;
 
         private readonly IReadOnlyDictionary<int, IControl> m_Controls;
+
+        private bool m_IsShown;
+
+        private bool m_IsSuppressed;
 
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
@@ -127,6 +146,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             }
 
             m_Controls = ctrls;
+
+            m_IsShown = false;
         }
 
         private void ValidateHandler(SwPropertyManagerPageHandler handler)
@@ -207,6 +228,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             m_Page.Show();
 
+            m_IsShown = true;
+
             //updating control states
             m_Page.Binding.Dependency.UpdateAll();
 
@@ -232,10 +255,22 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         }
 
         private void OnClosed(swPropertyManagerPageCloseReasons_e reason)
-            => Closed?.Invoke(ConvertReason(reason));
+        {
+            if (!m_IsSuppressed)
+            {
+                Closed?.Invoke(ConvertReason(reason));
+            }
+
+            m_IsShown = false;
+        }
 
         private void OnClosing(swPropertyManagerPageCloseReasons_e reason, PageClosingArg arg)
-            => Closing?.Invoke(ConvertReason(reason), arg);
+        {
+            if (!m_IsSuppressed)
+            {
+                Closing?.Invoke(ConvertReason(reason), arg);
+            }
+        }
 
         private bool OnKeystroke(int wParam, int message, int lParam, int id)
         {
@@ -249,5 +284,47 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         }
 
         public void Close(bool cancel) => m_Page.Page.Close(!cancel);
+
+        public IDisposable Suppress()
+        {
+            if (m_IsShown)
+            {
+                if (!m_IsSuppressed)
+                {
+                    m_IsSuppressed = true;
+                    Close(false);
+                    return new SwPropertyManagerPageSuppressor(Unsuppress);
+                }
+                else 
+                {
+                    throw new Exception("Page is already suppressed");
+                }
+            }
+            else 
+            {
+                throw new Exception("Page is not shown and cannot be suppressed");
+            }
+        }
+
+        private void Unsuppress(SwPropertyManagerPageSuppressor obj)
+        {
+            if (m_IsSuppressed)
+            {
+                m_IsSuppressed = false;
+
+                if (!m_IsShown)
+                {
+                    Show(Model);
+                }
+                else
+                {
+                    throw new Exception("Page is shown and cannot be unsuppressed");
+                }
+            }
+            else 
+            {
+                throw new Exception("Page is not suppressed");
+            }
+        }
     }
 }

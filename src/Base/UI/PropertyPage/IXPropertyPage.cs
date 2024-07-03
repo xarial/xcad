@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using Xarial.XCad.UI.PropertyPage.Delegates;
 
 namespace Xarial.XCad.UI.PropertyPage
@@ -41,6 +42,11 @@ namespace Xarial.XCad.UI.PropertyPage
         bool IsPinned { get; set; }
 
         /// <summary>
+        /// Data model of the current page
+        /// </summary>
+        TDataModel Model { get; }
+
+        /// <summary>
         /// Opens the property page with the specified data model
         /// </summary>
         /// <param name="model">Pointer to an instance of the bound data model</param>
@@ -51,5 +57,13 @@ namespace Xarial.XCad.UI.PropertyPage
         /// </summary>
         /// <param name="cancel">Cancel the current page or OK</param>
         void Close(bool cancel);
+
+        /// <summary>
+        /// Temporarily closes the current page and restores once the suppressor is disposed
+        /// </summary>
+        /// <returns>Suppressor</returns>
+        /// <remarks>This can be useful if some of the operations cannot be completed while proeprty page is open.
+        /// This will closes the page without the notification and restores its</remarks>
+        IDisposable Suppress();
     }
 }
