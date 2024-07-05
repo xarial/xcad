@@ -29,6 +29,7 @@ namespace Xarial.XCad.Toolkit.Services
         /// Creates group of images from the input icons
         /// </summary>
         /// <param name="icons">Icons to group</param>
+        /// <param name="folder">Custom folder, if empty - default folder is used</param>
         ///<inheritdoc/>
         IImageCollection ConvertIconsGroup(IIcon[] icons, string folder = "");
     }

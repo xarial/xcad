@@ -29,7 +29,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         #region Not Supported
         public IXSheet Clone(IXDrawing targetDrawing) => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
-        public IXSketch2D FormatSketch => throw new NotSupportedException();
+        public IXSheetFormat Format => throw new NotSupportedException();
         public IXAnnotationRepository Annotations => throw new NotSupportedException();
         #endregion
 

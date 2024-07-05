@@ -8,23 +8,49 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Windows.Controls;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Annotations.Delegates;
+using Xarial.XCad.Documents;
 using Xarial.XCad.SolidWorks.Annotations.EventHandlers;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
+    /// <summary>
+    /// SOLIDWORKS specific dimension
+    /// </summary>
     public interface ISwDimension : IXDimension, IDisposable, ISwSelObject, ISwAnnotation
     {
+        /// <summary>
+        /// Pointer to dimension
+        /// </summary>
         IDimension Dimension { get; }
+
+        /// <summary>
+        /// Pointer to display dimension
+        /// </summary>
         IDisplayDimension DisplayDimension { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDimension : SwAnnotation, ISwDimension
     {
+        internal static SwDimension New(IDisplayDimension dispDim, SwDocument doc, SwApplication app)
+        {
+            if (doc is IXDrawing)
+            {
+                return SwDrawingDimension.New(dispDim, (SwDrawing)doc, app);
+            }
+            else
+            {
+                return new SwDimension(dispDim, doc, app);
+            }
+        }
+
         private IDimension m_Dimension;
 
         private SwDimensionChangeEventsHandler m_ValueChangedHandler;
@@ -65,7 +91,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         protected Context m_Context;
 
-        internal SwDimension(IDisplayDimension dispDim, SwDocument doc, SwApplication app)
+        protected SwDimension(IDisplayDimension dispDim, SwDocument doc, SwApplication app)
             : base(dispDim.IGetAnnotation(), doc, app)
         {
             if (doc == null) 
@@ -206,6 +232,25 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         protected virtual void Dispose(bool disposing)
         {
+        }
+    }
+
+    internal class SwDrawingDimension : SwDimension, IXDrawingDimension
+    {
+        internal static SwDrawingDimension New(IDisplayDimension dispDim, SwDrawing drw, SwApplication app)
+            => new SwDrawingDimension(dispDim, drw, app);
+
+        public IXObject Owner
+        {
+            get => m_DrwAnnWrapper.Owner;
+            set => m_DrwAnnWrapper.Owner = value;
+        }
+
+        private readonly SwDrawingAnnotationWrapper m_DrwAnnWrapper;
+
+        private SwDrawingDimension(IDisplayDimension dispDim, SwDrawing drw, SwApplication app) : base(dispDim, drw, app)
+        {
+            m_DrwAnnWrapper = new SwDrawingAnnotationWrapper(this);
         }
     }
 

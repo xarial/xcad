@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.IO;
 using System.Linq;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Geometry.Surfaces;
 using Xarial.XCad.SolidWorks.Annotations;
@@ -31,6 +32,7 @@ namespace Xarial.XCad.SolidWorks
     /// </summary>
     internal static class SwObjectFactory 
     {
+        //TODO: replace all constructors with static method New
         internal static TObj FromDispatch<TObj>(object disp, SwDocument doc, SwApplication app)
             where TObj : IXObject
         {
@@ -217,10 +219,10 @@ namespace Xarial.XCad.SolidWorks
                     return new SwSketchPicture(skPict, doc, app, true);
 
                 case IDisplayDimension dispDim:
-                    return new SwDimension(dispDim, doc, app);
+                    return SwDimension.New(dispDim, doc, app);
 
                 case INote note:
-                    return new SwNote(note, doc, app);
+                    return SwNote.New(note, doc, app);
 
                 case IDrSection section:
                     return new SwSectionLine(section, doc, app);
@@ -235,22 +237,20 @@ namespace Xarial.XCad.SolidWorks
                     switch ((swTableAnnotationType_e)tableAnn.Type) 
                     {
                         case swTableAnnotationType_e.swTableAnnotation_BillOfMaterials:
-                            return new SwBomTable(tableAnn, doc, app);
+                            return SwBomTable.New(tableAnn, doc, app);
                         default:
-                            return new SwTable(tableAnn, doc, app);
+                            return SwTable.New(tableAnn, doc, app);
                     }
 
                 case IAnnotation ann:
                     switch ((swAnnotationType_e)ann.GetType())
                     {
                         case swAnnotationType_e.swDisplayDimension:
-                            return new SwDimension((IDisplayDimension)ann.GetSpecificAnnotation(), doc, app);
                         case swAnnotationType_e.swNote:
-                            return new SwNote((INote)ann.GetSpecificAnnotation(), doc, app);
                         case swAnnotationType_e.swTableAnnotation:
-                            return FromDispatch((ITableAnnotation)ann.GetSpecificAnnotation(), doc, app, defaultHandler);
+                            return FromDispatch(ann.GetSpecificAnnotation(), doc, app, defaultHandler);
                         default:
-                            return new SwAnnotation(ann, doc, app);
+                            return SwAnnotation.New(ann, doc, app);
                     }
 
                 case ILayer layer:

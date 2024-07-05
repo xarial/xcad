@@ -21,13 +21,22 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.Toolkit.Services
 {
+    /// <summary>
+    /// Container for images
+    /// </summary>
+    /// <remarks>This container is used to automate disposing of temp images</remarks>
     public interface IImageCollection : IDisposable
     {
+        /// <summary>
+        /// File paths of the images
+        /// </summary>
         string[] FilePaths { get; }
     }
 
+    /// <inheritdoc/>
     public class ImageCollection : IImageCollection
     {
+        /// <inheritdoc/>
         public string[] FilePaths { get; }
 
         private bool m_IsDisposed;
@@ -36,6 +45,12 @@ namespace Xarial.XCad.Toolkit.Services
 
         private readonly bool m_IsPermanent;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="dir">Temp directory to store temp images</param>
+        /// <param name="filePaths">File paths of the temp images</param>
+        /// <param name="permanent">True if images are permanent and should not be deleted</param>
         public ImageCollection(string dir, string[] filePaths, bool permanent)
         {
             TempDirectory = dir;

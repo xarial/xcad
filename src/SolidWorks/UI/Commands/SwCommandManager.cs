@@ -119,6 +119,9 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         private readonly ICommandGroupTabConfigurer m_TabConfigurer;
 
+        private IImageCollection m_MainIcon;
+        private IImageCollection m_ToolbarIcons;
+
         internal SwCommandManager(ISwApplication app, int addinCookie, IServiceProvider svcProvider)
         {
             m_App = app;
@@ -187,21 +190,18 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
             var iconsConv = m_SvcProvider.GetService<IIconsCreator>();
 
-            using (var mainIcon = CreateMainIcon(cmdBar, iconsConv))
-            {
-                using (var toolbarIcons = CreateToolbarIcons(cmdBar, iconsConv))
-                {
-                    SetCommandGroupIcons(cmdGroup, mainIcon, toolbarIcons);
-                    
-                    var bar = new SwCommandGroup(m_App, cmdBar, cmdGroup, isContextMenu);
+            m_MainIcon = CreateMainIcon(cmdBar, iconsConv);
+            m_ToolbarIcons = CreateToolbarIcons(cmdBar, iconsConv);
+            
+            SetCommandGroupIcons(cmdGroup, m_MainIcon, m_ToolbarIcons);
 
-                    CreateCommandItems(bar);
+            var bar = new SwCommandGroup(m_App, cmdBar, cmdGroup, isContextMenu);
 
-                    m_CommandBars.Add(bar);
+            CreateCommandItems(bar);
 
-                    return bar;
-                }
-            }
+            m_CommandBars.Add(bar);
+
+            return bar;
         }
 
         internal void HandleCommandClick(string cmdId)
@@ -834,6 +834,9 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
                 m_CommandBars.Clear();
             }
+
+            m_MainIcon?.Dispose();
+            m_ToolbarIcons?.Dispose();
 
             if (CmdMgr != null)
             {

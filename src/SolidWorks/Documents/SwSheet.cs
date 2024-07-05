@@ -16,6 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Windows.Media;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Data;
@@ -41,8 +42,6 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwSheet : SwSelObject, ISwSheet
     {
-        private const string CUSTOM_LAYOUT_TEMPLATE = "*.drt";
-
         IXAnnotationRepository IXSheet.Annotations => Annotations;
 
         private readonly SwDrawing m_Drawing;
@@ -166,54 +165,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 if (IsCommitted)
                 {
                     //NOTE: ISheet::SetSize does not work correctly and removes the template and breaks drawing
-                    SetupSheet(Sheet, Name, value, Scale, Template, ViewsProjectionType);
-                }
-                else
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-            }
-        }
-
-        public string Template 
-        {
-            get
-            {
-                if (IsCommitted)
-                {
-                    var templateName = Sheet.GetTemplateName();
-
-                    if (string.Equals(templateName, CUSTOM_LAYOUT_TEMPLATE, StringComparison.CurrentCultureIgnoreCase)) 
-                    {
-                        templateName = "";
-                    }
-
-                    return templateName;
-                }
-                else
-                {
-                    return m_Creator.CachedProperties.Get<string>();
-                }
-            }
-            set 
-            {
-                if (IsCommitted)
-                {
-                    var sheetFormatVisible = Sheet.SheetFormatVisible;
-
-                    SetupSheet(Sheet, Name, PaperSize, Scale, value, ViewsProjectionType);
-
-                    var res = Sheet.ReloadTemplate(false);
-
-                    if (res == (int)swReloadTemplateResult_e.swReloadTemplate_Success)
-                    {
-                        //NOTE: in some cases sheet format visibility is reset after changing the sheet format
-                        Sheet.SheetFormatVisible = sheetFormatVisible;
-                    }
-                    else 
-                    {
-                        throw new Exception($"Failed to reload template: {res}");
-                    }
+                    SetupSheet(Sheet, Name, value, Scale, Format.Template, ViewsProjectionType);
                 }
                 else
                 {
@@ -259,7 +211,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    SetupSheet(Sheet, Name, PaperSize, Scale, Template, value);
+                    SetupSheet(Sheet, Name, PaperSize, Scale, Format.Template, value);
                 }
                 else
                 {
@@ -270,7 +222,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXSketch2D Sketch => new SwSheetSketch(this, SheetView.DrawingView.IGetSketch(), m_Drawing, OwnerApplication, false);
 
-        public IXSketch2D FormatSketch => new SwSheetSketch(this, SheetView.DrawingView.IGetSketch(), m_Drawing, OwnerApplication, true);
+        public IXSheetFormat Format { get; }
 
         internal SwDrawingView SheetView 
         {
@@ -305,9 +257,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwSheet(ISheet sheet, SwDrawing draw, SwApplication app) : base(sheet, draw, app)
         {
             m_Drawing = draw;
+
             m_DrawingViews = new SwDrawingViewsCollection(draw, this);
             m_Creator = new ElementCreator<ISheet>(CreateSheet, CommitCache, sheet, sheet != null);
             Annotations = new SwSheetAnnotationCollection(this);
+
+            Format = new SwSheetFormat(this);
         }
 
         private ISheet CreateSheet(CancellationToken arg)
@@ -318,7 +273,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             var angle = ViewsProjectionType == ViewsProjectionType_e.FirstAngle;
 
-            if (!string.IsNullOrEmpty(Template)) 
+            if (!string.IsNullOrEmpty(Format.Template)) 
             {
                 template = swDwgTemplates_e.swDwgTemplateCustom;
             }
@@ -343,7 +298,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2015))
                 {
                     if (!m_Drawing.Drawing.NewSheet4(Name, (int)paperSize, (int)template, scale.Numerator, scale.Denominator, angle,
-                        Template, paperWidth, paperHeight, "", 0, 0, 0, 0, 0, 0))
+                        Format.Template, paperWidth, paperHeight, "", 0, 0, 0, 0, 0, 0))
                     {
                         throw new Exception("Failed to create new sheet");
                     }
@@ -351,7 +306,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 else
                 {
                     if (!m_Drawing.Drawing.NewSheet3(Name, (int)paperSize, (int)template, scale.Numerator, scale.Denominator, angle,
-                        Template, paperWidth, paperHeight, ""))
+                        Format.Template, paperWidth, paperHeight, ""))
                     {
                         throw new Exception("Failed to create new sheet");
                     }
@@ -379,7 +334,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         internal void SetupSheet(IXSheet template)
-            => SetupSheet(Sheet, template.Name, template.PaperSize, template.Scale, template.Template, template.ViewsProjectionType);
+            => SetupSheet(Sheet, template.Name, template.PaperSize, template.Scale, template.Format.Template, template.ViewsProjectionType);
 
         internal void SetupSheet(ISheet sheet, string name, PaperSize size, Scale scale, string templateName, ViewsProjectionType_e prjType)
         {
@@ -659,6 +614,71 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected internal override IEditor<IXSketchBase> CreateSketchEditor(ISketch sketch) => new SwSheetSketchEditor(this, m_Sheet, m_SheetFormat);
     }
 
+    internal class SwSheetFormat : SwObject, IXSheetFormat
+    {
+        private const string CUSTOM_LAYOUT_TEMPLATE = "*.drt";
+
+        private readonly SwSheet m_Sheet;
+
+        private string m_CachedTemplate;
+
+        internal SwSheetFormat(SwSheet sheet) : base(null, sheet.OwnerDocument, sheet.OwnerApplication)
+        {
+            m_Sheet = sheet;
+        }
+
+        public string Template
+        {
+            get
+            {
+                if (m_Sheet.IsCommitted)
+                {
+                    var templateName = m_Sheet.Sheet.GetTemplateName();
+
+                    if (string.Equals(templateName, CUSTOM_LAYOUT_TEMPLATE, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        templateName = "";
+                    }
+
+                    return templateName;
+                }
+                else
+                {
+                    return m_CachedTemplate;
+                }
+            }
+            set
+            {
+                if (m_Sheet.IsCommitted)
+                {
+                    var sheetFormatVisible = m_Sheet.Sheet.SheetFormatVisible;
+
+                    m_Sheet.SetupSheet(m_Sheet.Sheet, m_Sheet.Name, m_Sheet.PaperSize, m_Sheet.Scale, value, m_Sheet.ViewsProjectionType);
+
+                    var res = m_Sheet.Sheet.ReloadTemplate(false);
+
+                    if (res == (int)swReloadTemplateResult_e.swReloadTemplate_Success)
+                    {
+                        //NOTE: in some cases sheet format visibility is reset after changing the sheet format
+                        m_Sheet.Sheet.SheetFormatVisible = sheetFormatVisible;
+                    }
+                    else
+                    {
+                        throw new Exception($"Failed to reload template: {res}");
+                    }
+                }
+                else
+                {
+                    m_CachedTemplate = value;
+                }
+            }
+        }
+
+        public IXSketch2D Sketch => new SwSheetSketch(m_Sheet, 
+            m_Sheet.SheetView.DrawingView.IGetSketch(),
+            (SwDrawing)m_Sheet.OwnerDocument, m_Sheet.OwnerApplication, true);
+    }
+
     internal static class PaperSizeHelper 
     {
         internal static void ParsePaperSize(PaperSize paperSize, out swDwgPaperSizes_e dwgPaperSize, out swDwgTemplates_e dwgTemplate, out double dwpPaperWidth, out double dwpPaperHeight) 
@@ -700,7 +720,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public ViewsProjectionType_e ViewsProjectionType { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
         public IXSheet Clone(IXDrawing targetDrawing) => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
-        public IXSketch2D FormatSketch => throw new NotSupportedException();
+        public IXSheetFormat Format => throw new NotSupportedException();
         public void Delete() => throw new UnloadedDocumentPreviewOnlySheetException();
         public IXAnnotationRepository Annotations => throw new UnloadedDocumentPreviewOnlySheetException();
         #endregion

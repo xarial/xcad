@@ -19,6 +19,22 @@ using Xarial.XCad.UI;
 namespace Xarial.XCad.Documents
 {
     /// <summary>
+    /// Sheet format sketch
+    /// </summary>
+    public interface IXSheetFormat : IXObject
+    {
+        /// <summary>
+        /// Template of this sheet format
+        /// </summary>
+        string Template { get; set; }
+
+        /// <summary>
+        /// Sketch of this sheet format
+        /// </summary>
+        IXSketch2D Sketch { get; }
+    }
+
+    /// <summary>
     /// Represents the drawing sheet
     /// </summary>
     public interface IXSheet : IXSelObject, IXTransaction
@@ -46,7 +62,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Sketch space of this sheet format
         /// </summary>
-        IXSketch2D FormatSketch { get; }
+        IXSheetFormat Format { get; }
 
         /// <summary>
         /// Preview of this drawing sheet
@@ -62,11 +78,6 @@ namespace Xarial.XCad.Documents
         /// Represents paper of this sheet
         /// </summary>
         PaperSize PaperSize { get; set; }
-
-        /// <summary>
-        /// Template of this sheet format
-        /// </summary>
-        string Template { get; set; }
 
         /// <summary>
         /// Types of the projection of drawing views in this sheet

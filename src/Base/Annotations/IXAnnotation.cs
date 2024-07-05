@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Annotations
@@ -26,5 +27,17 @@ namespace Xarial.XCad.Annotations
         /// Font of this annotation
         /// </summary>
         IFont Font { get; set; }
+    }
+
+    /// <summary>
+    /// Drawing specific <see cref="IXAnnotation"/>
+    /// </summary>
+    public interface IXDrawingAnnotation : IXAnnotation 
+    {
+        /// <summary>
+        /// Owner of this annotation
+        /// </summary>
+        /// <remarks>This can be <see cref="IXDrawingView"/>, <see cref="IXSheet"/>, <see cref="IXSheetFormat"/></remarks>
+        IXObject Owner { get; set; }
     }
 }

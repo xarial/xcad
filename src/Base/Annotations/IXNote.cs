@@ -38,4 +38,11 @@ namespace Xarial.XCad.Annotations
         /// </summary>
         TextJustification_e TextJustification { get; set; }
     }
+
+    /// <summary>
+    /// Drawing-specific <see cref="IXNote"/>
+    /// </summary>
+    public interface IXDrawingNote : IXNote, IXDrawingAnnotation 
+    {
+    }
 }

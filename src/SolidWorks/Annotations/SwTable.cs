@@ -17,6 +17,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Documents;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
@@ -43,6 +44,18 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
     internal class SwTable : SwAnnotation, ISwTable, IReadable
     {
+        internal static SwTable New(ITableAnnotation tableAnn, SwDocument doc, SwApplication app)
+        {
+            if (doc is IXDrawing)
+            {
+                return SwDrawingTable.New(tableAnn, (SwDrawing)doc, app);
+            }
+            else
+            {
+                return new SwTable(tableAnn, doc, app);
+            }
+        }
+
         private class SwTableDataReader : IDataReader
         {
             private readonly ITableAnnotation m_TableAnn;
@@ -227,7 +240,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
         private readonly ChangeTracker m_ColumnsChangeTracker;
         private readonly ChangeTracker m_RowsChangeTracker;
 
-        internal SwTable(ITableAnnotation tableAnn, SwDocument doc, SwApplication app) : base(tableAnn?.GetAnnotation(), doc, app)
+        protected SwTable(ITableAnnotation tableAnn, SwDocument doc, SwApplication app) : base(tableAnn?.GetAnnotation(), doc, app)
         {
             m_ColumnsChangeTracker = new ChangeTracker();
             m_RowsChangeTracker = new ChangeTracker();
@@ -239,6 +252,25 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         public IDataReader ExecuteReader(bool visibleOnly) 
             => new SwTableDataReader(TableAnnotation, visibleOnly);
+    }
+
+    internal class SwDrawingTable : SwTable, IXDrawingTable
+    {
+        internal static SwDrawingTable New(ITableAnnotation tableAnn, SwDrawing drw, SwApplication app)
+            => new SwDrawingTable(tableAnn, drw, app);
+
+        public IXObject Owner
+        {
+            get => m_DrwAnnWrapper.Owner;
+            set => m_DrwAnnWrapper.Owner = value;
+        }
+
+        private readonly SwDrawingAnnotationWrapper m_DrwAnnWrapper;
+
+        protected SwDrawingTable(ITableAnnotation tableAnn, SwDrawing drw, SwApplication app) : base(tableAnn, drw, app)
+        {
+            m_DrwAnnWrapper = new SwDrawingAnnotationWrapper(this);
+        }
     }
 
     /// <summary>
@@ -259,6 +291,18 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
     internal class SwBomTable : SwTable, ISwBomTable
     {
+        internal static new SwBomTable New(ITableAnnotation tableAnn, SwDocument doc, SwApplication app) 
+        {
+            if (doc is IXDrawing)
+            {
+                return SwDrawingBomTable.New(tableAnn, (SwDrawing)doc, app);
+            }
+            else
+            {
+                return new SwBomTable(tableAnn, doc, app);
+            }
+        }
+
         IXBomTableRowRepository IXBomTable.Rows => (IXBomTableRowRepository)base.Rows;
 
         public IBomTableAnnotation BomTableAnnotation => (IBomTableAnnotation)TableAnnotation;
@@ -330,11 +374,30 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
         }
 
-        internal SwBomTable(ITableAnnotation tableAnn, SwDocument doc, SwApplication app) : base(tableAnn, doc, app)
+        protected SwBomTable(ITableAnnotation tableAnn, SwDocument doc, SwApplication app) : base(tableAnn, doc, app)
         {
         }
 
         protected override SwTableRowRepository CreateRows(ChangeTracker changeTracker)
             => new SwBomTableRowRepository(this, changeTracker);
+    }
+
+    internal class SwDrawingBomTable : SwBomTable, IXDrawingBomTable
+    {
+        internal static SwDrawingBomTable New(ITableAnnotation tableAnn, SwDrawing drw, SwApplication app)
+            => new SwDrawingBomTable(tableAnn, drw, app);
+
+        public IXObject Owner
+        {
+            get => m_DrwAnnWrapper.Owner;
+            set => m_DrwAnnWrapper.Owner = value;
+        }
+
+        private readonly SwDrawingAnnotationWrapper m_DrwAnnWrapper;
+
+        private SwDrawingBomTable(ITableAnnotation tableAnn, SwDrawing drw, SwApplication app) : base(tableAnn, drw, app)
+        {
+            m_DrwAnnWrapper = new SwDrawingAnnotationWrapper(this);
+        }
     }
 }

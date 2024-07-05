@@ -30,4 +30,11 @@ namespace Xarial.XCad.Annotations
         /// </summary>
         double Value { get; set; }
     }
+
+    /// <summary>
+    /// Drawing-specific <see cref="IXDimension"/>
+    /// </summary>
+    public interface IXDrawingDimension : IXDimension, IXDrawingAnnotation
+    {
+    }
 }

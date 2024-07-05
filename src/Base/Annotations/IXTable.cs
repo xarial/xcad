@@ -37,6 +37,13 @@ namespace Xarial.XCad.Annotations
     }
 
     /// <summary>
+    /// Drawing-specific <see cref="IXTable"/>
+    /// </summary>
+    public interface IXDrawingTable : IXTable, IXDrawingAnnotation
+    {
+    }
+
+    /// <summary>
     /// Represents the Bill Of Materials table
     /// </summary>
     public interface IXBomTable : IXTable 
@@ -55,6 +62,13 @@ namespace Xarial.XCad.Annotations
         /// BOM rows which belong to this table
         /// </summary>
         new IXBomTableRowRepository Rows { get; }
+    }
+
+    /// <summary>
+    /// Drawing-specific <see cref="IXBomTable"/>
+    /// </summary>
+    public interface IXDrawingBomTable : IXBomTable, IXDrawingAnnotation
+    {
     }
 
     /// <summary>

@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
@@ -20,21 +21,39 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
+    /// <summary>
+    /// SOLIDWORKS specific note
+    /// </summary>
     public interface ISwNote : IXNote, ISwAnnotation
     {
+        /// <summary>
+        /// Pointer to note
+        /// </summary>
         INote Note { get; }
     }
 
     [DebuggerDisplay("{" + nameof(Text) + "}")]
     internal class SwNote : SwAnnotation, ISwNote
     {
+        internal static SwNote New(INote note, SwDocument doc, SwApplication app)
+        {
+            if (doc is IXDrawing)
+            {
+                return SwDrawingNote.New(note, (SwDrawing)doc, app);
+            }
+            else
+            {
+                return new SwNote(note, doc, app);
+            }
+        }
+
         public INote Note => m_Note;
 
         public override object Dispatch => Note;
 
         private INote m_Note;
 
-        internal SwNote(INote note, SwDocument doc, SwApplication app) : base(note?.IGetAnnotation(), doc, app)
+        protected SwNote(INote note, SwDocument doc, SwApplication app) : base(note?.IGetAnnotation(), doc, app)
         {
             m_Note = note;
         }
@@ -211,6 +230,25 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
             //NOTE: boundary of the note does not update until note is refreshed (e.g. hidden/shown, selected)
             base.Refresh(ann);
+        }
+    }
+
+    internal class SwDrawingNote : SwNote, IXDrawingNote
+    {
+        internal static SwDrawingNote New(INote note, SwDrawing drw, SwApplication app)
+            => new SwDrawingNote(note, drw, app);
+
+        public IXObject Owner
+        {
+            get => m_DrwAnnWrapper.Owner;
+            set => m_DrwAnnWrapper.Owner = value;
+        }
+
+        private readonly SwDrawingAnnotationWrapper m_DrwAnnWrapper;
+
+        private SwDrawingNote(INote note, SwDrawing drw, SwApplication app) : base(note, drw, app)
+        {
+            m_DrwAnnWrapper = new SwDrawingAnnotationWrapper(this);
         }
     }
 }
