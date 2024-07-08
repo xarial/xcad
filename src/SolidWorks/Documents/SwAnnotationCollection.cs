@@ -118,6 +118,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public T PreCreate<T>() where T : IXAnnotation
             => RepositoryHelper.PreCreate<IXAnnotation, T>(this,
                 () => SwNote.New(null, m_Doc, m_Doc.OwnerApplication),
+                () => SwDrawingNote.New(null, (SwDrawing)m_Doc, m_Doc.OwnerApplication),
                 () => new SwSectionLine(null, m_Doc, m_Doc.OwnerApplication),
                 () => new SwBreakLine(null, m_Doc, m_Doc.OwnerApplication),
                 () => new SwDetailCircle(null, m_Doc, m_Doc.OwnerApplication));

@@ -209,24 +209,8 @@ namespace Xarial.XCad.SolidWorks.Features
                 throw new ArgumentNullException(nameof(doc));
             }
 
-            m_DimensionsLazy = new Lazy<SwFeatureDimensionsCollection>(() => 
-            {
-                if (m_Context == null)
-                {
-                    var comp = ((IEntity)Feature).GetComponent();
-
-                    if (comp != null)
-                    {
-                        m_Context = new Context(OwnerDocument.CreateObjectFromDispatch<ISwComponent>(comp));
-                    }
-                    else
-                    {
-                        m_Context = new Context(OwnerDocument);
-                    }
-                }
-
-                return new SwFeatureDimensionsCollection(this, OwnerDocument, m_Context);
-            });
+            m_DimensionsLazy = new Lazy<SwFeatureDimensionsCollection>(
+                () => new SwFeatureDimensionsCollection(this, OwnerDocument, GetContext()));
 
             m_Creator = new ElementCreator<IFeature>(CreateFeature, CommitCache, feat, created);
 
@@ -387,13 +371,15 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public virtual FeatureState_e State 
         {
-            get 
+            get
             {
                 var state = FeatureState_e.Default;
+                
+                GetConfigurationOptions(out var confOpts, out var confNames);
 
-                var suppStates = (bool[])Feature.IsSuppressed2((int)swInConfigurationOpts_e.swThisConfiguration, null);
+                var suppStates = (bool[])Feature.IsSuppressed2((int)confOpts, confNames);
 
-                if (suppStates[0]) 
+                if (suppStates[0])
                 {
                     state |= FeatureState_e.Suppressed;
                 }
@@ -413,10 +399,35 @@ namespace Xarial.XCad.SolidWorks.Features
                     action = swFeatureSuppressionAction_e.swUnSuppressFeature;
                 }
 
-                if (!Feature.SetSuppression2((int)action, (int)swInConfigurationOpts_e.swThisConfiguration, null)) 
+                GetConfigurationOptions(out var confOpts, out var confNames);
+
+                if (!Feature.SetSuppression2((int)action, (int)confOpts, confNames)) 
                 {
                     throw new Exception("Failed to change the suppresion of the feature");
                 }
+            }
+        }
+
+        private void GetConfigurationOptions(out swInConfigurationOpts_e confOpts, out string[] confNames)
+        {
+            var context = GetContext();
+
+            switch (context.Owner)
+            {
+                case ISwComponent comp:
+                    confOpts = swInConfigurationOpts_e.swSpecifyConfiguration;
+                    confNames = new string[] { comp.ReferencedConfiguration.Name };
+                    break;
+
+                case ISwConfiguration conf:
+                    confOpts = swInConfigurationOpts_e.swSpecifyConfiguration;
+                    confNames = new string[] { conf.Name };
+                    break;
+
+                default:
+                    confOpts = swInConfigurationOpts_e.swThisConfiguration;
+                    confNames = null;
+                    break;
             }
         }
 
@@ -480,6 +491,25 @@ namespace Xarial.XCad.SolidWorks.Features
                     return false;
                 }
             }
+        }
+
+        private Context GetContext()
+        {
+            if (m_Context == null)
+            {
+                var comp = ((IEntity)Feature).GetComponent();
+
+                if (comp != null)
+                {
+                    m_Context = new Context(OwnerDocument.CreateObjectFromDispatch<ISwComponent>(comp));
+                }
+                else
+                {
+                    m_Context = new Context(OwnerDocument);
+                }
+            }
+
+            return m_Context;
         }
     }
 }

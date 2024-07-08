@@ -1,13 +1,17 @@
 ﻿using NUnit.Framework;
+using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 
 namespace SolidWorks.Tests.Integration
@@ -272,6 +276,80 @@ namespace SolidWorks.Tests.Integration
             }
 
             CollectionAssert.AreEqual(new string[] { "Sketch1"}, feats1);
+        }
+
+        [Test]
+        public void FeaturesStateTest()
+        {
+            FeatureState_e s1;
+            FeatureState_e s2;
+            FeatureState_e s3;
+            FeatureState_e s4;
+            FeatureState_e s5;
+            FeatureState_e s6;
+            FeatureState_e s7;
+            FeatureState_e s8;
+            FeatureState_e s9;
+            FeatureState_e s10;
+
+            bool r1;
+            bool r2;
+            bool r3;
+            bool r4;
+            bool r5;
+            bool r6;
+
+            using (var doc = OpenDataDocument(@"Assembly19\Assem19.SLDASM"))
+            {
+                var assm = (IXAssembly)m_App.Documents.Active;
+
+                s1 = assm.Features["Sketch1"].State;
+                s2 = assm.Features["Sketch2"].State;
+
+                s3 = assm.Configurations.Active.Components["Part1-1"].Features["Sketch1"].State;
+                s4 = assm.Configurations.Active.Components["Part1-1"].Features["Sketch2"].State;
+
+                s5 = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components["Part1-1"].Features["Sketch1"].State;
+                s6 = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components["Part1-1"].Features["Sketch2"].State;
+
+                s7 = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components["Part1-2"].Features["Sketch1"].State;
+                s8 = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components["Part1-2"].Features["Sketch2"].State;
+
+                ((ISwAssembly)assm).Model.Extension.SelectByID2("Sketch2@Part1-1@Assem19", "SKETCH", 0, 0, 0, false, 0, null, 0);
+                s9 = assm.Selections.OfType<IXFeature>().First().State;
+
+                ((ISwAssembly)assm).Model.Extension.SelectByID2("Sketch2", "SKETCH", 0, 0, 0, false, 0, null, 0);
+                s10 = assm.Selections.OfType<IXFeature>().First().State;
+                
+                assm.Configurations.Active.Components["Part1-1"].Features["Sketch1"].State = FeatureState_e.Suppressed;
+                r1 = ((bool[])((IFeature)((ISwPart)m_App.Documents["Part1.sldprt"]).Part.FeatureByName("Sketch1")).IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf1" })).First();
+                r2 = ((bool[])((IFeature)((ISwPart)m_App.Documents["Part1.sldprt"]).Part.FeatureByName("Sketch1")).IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" })).First();
+
+                ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components["Part1-2"].Features["Sketch2"].State = FeatureState_e.Default;
+                r3 = ((bool[])((IFeature)((ISwPart)m_App.Documents["Part1.sldprt"]).Part.FeatureByName("Sketch2")).IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf1" })).First();
+                r4 = ((bool[])((IFeature)((ISwPart)m_App.Documents["Part1.sldprt"]).Part.FeatureByName("Sketch2")).IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" })).First();
+
+                assm.Features["Sketch1"].State = FeatureState_e.Suppressed;
+                r5 = ((bool[])((IFeature)((ISwAssembly)assm).Assembly.FeatureByName("Sketch1")).IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf1" })).First();
+                r6 = ((bool[])((IFeature)((ISwAssembly)assm).Assembly.FeatureByName("Sketch1")).IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" })).First();
+            }
+
+            Assert.AreEqual(FeatureState_e.Default, s1);
+            Assert.AreEqual(FeatureState_e.Suppressed, s2);
+            Assert.AreEqual(FeatureState_e.Default, s3);
+            Assert.AreEqual(FeatureState_e.Suppressed, s4);
+            Assert.AreEqual(FeatureState_e.Default, s5);
+            Assert.AreEqual(FeatureState_e.Default, s6);
+            Assert.AreEqual(FeatureState_e.Default, s7);
+            Assert.AreEqual(FeatureState_e.Suppressed, s8);
+            Assert.AreEqual(FeatureState_e.Suppressed, s9);
+            Assert.AreEqual(FeatureState_e.Suppressed, s10);
+            Assert.AreEqual(true, r1);
+            Assert.AreEqual(false, r2);
+            Assert.AreEqual(false, r3);
+            Assert.AreEqual(false, r4);
+            Assert.AreEqual(true, r5);
+            Assert.AreEqual(false, r6);
         }
     }
 }
