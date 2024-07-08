@@ -179,16 +179,18 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 //NOTE: this entity can be created even if the IsCommited set to false as these are the cached entities created
                 var seg = CreateSketchEntity();
 
-                if (seg == null)
+                if (seg != null)
+                {
+                    SetColor(seg, m_Creator.CachedProperties.Get<Color?>(nameof(Color)));
+
+                    SetOwnerSketch(seg);
+
+                    return seg;
+                }
+                else 
                 {
                     throw new Exception("Failed to create sketch segment");
                 }
-
-                SetColor(seg, m_Creator.CachedProperties.Get<Color?>(nameof(Color)));
-
-                SetOwnerSketch(seg);
-
-                return seg;
             }
         }
 

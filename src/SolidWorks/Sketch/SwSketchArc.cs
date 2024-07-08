@@ -38,18 +38,32 @@ namespace Xarial.XCad.SolidWorks.Sketch
         {
             get 
             {
-                var centerPt = CreatePoint((ISketchPoint)Arc.GetCenterPoint2());
-                var diam = Arc.GetRadius() * 2;
+                if (IsCommitted)
+                {
+                    var centerPt = CreatePoint((ISketchPoint)Arc.GetCenterPoint2());
+                    var diam = Arc.GetRadius() * 2;
 
-                var norm = (double[])Arc.GetNormalVector();
+                    var norm = (double[])Arc.GetNormalVector();
 
-                return new Circle(new Axis(centerPt, new Vector(norm)), diam);
+                    return new Circle(new Axis(centerPt, new Vector(norm)), diam);
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<Circle>();
+                }
             }
             set 
             {
-                Arc.SetRadius(value.Diameter / 2);
-                SetPoint((ISketchPoint)Arc.GetCenterPoint2(), value.CenterAxis.Point);
-                //TODO: implement changing of the axis
+                if (IsCommitted)
+                {
+                    Arc.SetRadius(value.Diameter / 2);
+                    SetPoint((ISketchPoint)Arc.GetCenterPoint2(), value.CenterAxis.Point);
+                    //TODO: implement changing of the axis
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
             }
         }
 
@@ -64,7 +78,11 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         protected override ISketchSegment CreateSketchEntity()
         {
-            throw new NotImplementedException();
+            var geom = Geometry;
+
+            var centerPt = geom.CenterAxis.Point;
+
+            return m_SketchMgr.CreateCircleByRadius(centerPt.X, centerPt.Y, centerPt.Z, geom.Diameter / 2);
         }
 
         protected Point CreatePoint(ISketchPoint pt) => new Point(pt.X, pt.Y, pt.Z);
@@ -81,14 +99,54 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         public Point Start
         {
-            get => CreatePoint((ISketchPoint)Arc.GetStartPoint2());
-            set => SetPoint((ISketchPoint)Arc.GetStartPoint2(), value);
+            get
+            {
+                if (IsCommitted)
+                {
+                    return CreatePoint((ISketchPoint)Arc.GetStartPoint2());
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<Point>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    SetPoint((ISketchPoint)Arc.GetStartPoint2(), value);
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
         }
 
         public Point End
         {
-            get => CreatePoint((ISketchPoint)Arc.GetEndPoint2());
-            set => SetPoint((ISketchPoint)Arc.GetEndPoint2(), value);
+            get
+            {
+                if (IsCommitted)
+                {
+                    return CreatePoint((ISketchPoint)Arc.GetEndPoint2());
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<Point>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    SetPoint((ISketchPoint)Arc.GetEndPoint2(), value);
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
         }
 
         internal SwSketchArc(ISketchArc arc, SwDocument doc, SwApplication app, bool created) : base(arc, doc, app, created)
@@ -97,6 +155,26 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         internal SwSketchArc(SwSketchBase ownerSketch, SwDocument doc, SwApplication app) : base(ownerSketch, doc, app)
         {
+        }
+
+        protected override ISketchSegment CreateSketchEntity()
+        {
+            const int DIR_CLOCKWICE = -1;
+
+            if (Start == null)
+            {
+                throw new NullReferenceException("Start point coordinate is not specified");
+            }
+
+            if (End == null)
+            {
+                throw new NullReferenceException("End point coordinate is not specified");
+            }
+
+            var geom = Geometry;
+            var centerPt = geom.CenterAxis.Point;
+
+            return m_SketchMgr.CreateArc(centerPt.X, centerPt.Y, centerPt.Z, Start.X, Start.Y, Start.Z, End.X, End.Y, End.Z, DIR_CLOCKWICE);
         }
     }
 }
