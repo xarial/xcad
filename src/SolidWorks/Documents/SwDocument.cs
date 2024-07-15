@@ -504,6 +504,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_StorageWriteAvailableHandler = new StorageWriteAvailableEventsHandler(this, app);
             m_DocumentRebuildEventHandler = new DocumentRebuildEventsHandler(this, app);
             m_DocumentSavingEventHandler = new DocumentSavingEventHandler(this, app);
+            m_DocumentSavedEventHandler = new DocumentSavedEventHandler(this, app);
 
             m_AreEventsAttached = false;
 

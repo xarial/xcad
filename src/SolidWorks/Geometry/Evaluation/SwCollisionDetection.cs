@@ -112,6 +112,11 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
         {
             var bodies = Scope;
 
+            if (bodies?.Any() != true)
+            {
+                bodies = GetAllBodies();
+            }
+
             var results = new List<SwCollisionResult>();
 
             for (int i = 0; i < bodies.Length; i++) 
@@ -137,6 +142,23 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             }
 
             return results.ToArray();
+        }
+
+        private IXBody[] GetAllBodies()
+        {
+            switch (m_Doc) 
+            {
+                case IXPart part:
+                    return part.Bodies.OfType<IXSolidBody>()
+                        .Where(b => !VisibleOnly || b.Visible).ToArray();
+
+                case IXAssembly assm:
+                    return assm.Configurations.Active.Components
+                        .SelectMany(c => c.IterateBodies(!VisibleOnly)).ToArray();
+
+                default:
+                    throw new NotSupportedException();
+            }
         }
 
         protected virtual IXMemoryBody CreateCollisionBody(IXBody body) => body.Copy();

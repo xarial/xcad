@@ -161,7 +161,7 @@ namespace Xarial.XCad.Documents
             }
 
             IXBody[] GetComponentBodies(IXComponent srcComp)
-                => srcComp.Bodies.Where(b => bodyFilter.Invoke(b)).ToArray();
+                => srcComp.Bodies.Where(bodyFilter.Invoke).ToArray();
 
             foreach (var body in SelectComponents(comp)
                     .SelectMany(GetComponentBodies))

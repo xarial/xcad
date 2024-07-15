@@ -108,6 +108,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         private bool m_IsSuppressed;
 
+        private bool m_IsClosing;
+
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
         internal SwPropertyManagerPage(SwApplication app, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
@@ -225,6 +227,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         /// <inheritdoc/>
         public void Show(TModel model)
         {
+            m_IsClosing = false;
+
             Model = model;
             m_Logger.Log("Opening page", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
@@ -274,8 +278,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             if (!m_IsSuppressed)
             {
-                if (m_Page.IsRestorable && reason == swPropertyManagerPageCloseReasons_e.swPropertyManagerPageClose_UnknownReason)
+                if (m_Page.IsRestorable && (reason == swPropertyManagerPageCloseReasons_e.swPropertyManagerPageClose_UnknownReason || !m_IsClosing))
                 {
+                    //reopen page if system closed and page is restorable
+                    //when system closes page (e.g. not the user clicks, but some other command may hide page) either swPropertyManagerPageClose_UnknownReason reason is provided or OnClose event is not raised
                     Show(Model);
                 }
                 else 
@@ -293,6 +299,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                 if (!m_Page.IsRestorable || reason != swPropertyManagerPageCloseReasons_e.swPropertyManagerPageClose_UnknownReason)
                 {
                     Closing?.Invoke(ConvertReason(reason), arg);
+                    m_IsClosing = !arg.Cancel;
                 }
             }
         }

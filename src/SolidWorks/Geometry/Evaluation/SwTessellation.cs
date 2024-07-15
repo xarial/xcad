@@ -26,6 +26,34 @@ using Xarial.XCad.Toolkit.Exceptions;
 namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 {
     /// <summary>
+    /// Tesselation data
+    /// </summary>
+    public class BodyTesselation
+    {
+        /// <summary>
+        /// Source body
+        /// </summary>
+        public IXBody Body { get; }
+
+        /// <summary>
+        /// Tesselation obect
+        /// </summary>
+        public ITessellation Tesselation { get; }
+
+        /// <summary>
+        /// Tesselation transformation
+        /// </summary>
+        public TransformMatrix Transform { get; }
+
+        internal BodyTesselation(IXBody body, ITessellation tesselation, TransformMatrix transform)
+        {
+            Body = body;
+            Tesselation = tesselation;
+            Transform = transform;
+        }
+    }
+
+    /// <summary>
     /// Represents SOLIDWORKS specific <see cref="IXTessellation"/>
     /// </summary>
     public interface ISwTessellation : IXTessellation
@@ -33,7 +61,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
         /// <summary>
         /// Tesselation of each body in the scope
         /// </summary>
-        IReadOnlyDictionary<IXBody, ITessellation> Tessellation { get; }
+        IReadOnlyList<BodyTesselation> Tessellation { get; }
     }
 
     /// <summary>
@@ -48,8 +76,21 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
         //TODO: implement relative to matrix
         public TransformMatrix RelativeTo { get => TransformMatrix.Identity; set => throw new NotImplementedException(); }
 
-        //TODO: implement handling of user units
-        public bool UserUnits { get => false; set => throw new NotImplementedException(); }
+        public bool UserUnits
+        {
+            get => m_Creator.CachedProperties.Get<bool>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommittedElementPropertyChangeNotSupported();
+                }
+            }
+        }
 
         public bool VisibleOnly
         {
@@ -101,64 +142,160 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             }
         }
 
-        public IEnumerable<TesselationTriangle> Triangles
+        public IReadOnlyList<BodyTesselation> Tessellation => m_Creator.Element;
+
+        public IEnumerable<Point> Positions 
         {
-            get
+            get 
             {
-                foreach (var tess in Tessellation.Values)
+                double lengthConvFactor;
+
+                if (UserUnits) 
                 {
-                    for (int i = 0; i < tess.GetFacetCount(); i++)
+                    lengthConvFactor = m_Doc.Units.GetLengthConversionFactor();
+                }
+                else 
+                {
+                    lengthConvFactor = 1;
+                }
+
+                foreach (var tessData in Tessellation)
+                {
+                    var tess = tessData.Tesselation;
+                    var transform = tessData.Transform;
+
+                    for (int i = 0; i < tess.GetVertexCount(); i++)
                     {
-                        var fins = (int[])tess.GetFacetFins(i);
+                        var pos = new Point((double[])tess.GetVertexPoint(i));
 
-                        var vertices = fins.SelectMany(f => (int[])tess.GetFinVertices(f)).Distinct().ToArray();
+                        if (transform != null) 
+                        {
+                            pos *= transform;
+                        }
 
-                        yield return new TesselationTriangle(
-                            new Vector((double[])tess.GetVertexNormal(vertices[0])),
-                            new Vector((double[])tess.GetVertexPoint(vertices[0])),
-                            new Vector((double[])tess.GetVertexPoint(vertices[1])),
-                            new Vector((double[])tess.GetVertexPoint(vertices[2])));
+                        if (UserUnits)
+                        {
+                            pos = pos.Scale(lengthConvFactor);
+                        }
+
+                        yield return pos;
                     }
                 }
             }
         }
 
-        public IReadOnlyDictionary<IXBody, ITessellation> Tessellation => m_Creator.Element;
+        public IEnumerable<int> TriangleIndices 
+        {
+            get
+            {
+                var offset = 0;
+
+                foreach (var tessData in Tessellation)
+                {
+                    var tess = tessData.Tesselation;
+
+                    for (int i = 0; i < tess.GetFacetCount(); i++)
+                    {
+                        var fins = (int[])tess.GetFacetFins(i);
+
+                        if (fins.Length == 3)
+                        {
+                            var vertices = (int[])tess.GetFinVertices(fins[0]);
+
+                            yield return vertices[0] + offset;
+                            yield return vertices[1] + offset;
+
+                            if (vertices.Length == 2)
+                            {
+                                var nextVertices = (int[])tess.GetFinVertices(fins[1]);
+
+                                if (nextVertices.Length == 2)
+                                {
+                                    if (nextVertices[0] == vertices[0] || nextVertices[0] == vertices[1])
+                                    {
+                                        yield return nextVertices[1] + offset;
+                                    }
+                                    else if (nextVertices[1] == vertices[0] || nextVertices[1] == vertices[1])
+                                    {
+                                        yield return nextVertices[0] + offset;
+                                    }
+                                    else
+                                    {
+                                        throw new Exception("Fin vertices are not connected");
+                                    }
+                                }
+                                else
+                                {
+                                    throw new Exception("It must be 2 vertices per fin");
+                                }
+                            }
+                            else
+                            {
+                                throw new Exception("It must be 2 vertices per fin");
+                            }
+                        }
+                        else 
+                        {
+                            throw new Exception("It must be 3 fins per facet");
+                        }
+                    }
+
+                    offset += tess.GetVertexCount();
+                }
+            }
+        }
+
+        public IEnumerable<Vector> Normals
+        {
+            get
+            {
+                foreach (var tessData in Tessellation)
+                {
+                    var tess = tessData.Tesselation;
+
+                    for (int i = 0; i < tess.GetVertexCount(); i++)
+                    {
+                        yield return new Vector((double[])tess.GetVertexNormal(i));
+                    }
+                }
+            }
+        }
 
         public void Commit(CancellationToken cancellationToken)
             => m_Creator.Create(cancellationToken);
 
-        private IReadOnlyDictionary<IXBody, ITessellation> CreateTesselation(CancellationToken cancellationToken)
+        private IReadOnlyList<BodyTesselation> CreateTesselation(CancellationToken cancellationToken)
         {
-            var bodies = Scope;
+            var bodies = Scope?.Select(b => new Tuple<IXBody, IXFace[]>(b, null)).ToArray();
 
             if (bodies?.Any() != true)
             {
                 bodies = GetAllBodies();
             }
 
-            var res = new Dictionary<IXBody, ITessellation>();
+            var res = new List<BodyTesselation>();
 
-            foreach (ISwBody body in bodies)
+            foreach (var bodyData in bodies)
             {
-                ISwBody tessBody;
+                var body = (ISwBody)bodyData.Item1;
+                var faces = bodyData.Item2?.Cast<ISwFace>().Select(f => f.Face).ToArray();
 
                 var comp = body.Component;
+
+                TransformMatrix transform;
 
                 //assembly bodies must be transformed to the assembly space
                 if (comp != null)
                 {
-                    var copy = body.Copy();
-                    copy.Transform(comp.Transformation);
-                    tessBody = (ISwBody)copy;
+                    transform = comp.Transformation;
                 }
                 else
                 {
-                    tessBody = body;
+                    transform = null;
                 }
 
-                var tess = (ITessellation)tessBody.Body.GetTessellation(null);
-
+                var tess = (ITessellation)body.Body.GetTessellation(faces);
+                
                 tess.NeedVertexNormal = true;
                 tess.ImprovedQuality = Precise;
 
@@ -167,13 +304,13 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
                     throw new Exception($"Failed to tesselate body: '{body.Name}'");
                 }
 
-                res.Add(body, tess);
+                res.Add(new BodyTesselation(body, tess, transform));
             }
 
             return res;
         }
 
-        protected readonly IElementCreator<IReadOnlyDictionary<IXBody, ITessellation>> m_Creator;
+        protected readonly IElementCreator<IReadOnlyList<BodyTesselation>> m_Creator;
 
         private readonly ISwDocument3D m_Doc;
 
@@ -181,10 +318,10 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
         {
             m_Doc = doc;
 
-            m_Creator = new ElementCreator<IReadOnlyDictionary<IXBody, ITessellation>>(CreateTesselation, null, false);
+            m_Creator = new ElementCreator<IReadOnlyList<BodyTesselation>>(CreateTesselation, null, false);
         }
 
-        protected abstract IXBody[] GetAllBodies();
+        protected abstract Tuple<IXBody, IXFace[]>[] GetAllBodies();
 
         public void Dispose()
         {
@@ -200,9 +337,10 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             m_Part = part;
         }
 
-        protected override IXBody[] GetAllBodies()
+        protected override Tuple<IXBody, IXFace[]>[] GetAllBodies()
             => m_Part.Bodies.OfType<IXSolidBody>()
-            .Where(b => !VisibleOnly || b.Visible).ToArray();
+            .Where(b => !VisibleOnly || b.Visible)
+            .Select(b => new Tuple<IXBody, IXFace[]>(b, null)).ToArray();
     }
 
     internal class SwAssemblyTesselation : SwTessellation, ISwAssemblyTessellation
@@ -255,78 +393,37 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             }
         }
 
-        protected override IXBody[] GetAllBodies()
-            => m_Assm.Configurations.Active.Components.SelectMany(c => c.IterateBodies(!VisibleOnly)).ToArray();
+        protected override Tuple<IXBody, IXFace[]>[] GetAllBodies()
+            => m_Assm.Configurations.Active.Components.SelectMany(c => c.IterateBodies(!VisibleOnly))
+            .Select(b => new Tuple<IXBody, IXFace[]>(b, null)).ToArray();
     }
 
-    internal class SwFaceTesselation : IXFaceTesselation
+    internal class SwFaceTesselation : SwTessellation, IXFaceTesselation
     {
-        private class ImageQualitySetter : IDisposable 
+        //public new IXFace[] Scope
+        //{
+        //    get => m_Creator.CachedProperties.Get<IXFace[]>();
+        //    set
+        //    {
+        //        if (!IsCommitted)
+        //        {
+        //            m_Creator.CachedProperties.Set(value);
+        //        }
+        //        else
+        //        {
+        //            throw new CommittedElementPropertyChangeNotSupported();
+        //        }
+        //    }
+        //}
+
+        IXFace[] IXFaceTesselation.Scope
         {
-            private const int MAX_IMAGE_QUALITY_WIREFRAME_VALUE = 100;
-
-            private IModelDocExtension m_DocExt;
-
-            private double? m_ImageQualityShadedDeviation;
-            private int? m_ImageQualityWireframeValue;
-
-            internal ImageQualitySetter(SwDocument doc, bool precise) 
-            {
-                m_DocExt = doc.Model.Extension;
-
-                if (precise) 
-                {
-                    var curVal = double.NaN;
-                    var minVal = double.NaN;
-                    var maxVal = double.NaN;
-
-                    m_DocExt.GetUserPreferenceDoubleValueRange((int)swUserPreferenceDoubleValue_e.swImageQualityShadedDeviation,
-                        ref curVal, ref minVal, ref maxVal);
-
-                    m_ImageQualityShadedDeviation = m_DocExt.GetUserPreferenceDouble(
-                        (int)swUserPreferenceDoubleValue_e.swImageQualityShadedDeviation,
-                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
-
-                    m_ImageQualityWireframeValue = m_DocExt.GetUserPreferenceInteger(
-                        (int)swUserPreferenceIntegerValue_e.swImageQualityWireframeValue, 
-                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified);
-
-                    m_DocExt.SetUserPreferenceDouble((int)swUserPreferenceDoubleValue_e.swImageQualityShadedDeviation, 
-                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, minVal);
-
-                    m_DocExt.SetUserPreferenceInteger(
-                        (int)swUserPreferenceIntegerValue_e.swImageQualityWireframeValue,
-                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, MAX_IMAGE_QUALITY_WIREFRAME_VALUE);
-                }
-            }
-
-            public void Dispose()
-            {
-                if (m_ImageQualityShadedDeviation.HasValue)
-                {
-                    m_DocExt.SetUserPreferenceDouble((int)swUserPreferenceDoubleValue_e.swImageQualityShadedDeviation,
-                            (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, m_ImageQualityShadedDeviation.Value);
-                }
-
-                if (m_ImageQualityWireframeValue.HasValue)
-                {
-                    m_DocExt.SetUserPreferenceInteger(
-                        (int)swUserPreferenceIntegerValue_e.swImageQualityWireframeValue,
-                        (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, m_ImageQualityWireframeValue.Value);
-                }
-            }
-        }
-
-        IXBody[] IEvaluation.Scope { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-
-        public IXFace[] Scope
-        {
-            get => m_Creator.CachedProperties.Get<IXFace[]>();
+            get => m_Creator.CachedProperties.Get<IXFace[]>(nameof(Scope) + "%Faces");
             set
             {
                 if (!IsCommitted)
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    m_Creator.CachedProperties.Set(value, nameof(Scope) + "%Faces");
                 }
                 else
                 {
@@ -335,115 +432,23 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             }
         }
 
-        //TODO: implement relative to matrix
-        public TransformMatrix RelativeTo { get => TransformMatrix.Identity; set => throw new NotImplementedException(); }
-        
-        public bool UserUnits
+        public SwFaceTesselation(SwDocument3D doc) : base(doc)
         {
-            get => m_Creator.CachedProperties.Get<bool>();
-            set
-            {
-                if (!IsCommitted)
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-                else
-                {
-                    throw new CommittedElementPropertyChangeNotSupported();
-                }
-            }
         }
 
-        public bool VisibleOnly { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        
-        public bool Precise
+        protected override Tuple<IXBody, IXFace[]>[] GetAllBodies()
         {
-            get => m_Creator.CachedProperties.Get<bool>();
-            set
+            var faces = ((IXFaceTesselation)this).Scope;
+
+            if (faces?.Any() == true)
             {
-                if (!IsCommitted)
-                {
-                    m_Creator.CachedProperties.Set(value);
-                }
-                else
-                {
-                    throw new CommittedElementPropertyChangeNotSupported();
-                }
+                return faces.GroupBy(s => s.Body, new XObjectEqualityComparer<IXBody>())
+                    .Select(g => new Tuple<IXBody, IXFace[]>(g.Key, g.ToArray())).ToArray();
             }
-        }
-
-        public bool IsCommitted => m_Creator.IsCreated;
-
-        public IEnumerable<TesselationTriangle> Triangles => m_Creator.Element;
-
-        private readonly IElementCreator<TesselationTriangle[]> m_Creator;
-
-        private readonly SwDocument3D m_Doc;
-
-        public SwFaceTesselation(SwDocument3D doc) 
-        {
-            m_Doc = doc;
-            m_Creator = new ElementCreator<TesselationTriangle[]>(CreateTesselation, null, false);
-        }
-
-        private TesselationTriangle[] CreateTesselation(CancellationToken cancellationToken)
-        {
-            if (Scope?.Any() == true)
-            {
-                //TODO: consider components transformation
-
-                using (new ImageQualitySetter(m_Doc, Precise))
-                {
-                    var triangs = new List<TesselationTriangle>();
-
-                    foreach (ISwFace face in Scope)
-                    {
-                        TransformMatrix transform;
-
-                        var comp = face.Component;
-
-                        if (comp != null)
-                        {
-                            transform = comp.Transformation;
-                        }
-                        else 
-                        {
-                            transform = TransformMatrix.Identity;
-                        }
-
-                        var tessTriangs = (float[])face.Face.GetTessTriangles(!UserUnits);
-                        var tessNorms = (float[])face.Face.GetTessNorms();
-
-                        if (tessTriangs.Length == tessNorms.Length)
-                        {
-                            for (int i = 0; i < tessTriangs.Length; i += 9)
-                            {
-                                triangs.Add(new TesselationTriangle(
-                                    new Vector(tessNorms[i], tessNorms[i + 1], tessNorms[i + 2]) * transform,
-                                    new Point(tessTriangs[i], tessTriangs[i + 1], tessTriangs[i + 2]) * transform,
-                                    new Point(tessTriangs[i + 3], tessTriangs[i + 4], tessTriangs[i + 5]) * transform,
-                                    new Point(tessTriangs[i + 6], tessTriangs[i + 7], tessTriangs[i + 8]) * transform));
-                            }
-                        }
-                        else
-                        {
-                            throw new Exception("Size of triangles mismatch");
-                        }
-                    }
-
-                    return triangs.ToArray();
-                }
-            }
-            else 
+            else
             {
                 throw new Exception("No faces are specified in the scope");
             }
-        }
-
-        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
-
-        public void Dispose()
-        {
         }
     }
 }
