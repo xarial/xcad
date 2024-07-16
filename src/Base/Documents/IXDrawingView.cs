@@ -90,6 +90,12 @@ namespace Xarial.XCad.Documents
         Rect2D Boundary { get; }
 
         /// <summary>
+        /// Rotation angle of the drawing view
+        /// </summary>
+        /// <remarks>Value in radians</remarks>
+        double Angle { get; set; }
+
+        /// <summary>
         /// View boundary padding
         /// </summary>
         /// <remarks>Padding represents difference between <see cref="Boundary"/> and geometry</remarks>

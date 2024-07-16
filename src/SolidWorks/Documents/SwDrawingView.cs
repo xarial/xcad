@@ -314,6 +314,13 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        /// <inheritdoc/>
+        public double Angle 
+        {
+            get => DrawingView.Angle;
+            set => DrawingView.Angle = value;
+        }
+
         private void InsertPredefinedView(IXDocument3D doc)
         {
             Select(false);

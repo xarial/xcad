@@ -25,8 +25,14 @@ using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
+    /// <summary>
+    /// Document Manager specific drawing view
+    /// </summary>
     public interface ISwDmDrawingView : IXDrawingView, ISwDmObject
     {
+        /// <summary>
+        /// Pointer to native drawing view
+        /// </summary>
         ISwDMView DrawingView { get; }
     }
 
@@ -38,6 +44,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             => throw new NotSupportedException();
         public void Update() => throw new NotSupportedException();
         public Scale Scale { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public double Angle { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public Rect2D Boundary => throw new NotSupportedException();
         public IXBody[] Bodies { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public Thickness Padding => throw new NotSupportedException();
