@@ -839,7 +839,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (string.IsNullOrEmpty(docTemplate))
             {
-                if (!DocumentType.HasValue) 
+                if (!DocumentType.HasValue)
                 {
                     throw new Exception("Cannot find the default template for unknown document type");
                 }
@@ -1052,7 +1052,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (m_IsClosed != true)
                 {
-                    if (IsAlive)
+                    if (IsCommitted && IsAlive)
                     {
                         Close();
                     }
