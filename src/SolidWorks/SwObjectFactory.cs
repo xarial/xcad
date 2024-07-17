@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Xarial.XCad.Documents;
@@ -405,7 +406,7 @@ namespace Xarial.XCad.SolidWorks
                     return new SwSketchBlockInstance((IFeature)skBlockInst, doc, app, true);
 
                 case ISketchBlockDefinition skBlockDef:
-                    return new SwSketchBlockDefinition((IFeature)skBlockDef, doc, app, true);
+                    return new SwSketchBlockDefinition(GetSketchBlockDefinitionFeature(doc.Model, skBlockDef), doc, app, true);
 
                 case ICutListItem cutListItem:
                     return new SwCutListItem(cutListItem, (SwDocument3D)doc, app, true);
@@ -455,6 +456,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
+        //NOTE: some of the sheet bodies will have more than single face
         private static bool IsPlanarSheetBody(IBody2 body) 
         {
             var face = body.IGetFirstFace();
@@ -510,6 +512,53 @@ namespace Xarial.XCad.SolidWorks
 
             paramType = null;
             return false;
+        }
+
+        //NOTE: retrieving the pointer to the feature from the feature tree for the consistency as IFeature retrieved from ISketchBlockDefinition has a different pointer to IFeature in the tree
+        private static IFeature GetSketchBlockDefinitionFeature(IModelDoc2 model, ISketchBlockDefinition skBlockDef)
+        {
+            var feat = (IFeature)skBlockDef;
+
+            var comp = (IComponent2)((IEntity)feat).GetComponent();
+
+            var name = feat.Name;
+
+            IFeature corrFeat;
+
+            if (comp == null)
+            {
+                switch (model)
+                {
+                    case IPartDoc part:
+                        corrFeat = (IFeature)part.FeatureByName(name);
+                        break;
+
+                    case IAssemblyDoc assm:
+                        corrFeat = (IFeature)assm.FeatureByName(name);
+                        break;
+
+                    case IDrawingDoc drw:
+                        corrFeat = (IFeature)drw.FeatureByName(name);
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+            else
+            {
+                corrFeat = comp.FeatureByName(name);
+            }
+
+            if (corrFeat != null)
+            {
+                return corrFeat;
+            }
+            else
+            {
+                Debug.Assert(false, "Failed to find corresponding feature");
+                return feat;
+            }
         }
     }
 }

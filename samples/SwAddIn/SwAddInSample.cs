@@ -868,41 +868,7 @@ namespace SwAddInExample
 
         private void Custom()
         {
-            var assm = (IXAssembly)Application.Documents.Active;
-
-            var collDet = assm.Evaluation.PreCreateCollisionDetection();
-
-            var selComps = assm.Selections.OfType<IXComponent>().ToArray();
-            collDet.Scope = selComps.ToArray();
-
-            assm.Selections.Clear();
-
-            collDet.VisibleOnly = true;
-            collDet.Commit();
-
-            var newPart = Application.Documents.PreCreatePart();
-            newPart.Commit();
-
-            foreach (var res in collDet.Results)
-            {
-                //var collBodies = res.CollidedBodies.ToArray();
-
-                if (res.CollisionVolume != null)
-                {
-                    foreach (var colBody in res.CollisionVolume)
-                    {
-                        try
-                        {
-                            var dumbBodyFeat = newPart.Features.PreCreate<IXDumbBody>();
-                            dumbBodyFeat.BaseBody = colBody;
-                            dumbBodyFeat.Commit();
-                        }
-                        catch
-                        {
-                        }
-                    }
-                }
-            }
+            var doc = Application.Documents.Active;
         }
 
         private void HandleAddEvents()
