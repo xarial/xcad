@@ -1522,7 +1522,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             private ISwConfiguration m_OrigConf;
 
-            internal MultiBodyFlatPatternActivator(SwDrawing drw, SwSolidBody sheetMetalBody, SwPart sheetMetalPart, ref ISwConfiguration conf, ref string viewName)
+            internal MultiBodyFlatPatternActivator(SwDrawing drw, SwSolidBody sheetMetalBody, 
+                SwPart sheetMetalPart, ref ISwConfiguration conf, ref string viewName, CancellationToken cancellationToken)
             {
                 m_SheetMetalPart = sheetMetalPart;
                 m_OrigConf = m_SheetMetalPart.Configurations.Active;
@@ -1538,12 +1539,16 @@ namespace Xarial.XCad.SolidWorks.Documents
                     sheetMetalBody = sheetMetalPart.ConvertObject(sheetMetalBody);
                 }
 
+                cancellationToken.ThrowIfCancellationRequested();
+
                 //creating a temp view to generate a sheet metal configuration
                 var tempView = drw.Sheets.Active.DrawingViews.PreCreate<ISwModelBasedDrawingView>();
                 tempView.Bodies = new IXBody[] { sheetMetalBody };
                 tempView.SourceModelView = ((IXModelView3DRepository)sheetMetalPart.ModelViews)[StandardViewType_e.Front];
                 tempView.ReferencedConfiguration = conf;
                 tempView.Commit();
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 tempView.Select(false);
 
@@ -1558,6 +1563,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                     //remembering view name, it is important as the temp view will be deleted and flat pattern view
                     //needs to be renamed to the temp view name and this will reset the default view counter
                     viewName = tempView.Name;
+
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     tempView.Delete();
                 }
@@ -1724,9 +1731,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 var isMultiBody = bodies.Length > 1;
 
-                using (isMultiBody ? new MultiBodyFlatPatternActivator(m_Drawing, sheetMetalBody, sheetMetalPart, ref refConf, ref viewName) : null)
+                using (isMultiBody ? new MultiBodyFlatPatternActivator(m_Drawing, sheetMetalBody, sheetMetalPart, ref refConf, ref viewName, cancellationToken) : null)
                 {
-                    return CreateFlatPatternView(sheetMetalPart, refConf, viewName);
+                    return CreateFlatPatternView(sheetMetalPart, refConf, viewName, cancellationToken);
                 }
             }
             else 
@@ -1735,7 +1742,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private IView CreateFlatPatternView(SwPart sheetMetalPart, ISwConfiguration refConf, string viewName)
+        private IView CreateFlatPatternView(SwPart sheetMetalPart, ISwConfiguration refConf, string viewName, CancellationToken cancellationToken)
         {
             var confName = "";
 
@@ -1751,11 +1758,15 @@ namespace Xarial.XCad.SolidWorks.Documents
                 loc = new Point(0, 0, 0);
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
+
             var view = m_Drawing.Drawing.CreateFlatPatternViewFromModelView3(sheetMetalPart.Path, confName, loc.X, loc.Y, loc.Z, 
                 !Options.HasFlag(FlatPatternViewOptions_e.BendLines), false);
 
             if (view != null) 
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (!string.IsNullOrEmpty(viewName)) 
                 {
                     view.SetName2(viewName);
@@ -1773,12 +1784,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 try
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     flatPattern = GetViewFlatPattern(view);
                 }
                 catch (Exception ex)
                 {
                     throw new InvalidFlatPatternConfigurationException(ex);
                 }
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 SetViewOptions(view, Options, flatPattern);
 

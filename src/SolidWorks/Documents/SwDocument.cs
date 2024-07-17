@@ -1177,22 +1177,25 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private void DetachEvents()
         {
-            switch (Model)
+            if (IsCommitted)
             {
-                case PartDoc part:
-                    part.DestroyNotify2 -= OnDestroyNotify;
-                    part.FileSavePostNotify -= OnFileSavePostNotify;
-                    break;
+                switch (Model)
+                {
+                    case PartDoc part:
+                        part.DestroyNotify2 -= OnDestroyNotify;
+                        part.FileSavePostNotify -= OnFileSavePostNotify;
+                        break;
 
-                case AssemblyDoc assm:
-                    assm.DestroyNotify2 -= OnDestroyNotify;
-                    assm.FileSavePostNotify -= OnFileSavePostNotify;
-                    break;
+                    case AssemblyDoc assm:
+                        assm.DestroyNotify2 -= OnDestroyNotify;
+                        assm.FileSavePostNotify -= OnFileSavePostNotify;
+                        break;
 
-                case DrawingDoc drw:
-                    drw.DestroyNotify2 -= OnDestroyNotify;
-                    drw.FileSavePostNotify -= OnFileSavePostNotify;
-                    break;
+                    case DrawingDoc drw:
+                        drw.DestroyNotify2 -= OnDestroyNotify;
+                        drw.FileSavePostNotify -= OnFileSavePostNotify;
+                        break;
+                }
             }
         }
 
