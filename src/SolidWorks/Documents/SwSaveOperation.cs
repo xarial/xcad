@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -126,20 +127,36 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             try
             {
+                var opts = swSaveAsOptions_e.swSaveAsOptions_Silent;
+
+                var srcDocPath = m_Doc.Path;
+
+                if (!string.IsNullOrEmpty(srcDocPath)) 
+                {
+                    var srcExt = Path.GetExtension(srcDocPath);
+                    var destExt = Path.GetExtension(FilePath);
+
+                    if (string.Equals(srcExt, destExt, StringComparison.CurrentCultureIgnoreCase)) 
+                    {
+                        //if file is resaved in new name, save as copy, otherwise the references of the loaded documents will be replaced (e.g. components in the assembly)
+                        opts |= swSaveAsOptions_e.swSaveAsOptions_Copy;
+                    }
+                }
+
                 if (m_Doc.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2020, 2))
                 {
                     res = m_Doc.Model.Extension.SaveAs3(FilePath, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
-                        (int)swSaveAsOptions_e.swSaveAsOptions_Silent, expData, null, ref errs, ref warns);
+                        (int)opts, expData, null, ref errs, ref warns);
                 }
                 else if (m_Doc.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2019, 1))
                 {
                     res = m_Doc.Model.Extension.SaveAs2(FilePath, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
-                        (int)swSaveAsOptions_e.swSaveAsOptions_Silent, expData, "", false, ref errs, ref warns);
+                        (int)opts, expData, "", false, ref errs, ref warns);
                 }
                 else
                 {
                     res = m_Doc.Model.Extension.SaveAs(FilePath, (int)swSaveAsVersion_e.swSaveAsCurrentVersion,
-                        (int)swSaveAsOptions_e.swSaveAsOptions_Silent, expData, ref errs, ref warns);
+                        (int)opts, expData, ref errs, ref warns);
                 }
 
                 if (!res)

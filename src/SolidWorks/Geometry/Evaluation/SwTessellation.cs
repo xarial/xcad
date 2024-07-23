@@ -73,8 +73,21 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
     internal abstract class SwTessellation : ISwTessellation
     {
-        //TODO: implement relative to matrix
-        public TransformMatrix RelativeTo { get => TransformMatrix.Identity; set => throw new NotImplementedException(); }
+        public TransformMatrix RelativeTo
+        {
+            get => m_Creator.CachedProperties.Get<TransformMatrix>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommittedElementPropertyChangeNotSupported();
+                }
+            }
+        }
 
         public bool UserUnits
         {
@@ -162,7 +175,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
                 foreach (var tessData in Tessellation)
                 {
                     var tess = tessData.Tesselation;
-                    var transform = tessData.Transform;
+                    var transform = GetTransformation(tessData);
 
                     for (int i = 0; i < tess.GetVertexCount(); i++)
                     {
@@ -253,9 +266,18 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
                 {
                     var tess = tessData.Tesselation;
 
+                    var transform = GetTransformation(tessData);
+
                     for (int i = 0; i < tess.GetVertexCount(); i++)
                     {
-                        yield return new Vector((double[])tess.GetVertexNormal(i));
+                        var norm = new Vector((double[])tess.GetVertexNormal(i));
+
+                        if (transform != null) 
+                        {
+                            norm *= transform;
+                        }
+
+                        yield return norm;
                     }
                 }
             }
@@ -308,6 +330,27 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             }
 
             return res;
+        }
+
+        private TransformMatrix GetTransformation(BodyTesselation tessData)
+        {
+            var transform = tessData.Transform;
+
+            var relTo = RelativeTo;
+
+            if (transform != null)
+            {
+                if (relTo != null)
+                {
+                    transform *= relTo;
+                }
+            }
+            else
+            {
+                transform = relTo;
+            }
+
+            return transform;
         }
 
         protected readonly IElementCreator<IReadOnlyList<BodyTesselation>> m_Creator;

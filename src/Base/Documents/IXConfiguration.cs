@@ -31,6 +31,11 @@ namespace Xarial.XCad.Documents
         string Name { get; set; }
 
         /// <summary>
+        /// Description of the configuration
+        /// </summary>
+        string Description { get; set; }
+
+        /// <summary>
         /// Returns part number of this configuration
         /// </summary>
         string PartNumber { get; }

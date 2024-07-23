@@ -33,9 +33,17 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
+    /// <summary>
+    /// SOLIDWORKS-specific configuration
+    /// </summary>
     public interface ISwConfiguration : ISwSelObject, IXConfiguration, IDisposable
     {
+        /// <summary>
+        /// Pointer to configuration
+        /// </summary>
         IConfiguration Configuration { get; }
+
+        /// <inheritdoc/>
         new ISwCustomPropertiesCollection Properties { get; }
     }
 
@@ -66,6 +74,32 @@ namespace Xarial.XCad.SolidWorks.Documents
                 if (m_Creator.IsCreated)
                 {
                     Configuration.Name = value;
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        public virtual string Description
+        {
+            get
+            {
+                if (m_Creator.IsCreated)
+                {
+                    return Configuration.Description;
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<string>();
+                }
+            }
+            set
+            {
+                if (m_Creator.IsCreated)
+                {
+                    Configuration.Description = value;
                 }
                 else
                 {
@@ -260,21 +294,33 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             IConfiguration conf;
 
-            if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
+            var name = Name;
+            var desc = Description;
+
+            if (!string.IsNullOrEmpty(name))
             {
-                conf = m_Doc.Model.ConfigurationManager.AddConfiguration2(Name, "", "", (int)swConfigurationOptions2_e.swConfigOption_DontActivate, "", "", false);
+                if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
+                {
+                    conf = m_Doc.Model.ConfigurationManager.AddConfiguration2(name, "", "", (int)swConfigurationOptions2_e.swConfigOption_DontActivate, "", desc, false);
+                }
+                else
+                {
+                    conf = m_Doc.Model.ConfigurationManager.AddConfiguration(name, "", "", (int)swConfigurationOptions2_e.swConfigOption_DontActivate, "", desc);
+                }
+
+                if (conf != null)
+                {
+                    return conf;
+                }
+                else 
+                {
+                    throw new Exception("Failed to create configuration");
+                }
             }
             else 
             {
-                conf = m_Doc.Model.ConfigurationManager.AddConfiguration(Name, "", "", (int)swConfigurationOptions2_e.swConfigOption_DontActivate, "", "");
+                throw new Exception("Name is not specified");
             }
-
-            if (conf == null) 
-            {
-                throw new Exception("Failed to create configuration");
-            }
-
-            return conf;
         }
 
         public void Dispose()
@@ -374,6 +420,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             set => throw new NotSupportedException("Name of view-only configuration cannot be changed");
         }
 
+        public override string Description { get => throw new InactiveLdrConfigurationNotSupportedException(); set => throw new InactiveLdrConfigurationNotSupportedException(); }
+
         private string m_ViewOnlyConfName;
 
         internal SwViewOnlyUnloadedConfiguration(string confName, SwDocument3D doc, SwApplication app)
@@ -403,6 +451,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_LdrConfName = confName;
         }
 
+        public override string Description { get => throw new InactiveLdrConfigurationNotSupportedException(); set => throw new InactiveLdrConfigurationNotSupportedException(); }
         public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfigurationNotSupportedException();
         public override object Dispatch => throw new InactiveLdrConfigurationNotSupportedException();
         public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfigurationNotSupportedException();
@@ -424,6 +473,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_LdrConfName = confName;
         }
 
+        public override string Description { get => throw new InactiveLdrConfigurationNotSupportedException(); set => throw new InactiveLdrConfigurationNotSupportedException(); }
         public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfigurationNotSupportedException();
         public override object Dispatch => throw new InactiveLdrConfigurationNotSupportedException();
         public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfigurationNotSupportedException();

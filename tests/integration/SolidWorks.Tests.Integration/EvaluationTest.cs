@@ -2882,7 +2882,7 @@ namespace SolidWorks.Tests.Integration
                 var part = (IXPart)m_App.Documents.Active;
                 var tess = part.Evaluation.PreCreateTessellation();
                 tess.Commit();
-                triangs = tess.Triangles.ToArray();
+                triangs = tess.EnumerateTriangles().ToArray();
             }
 
             var side1 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 1, 0, 0 }, new DoubleComparer())).ToArray();
@@ -2925,7 +2925,7 @@ namespace SolidWorks.Tests.Integration
                 var assm = (IXAssembly)m_App.Documents.Active;
                 var tess = assm.Evaluation.PreCreateTessellation();
                 tess.Commit();
-                triangs = tess.Triangles.ToArray();
+                triangs = tess.EnumerateTriangles().ToArray();
             }
 
             var side1 = triangs.Where(t => t.Normal.ToArray().SequenceEqual(new double[] { 1, 0, 0 }, new DoubleComparer())).ToArray();

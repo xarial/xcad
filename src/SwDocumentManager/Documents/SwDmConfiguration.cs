@@ -198,6 +198,16 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
+        public string Description 
+        {
+            get => Configuration.Description;
+            set
+            {
+                Configuration.Description = value;
+                Document.IsDirty = true;
+            }
+        }
+
         private SwDMConfiguration GetParentConfiguration() 
         {
             var parentConfName = Configuration.GetParentConfigurationName();
