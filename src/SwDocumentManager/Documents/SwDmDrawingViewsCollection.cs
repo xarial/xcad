@@ -32,7 +32,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public T PreCreate<T>() where T : IXDrawingView => throw new NotSupportedException();
         #endregion
 
-        public IXDrawingView this[string name] => RepositoryHelper.Get(this, name);
+        public IXDrawingView this[string name] => m_RepoHelper.Get(name);
 
         public int Count => (((ISwDMSheet4)m_Sheet.Sheet).GetViews() as object[] ?? new object[0]).Length;
 
@@ -40,10 +40,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly SwDmDrawing m_Drw;
 
+        private readonly RepositoryHelper<IXDrawingView> m_RepoHelper;
+
         internal SwDmDrawingViewsCollection(SwDmSheet sheet, SwDmDrawing drw) 
         {
             m_Sheet = sheet;
             m_Drw = drw;
+
+            m_RepoHelper = new RepositoryHelper<IXDrawingView>(this);
         }
 
         public IEnumerator<IXDrawingView> GetEnumerator()
@@ -61,6 +65,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
     }
 }

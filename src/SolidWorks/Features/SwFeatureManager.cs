@@ -70,7 +70,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         IXFeature IXRepository<IXFeature>.this[string name] => this[name];
 
-        public ISwFeature this[string name] => (ISwFeature)RepositoryHelper.Get(this, name);
+        public ISwFeature this[string name] => (ISwFeature)m_RepoHelper.Get(name);
 
         public abstract bool TryGet(string name, out IXFeature ent);
 
@@ -84,11 +84,22 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly FeatureCreatedEventsHandler m_FeatureCreatedEventsHandler;
 
+        protected readonly RepositoryHelper<IXFeature> m_RepoHelper;
+
         internal SwFeatureManager(SwDocument doc, SwApplication app, Context context)
         {
             m_App = app;
             Document = doc;
             m_Context = context;
+
+            m_RepoHelper = new RepositoryHelper<IXFeature>(this,
+                    () => new SwSketch2D(default(ISketch), Document, m_App, false),
+                    () => new SwSketch3D(default(ISketch), Document, m_App, false),
+                    () => new SwMacroFeature(null, Document, m_App, false),
+                    () => new SwDumbBody(null, Document, m_App, false),
+                    () => new SwPlane(null, Document, m_App, false),
+                    () => new SwCoordinateSystem(null, Document, m_App, false),
+                    () => new SwSketchPicture(default(IFeature), Document, m_App, false));
 
             m_FeatureCreatedEventsHandler = new FeatureCreatedEventsHandler(doc, app);
 
@@ -160,14 +171,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
             else 
             {
-                return RepositoryHelper.PreCreate<IXFeature, T>(this,
-                    () => new SwSketch2D(default(ISketch), Document, m_App, false),
-                    () => new SwSketch3D(default(ISketch), Document, m_App, false),
-                    () => new SwMacroFeature(null, Document, m_App, false),
-                    () => new SwDumbBody(null, Document, m_App, false),
-                    () => new SwPlane(null, Document, m_App, false),
-                    () => new SwCoordinateSystem(null, Document, m_App, false),
-                    () => new SwSketchPicture(default(IFeature), Document, m_App, false));
+                return m_RepoHelper.PreCreate<T>();
             }
         }
 
@@ -177,7 +181,7 @@ namespace Xarial.XCad.SolidWorks.Features
             {
                 using (var viewFreeze = new UiFreeze(Document))
                 {
-                    RepositoryHelper.AddRange(feats, cancellationToken);
+                    m_RepoHelper.AddRange(feats, cancellationToken);
                 }
             }
             else
@@ -216,7 +220,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 {
                     var feat = Document.CreateObjectFromDispatch<ISwFeature>(swFeat);
 
-                    if (RepositoryHelper.MatchesFilters(feat, filters))
+                    if (m_RepoHelper.MatchesFilters(feat, filters))
                     {
                         yield return feat;
                     }
@@ -224,7 +228,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
             else 
             {
-                foreach (var ent in RepositoryHelper.FilterDefault(this, filters, reverseOrder)) 
+                foreach (var ent in m_RepoHelper.FilterDefault(this, filters, reverseOrder)) 
                 {
                     yield return ent;
                 }

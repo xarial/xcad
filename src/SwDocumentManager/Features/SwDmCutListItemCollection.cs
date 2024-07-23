@@ -39,13 +39,17 @@ namespace Xarial.XCad.SwDocumentManager.Features
         private readonly ISwDmPartConfiguration m_Conf;
         private readonly SwDmPart m_Part;
 
+        private readonly RepositoryHelper<IXCutListItem> m_RepoHelper;
+
         internal SwDmCutListItemCollection(ISwDmPartConfiguration conf, SwDmPart part) 
         {
             m_Conf = conf;
             m_Part = part;
+
+            m_RepoHelper = new RepositoryHelper<IXCutListItem>(this);
         }
 
-        public IXCutListItem this[string name] => RepositoryHelper.Get(this, name);
+        public IXCutListItem this[string name] => m_RepoHelper.Get(name);
 
         public int Count => IterateCutLists().Count();
 
@@ -75,7 +79,8 @@ namespace Xarial.XCad.SwDocumentManager.Features
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         private IEnumerable<IXCutListItem> IterateCutLists() 
         {

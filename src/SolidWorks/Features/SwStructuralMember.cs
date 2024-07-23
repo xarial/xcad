@@ -55,10 +55,10 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwSructuralMemberGroupRepository : ISwSructuralMemberGroupRepository
     {
-        public IXStructuralMemberGroup this[string name] => RepositoryHelper.Get(this, name);
+        public IXStructuralMemberGroup this[string name] => m_RepoHelper.Get(name);
         
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
-            => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public bool TryGet(string name, out IXStructuralMemberGroup ent) 
         {
@@ -110,10 +110,14 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly SwStructuralMember m_Parent;
 
+        private readonly RepositoryHelper<IXStructuralMemberGroup> m_RepoHelper;
+
         internal SwSructuralMemberGroupRepository(IStructuralMemberFeatureData structMembFeatData, SwStructuralMember parent) 
         {
             m_StructMembFeatData = structMembFeatData;
             m_Parent = parent;
+
+            m_RepoHelper = new RepositoryHelper<IXStructuralMemberGroup>(this);
         }
         
         public void AddRange(IEnumerable<IXStructuralMemberGroup> ents, CancellationToken cancellationToken)
@@ -169,8 +173,9 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwSructuralMemberPieceRepository : ISwSructuralMemberPieceRepository
     {
-        public IXStructuralMemberPiece this[string name] => RepositoryHelper.Get(this, name);
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IXStructuralMemberPiece this[string name] => m_RepoHelper.Get(name);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public bool TryGet(string name, out IXStructuralMemberPiece ent) 
         {
@@ -194,9 +199,13 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private readonly SwStructuralMemberGroup m_Group;
 
+        private readonly RepositoryHelper<IXStructuralMemberPiece> m_RepoHelper;
+
         internal SwSructuralMemberPieceRepository(SwStructuralMemberGroup group)
         {
             m_Group = group;
+
+            m_RepoHelper = new RepositoryHelper<IXStructuralMemberPiece>(this);
         }
 
         public void AddRange(IEnumerable<IXStructuralMemberPiece> ents, CancellationToken cancellationToken)

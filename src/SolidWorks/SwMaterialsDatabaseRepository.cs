@@ -27,11 +27,12 @@ namespace Xarial.XCad.SolidWorks
         public T PreCreate<T>() where T : IXMaterialsDatabase => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<IXMaterialsDatabase> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public SwMaterialsDatabase this[string name] => (SwMaterialsDatabase)RepositoryHelper.Get(this, name);
+        public SwMaterialsDatabase this[string name] => (SwMaterialsDatabase)m_RepoHelper.Get(name);
 
         public int Count => m_App.Sw.GetMaterialDatabaseCount();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public IEnumerator<IXMaterialsDatabase> GetEnumerator()
         {
@@ -83,9 +84,13 @@ namespace Xarial.XCad.SolidWorks
 
         private readonly SwApplication m_App;
 
+        private readonly RepositoryHelper<IXMaterialsDatabase> m_RepoHelper;
+
         internal SwMaterialsDatabaseRepository(SwApplication app)
         {
             m_App = app;
+
+            m_RepoHelper = new RepositoryHelper<IXMaterialsDatabase>(this);
         }
     }
 }

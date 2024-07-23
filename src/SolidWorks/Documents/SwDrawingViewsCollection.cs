@@ -44,17 +44,28 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly DrawingViewCreatedEventsHandler m_ViewCreatedEventsHandler;
 
+        private readonly RepositoryHelper<IXDrawingView> m_RepoHelper;
+
         internal SwDrawingViewsCollection(SwDrawing draw, SwSheet sheet)
         {
             m_Draw = draw;
             m_Sheet = sheet;
+
+            m_RepoHelper = new RepositoryHelper<IXDrawingView>(this,
+                () => new SwModelBasedDrawingView(m_Draw, m_Sheet),
+                () => new SwProjectedDrawingView(m_Draw, m_Sheet),
+                () => new SwAuxiliaryDrawingView(m_Draw, m_Sheet),
+                () => new SwDetailDrawingView(m_Draw, m_Sheet),
+                () => new SwSectionDrawingView(m_Draw, m_Sheet),
+                () => new SwFlatPatternDrawingView(m_Draw, m_Sheet),
+                () => new SwRelativeView(m_Draw, m_Sheet));
 
             m_ViewCreatedEventsHandler = new DrawingViewCreatedEventsHandler(m_Sheet, m_Draw, m_Draw.OwnerApplication);
 
             m_Cache = new EntityCache<IXDrawingView>(sheet, this, v => v.Name);
         }
 
-        public IXDrawingView this[string name] => RepositoryHelper.Get(this, name);
+        public IXDrawingView this[string name] => m_RepoHelper.Get(name);
 
         public int Count
         {
@@ -75,7 +86,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (m_Sheet.IsCommitted)
             {
-                RepositoryHelper.AddRange(ents, cancellationToken);
+                m_RepoHelper.AddRange(ents, cancellationToken);
             }
             else 
             {
@@ -95,7 +106,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public void RemoveRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken)
         {
@@ -181,13 +193,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public T PreCreate<T>() where T : IXDrawingView
-            => RepositoryHelper.PreCreate<IXDrawingView, T>(this,
-                () => new SwModelBasedDrawingView(m_Draw, m_Sheet),
-                () => new SwProjectedDrawingView(m_Draw, m_Sheet),
-                () => new SwAuxiliaryDrawingView(m_Draw, m_Sheet),
-                () => new SwDetailDrawingView(m_Draw, m_Sheet),
-                () => new SwSectionDrawingView(m_Draw, m_Sheet),
-                () => new SwFlatPatternDrawingView(m_Draw, m_Sheet),
-                () => new SwRelativeView(m_Draw, m_Sheet));
+            => m_RepoHelper.PreCreate<T>();
     }
 }

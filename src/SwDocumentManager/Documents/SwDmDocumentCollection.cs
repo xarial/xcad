@@ -73,7 +73,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             return res;
         }
 
-        public ISwDmDocument this[string name] => (ISwDmDocument)RepositoryHelper.Get(this, name);
+        public ISwDmDocument this[string name] => (ISwDmDocument)m_RepoHelper.Get(name);
 
         private ISwDmDocument m_Active;
 
@@ -99,13 +99,23 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly SwDmApplication m_DmApp;
 
+        private readonly RepositoryHelper<IXDocument> m_RepoHelper;
+
         internal SwDmDocumentCollection(SwDmApplication dmApp)
         {
             m_DmApp = dmApp;
+
+            m_RepoHelper = new RepositoryHelper<IXDocument>(this,
+                () => new SwDmUnknownDocument(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
+                () => new SwDmUnknownDocument3D(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
+                () => new SwDmPart(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
+                () => new SwDmAssembly(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
+                () => new SwDmDrawing(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null));
+
             m_Documents = new List<ISwDmDocument>();
         }
 
-        public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
+        public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken) => m_RepoHelper.AddRange(ents, cancellationToken);
 
         public IEnumerator<IXDocument> GetEnumerator() => m_Documents.GetEnumerator();
 
@@ -154,15 +164,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public T PreCreate<T>() where T : IXDocument
-            => RepositoryHelper.PreCreate<IXDocument, T>(this,
-                () => new SwDmUnknownDocument(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
-                () => new SwDmUnknownDocument3D(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
-                () => new SwDmPart(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
-                () => new SwDmAssembly(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
-                () => new SwDmDrawing(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null));
+            => m_RepoHelper.PreCreate<T>();
 
         internal void OnDocumentCreated(ISwDmDocument doc)
         {

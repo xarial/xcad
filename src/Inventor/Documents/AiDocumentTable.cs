@@ -40,7 +40,14 @@ namespace Xarial.XCad.Inventor.Documents
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         
-        public IXConfiguration this[string name] => RepositoryHelper.Get(this, name);
+        public IXConfiguration this[string name] => m_RepoHelper.Get(name);
+
+        private readonly RepositoryHelper<IXConfiguration> m_RepoHelper;
+
+        protected AiDocumentTable() 
+        {
+            m_RepoHelper = new RepositoryHelper<IXConfiguration>(this);
+        }
 
         public void AddRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken)
             => throw new NotSupportedException();
@@ -51,11 +58,11 @@ namespace Xarial.XCad.Inventor.Documents
             => throw new NotSupportedException();
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
-            => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public IEnumerator<IXConfiguration> GetEnumerator() => EnumerateRows().GetEnumerator();
 
-        public bool TryGet(string name, out IXConfiguration ent) => RepositoryHelper.TryFindByName(this, name, out ent);
+        public bool TryGet(string name, out IXConfiguration ent) => m_RepoHelper.TryFindByName(name, out ent);
 
         public abstract IXConfiguration Active { get; set; }
         public abstract int Count { get; }
@@ -90,7 +97,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         private readonly AiPart m_Part;
 
-        internal AiPartTable(AiPart part) 
+        internal AiPartTable(AiPart part)
         {
             m_Part = part;
         }

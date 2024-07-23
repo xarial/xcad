@@ -925,11 +925,15 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly SwDrawing m_Drw;
         private readonly SwDrawingView m_View;
-        
+
+        private readonly RepositoryHelper<IXDimension> m_RepoHelper;
+
         internal SwDrawingViewDimensionRepository(SwDrawing drw, SwDrawingView view) 
         {
             m_Drw = drw;
             m_View = view;
+
+            m_RepoHelper = new RepositoryHelper<IXDimension>(this);
         }
 
         public IXDimension this[string name] => throw new NotImplementedException();
@@ -953,7 +957,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         private IEnumerable<IXDimension> IterateDimensions() 
         {

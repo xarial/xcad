@@ -40,7 +40,7 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         public abstract event CutListRebuildDelegate CutListRebuild;
 
-        public IXCutListItem this[string name] => RepositoryHelper.Get(this, name);
+        public IXCutListItem this[string name] => m_RepoHelper.Get(name);
 
         public int Count => IterateCutLists(false).Count();
 
@@ -93,11 +93,18 @@ namespace Xarial.XCad.SolidWorks.Features
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
-            => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         protected abstract IEnumerable<ISwCutListItem> IterateCutLists(bool ordered);
 
         public T PreCreate<T>() where T : IXCutListItem => throw new NotImplementedException();
+
+        private readonly RepositoryHelper<IXCutListItem> m_RepoHelper;
+
+        protected SwCutListItemCollection() 
+        {
+            m_RepoHelper = new RepositoryHelper<IXCutListItem>(this);
+        }
 
         public bool Update()
         {

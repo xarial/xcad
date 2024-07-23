@@ -522,11 +522,19 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             yield break; 
         }
 
+        private readonly RepositoryHelper<IXComponent> m_RepoHelper;
+
+        internal EmptyComponentCollection() 
+        {
+            m_RepoHelper = new RepositoryHelper<IXComponent>(this);
+        }
+
         public bool TryGet(string name, out IXComponent ent)
             => throw new Exception("No components");
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
     }
 }

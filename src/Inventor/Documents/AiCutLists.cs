@@ -21,7 +21,7 @@ namespace Xarial.XCad.Inventor.Documents
     {
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IXCutListItem this[string name] => RepositoryHelper.Get(this, name);
+        public IXCutListItem this[string name] => m_RepoHelper.Get(name);
 
         public int Count => EnumerateCutLists().Count();
 
@@ -30,13 +30,20 @@ namespace Xarial.XCad.Inventor.Documents
 
         public event CutListRebuildDelegate CutListRebuild;
 
+        private readonly RepositoryHelper<IXCutListItem> m_RepoHelper;
+
+        internal AiCutLists() 
+        {
+            m_RepoHelper = new RepositoryHelper<IXCutListItem>(this);
+        }
+
         public void AddRange(IEnumerable<IXCutListItem> ents, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
-            => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public IEnumerator<IXCutListItem> GetEnumerator() => EnumerateCutLists().GetEnumerator();
 
@@ -50,7 +57,7 @@ namespace Xarial.XCad.Inventor.Documents
             throw new NotImplementedException();
         }
 
-        public bool TryGet(string name, out IXCutListItem ent) => RepositoryHelper.TryFindByName(this, name, out ent);
+        public bool TryGet(string name, out IXCutListItem ent) => m_RepoHelper.TryFindByName(name, out ent);
 
         private IEnumerable<IXCutListItem> EnumerateCutLists() 
         {

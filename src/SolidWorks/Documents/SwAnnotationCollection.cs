@@ -23,6 +23,9 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
+    /// <summary>
+    /// SOLIDWORKS specific annotations collection
+    /// </summary>
     public interface ISwAnnotationCollection : IXAnnotationRepository 
     {
     }
@@ -33,17 +36,26 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected readonly SwDocument m_Doc;
 
+        private readonly RepositoryHelper<IXAnnotation> m_RepoHelper;
+
         protected SwAnnotationCollection(SwDocument doc) 
         {
             m_Doc = doc;
+
+            m_RepoHelper = new RepositoryHelper<IXAnnotation>(this,
+                () => SwNote.New(null, m_Doc, m_Doc.OwnerApplication),
+                () => SwDrawingNote.New(null, (SwDrawing)m_Doc, m_Doc.OwnerApplication),
+                () => new SwSectionLine(null, m_Doc, m_Doc.OwnerApplication),
+                () => new SwBreakLine(null, m_Doc, m_Doc.OwnerApplication),
+                () => new SwDetailCircle(null, m_Doc, m_Doc.OwnerApplication));
         }
 
-        public IXAnnotation this[string name] => RepositoryHelper.Get(this, name);
+        public IXAnnotation this[string name] => m_RepoHelper.Get(name);
 
         public virtual int Count => IterateAllAnnotations().Count();
 
         public void AddRange(IEnumerable<IXAnnotation> ents, CancellationToken cancellationToken)
-            => RepositoryHelper.AddRange(ents, cancellationToken);
+            => m_RepoHelper.AddRange(ents, cancellationToken);
 
         public IEnumerator<IXAnnotation> GetEnumerator() => IterateAllAnnotations().GetEnumerator();
 
@@ -104,7 +116,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 all = true;
             }
 
-            foreach (var ent in RepositoryHelper.FilterDefault(IterateAnnotations(notes, dimensions, detailCircles, sectionLines, breakLines, all), filters, reverseOrder))
+            foreach (var ent in m_RepoHelper.FilterDefault(IterateAnnotations(notes, dimensions, detailCircles, sectionLines, breakLines, all), filters, reverseOrder))
             {
                 yield return ent;
             }
@@ -116,12 +128,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             bool sectionLines, bool breakLines, bool other);
 
         public T PreCreate<T>() where T : IXAnnotation
-            => RepositoryHelper.PreCreate<IXAnnotation, T>(this,
-                () => SwNote.New(null, m_Doc, m_Doc.OwnerApplication),
-                () => SwDrawingNote.New(null, (SwDrawing)m_Doc, m_Doc.OwnerApplication),
-                () => new SwSectionLine(null, m_Doc, m_Doc.OwnerApplication),
-                () => new SwBreakLine(null, m_Doc, m_Doc.OwnerApplication),
-                () => new SwDetailCircle(null, m_Doc, m_Doc.OwnerApplication));
+            => m_RepoHelper.PreCreate<T>();
 
         public void RemoveRange(IEnumerable<IXAnnotation> ents, CancellationToken cancellationToken)
         {

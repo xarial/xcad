@@ -43,7 +43,7 @@ namespace Xarial.XCad.SolidWorks.Data
             {
                 try
                 {
-                    return (SwCustomProperty)RepositoryHelper.Get(this, name);
+                    return (SwCustomProperty)m_RepoHelper.Get(name);
                 }
                 catch (EntityNotFoundException)
                 {
@@ -76,10 +76,14 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected readonly ISwApplication m_App;
 
+        private readonly RepositoryHelper<IXProperty> m_RepoHelper;
+
         protected SwCustomPropertiesCollection(SwDocument doc, ISwApplication app)
         {
             m_Doc = doc;
             m_App = app;
+
+            m_RepoHelper = new RepositoryHelper<IXProperty>(this, () => PreCreate());
         }
 
         private bool Exists(string name) 
@@ -99,7 +103,8 @@ namespace Xarial.XCad.SolidWorks.Data
             }
         }
 
-        public void AddRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
+        public void AddRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken) 
+            => m_RepoHelper.AddRange(ents, cancellationToken);
 
         public IEnumerator<IXProperty> GetEnumerator()
             => new SwCustomPropertyEnumerator(PrpMgr, CreatePropertyInstance);
@@ -114,7 +119,7 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected virtual void DeleteProperty(IXProperty prp)
         {
-            if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
+            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2014))
             {
                 var delRes = (swCustomInfoDeleteResult_e)PrpMgr.Delete2(prp.Name);
 
@@ -136,7 +141,8 @@ namespace Xarial.XCad.SolidWorks.Data
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         protected abstract EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp);
 
@@ -153,7 +159,7 @@ namespace Xarial.XCad.SolidWorks.Data
         {
         }
 
-        public T PreCreate<T>() where T : IXProperty => (T)PreCreate();
+        public T PreCreate<T>() where T : IXProperty => m_RepoHelper.PreCreate<T>();
     }
 
     internal class SwConfigurationCustomPropertiesCollection : SwCustomPropertiesCollection

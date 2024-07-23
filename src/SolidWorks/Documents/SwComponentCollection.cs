@@ -27,6 +27,9 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
+    /// <summary>
+    /// SOLIDWORKS specific components collection
+    /// </summary>
     public interface ISwComponentCollection : IXComponentRepository
     {
         /// <summary>
@@ -48,7 +51,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         IXComponent IXRepository<IXComponent>.this[string name] => this[name];
 
-        public ISwComponent this[string name] => (SwComponent)RepositoryHelper.Get(this, name);
+        public ISwComponent this[string name] => (SwComponent)m_RepoHelper.Get(name);
 
         public bool TryGet(string name, out IXComponent ent)
         {
@@ -111,9 +114,16 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly EntityCache<IXComponent> m_Cache;
 
+        private readonly RepositoryHelper<IXComponent> m_RepoHelper;
+
         internal SwComponentCollection(SwAssembly assm)
         {
             RootAssembly = assm;
+
+            m_RepoHelper = new RepositoryHelper<IXComponent>(this,
+                () => new SwPartComponent(null, RootAssembly, RootAssembly.OwnerApplication),
+                () => new SwAssemblyComponent(null, RootAssembly, RootAssembly.OwnerApplication));
+
             m_Cache = new EntityCache<IXComponent>(assm, this, c => c.Name);
         }
 
@@ -154,13 +164,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken)
         {
             if (RootAssembly.IsCommitted)
             {
-                RepositoryHelper.RemoveAll(this, ents, cancellationToken);
+                m_RepoHelper.RemoveAll(ents, cancellationToken);
             }
             else 
             {
@@ -192,17 +203,18 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public T PreCreate<T>() where T : IXComponent
-            => RepositoryHelper.PreCreate<IXComponent, T>(this,
-                () => new SwPartComponent(null, RootAssembly, RootAssembly.OwnerApplication),
-                () => new SwAssemblyComponent(null, RootAssembly, RootAssembly.OwnerApplication));
+            => m_RepoHelper.PreCreate<T>();
     }
 
+    /// <summary>
+    /// Additional methods of <see cref="ISwComponentCollection"/>
+    /// </summary>
     public static class SwComponentCollectionExtension
     {
         /// <summary>
         /// Pre creates new component from path
         /// </summary>
-        /// <param name="docsColl">Documents collection</param>
+        /// <param name="compsColl">Documents collection</param>
         /// <param name="path"></param>
         /// <returns>Pre-created document</returns>
         public static ISwComponent PreCreateFromPath(this ISwComponentCollection compsColl, string path)

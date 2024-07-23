@@ -48,7 +48,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => throw new NotSupportedException();
         }
 
-        public ISwDmConfiguration this[string name] => (ISwDmConfiguration)RepositoryHelper.Get(this, name);
+        public ISwDmConfiguration this[string name] => (ISwDmConfiguration)m_RepoHelper.Get(name);
 
         public ISwDmConfiguration Active 
         {
@@ -90,9 +90,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly SwDmDocument3D m_Doc;
         private readonly Dictionary<ISwDMConfiguration, ISwDmConfiguration> m_ConfigurationsCache;
 
+        private readonly RepositoryHelper<IXConfiguration> m_RepoHelper;
+
         internal SwDmConfigurationCollection(SwDmDocument3D doc) 
         {
             m_Doc = doc;
+
+            m_RepoHelper = new RepositoryHelper<IXConfiguration>(this);
             m_ConfigurationsCache = new Dictionary<ISwDMConfiguration, ISwDmConfiguration>();
         }
 
@@ -172,7 +176,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
     }
 
     public interface ISwDmAssemblyConfigurationCollection : ISwDmConfigurationCollection, IXAssemblyConfigurationRepository 

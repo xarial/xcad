@@ -17,8 +17,14 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks
 {
+    /// <summary>
+    /// SOLIDWORKS speciic material database
+    /// </summary>
     public interface ISwMaterialsDatabase : IXMaterialsDatabase
     {
+        /// <summary>
+        /// File path to the material database
+        /// </summary>
         string FilePath { get; }
     }
 
@@ -36,7 +42,7 @@ namespace Xarial.XCad.SolidWorks
         public T PreCreate<T>() where T : IXMaterial => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<IXMaterial> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public IXMaterial this[string name] => RepositoryHelper.Get(this, name);
+        public IXMaterial this[string name] => m_RepoHelper.Get(name);
 
         public string Name { get; }
 
@@ -44,7 +50,8 @@ namespace Xarial.XCad.SolidWorks
 
         public bool IsCommitted => true;
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public IEnumerator<IXMaterial> GetEnumerator()
         {
@@ -76,9 +83,14 @@ namespace Xarial.XCad.SolidWorks
         
         private readonly Lazy<XmlDocument> m_MatDbXml;
 
+        private readonly RepositoryHelper<IXMaterial> m_RepoHelper;
+
         internal SwMaterialsDatabase(SwApplication app, string dbFilePath)
         {
             m_App = app;
+
+            m_RepoHelper = new RepositoryHelper<IXMaterial>(this);
+
             FilePath = dbFilePath;
 
             var dbFileName = Path.GetFileNameWithoutExtension(dbFilePath);

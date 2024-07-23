@@ -23,7 +23,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         IEnumerator<IXTableColumn> IEnumerable<IXTableColumn>.GetEnumerator() => GetEnumerator();
 
-        public SwTableColumn this[string name] => (SwTableColumn)RepositoryHelper.Get(this, name);
+        public SwTableColumn this[string name] => (SwTableColumn)m_RepoHelper.Get(name);
 
         public SwTableColumn this[int index] => new SwTableColumn(m_Table, index, m_ChangeTracker);
 
@@ -37,9 +37,14 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         internal SwTableColumn ItemNumberColumn => m_ItemNumberColumnLazy.Value;
 
+        private readonly RepositoryHelper<IXTableColumn> m_RepoHelper;
+
         internal SwTableColumnRepository(SwTable table, ChangeTracker changeTracker)
         {
             m_Table = table;
+
+            m_RepoHelper = new RepositoryHelper<IXTableColumn>(this,
+                () => new SwTableColumn(m_Table, null, m_ChangeTracker));
 
             m_ItemNumberColumnLazy = new Lazy<SwTableColumn>(GetItemNumberColumn);
 
@@ -60,10 +65,10 @@ namespace Xarial.XCad.SolidWorks.Annotations
         }
 
         public void AddRange(IEnumerable<IXTableColumn> ents, CancellationToken cancellationToken)
-            => RepositoryHelper.AddRange(ents, cancellationToken);
+            => m_RepoHelper.AddRange(ents, cancellationToken);
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
-            => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public IEnumerator<SwTableColumn> GetEnumerator()
         {
@@ -74,8 +79,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
         }
 
         public T PreCreate<T>() where T : IXTableColumn
-            => RepositoryHelper.PreCreate<IXTableColumn, T>(this,
-                () => new SwTableColumn(m_Table, null, m_ChangeTracker));
+            => m_RepoHelper.PreCreate<T>();
 
         public void RemoveRange(IEnumerable<IXTableColumn> ents, CancellationToken cancellationToken)
         {
