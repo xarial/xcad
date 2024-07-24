@@ -30,13 +30,18 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SwDocument m_Doc;
         private readonly SwApplication m_App;
 
+        private readonly RepositoryHelper<IXLayer> m_RepoHelper;
+
         internal SwLayersCollection(SwDocument doc, SwApplication app) 
         {
             m_Doc = doc;
             m_App = app;
+
+            m_RepoHelper = new RepositoryHelper<IXLayer>(this,
+                TransactionFactory<IXLayer>.Create(() => new SwLayer(null, m_Doc, m_App)));
         }
 
-        public IXLayer this[string name] => RepositoryHelper.Get(this, name);
+        public IXLayer this[string name] => m_RepoHelper.Get(name);
 
         public int Count => m_Doc.Model.IGetLayerManager().GetCount();
 
@@ -70,10 +75,10 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public void AddRange(IEnumerable<IXLayer> ents, CancellationToken cancellationToken) 
-            => RepositoryHelper.AddRange(ents, cancellationToken);
+            => m_RepoHelper.AddRange(ents, cancellationToken);
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
-            => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public IEnumerator<IXLayer> GetEnumerator()
         {
@@ -89,8 +94,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public T PreCreate<T>() where T : IXLayer
-            => RepositoryHelper.PreCreate<IXLayer, T>(this,
-                () => new SwLayer(null, m_Doc, m_App));
+            => m_RepoHelper.PreCreate<T>();
 
         public void RemoveRange(IEnumerable<IXLayer> ents, CancellationToken cancellationToken)
         {

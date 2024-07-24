@@ -22,6 +22,9 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
+    /// <summary>
+    /// SOLIDWORKS specific memory geometry builder for solid bodies
+    /// </summary>
     public interface ISwMemorySolidGeometryBuilder : IXSolidGeometryBuilder
     {
     }
@@ -40,11 +43,19 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private readonly IMemoryGeometryBuilderToleranceProvider m_TolProvider;
 
+        private readonly RepositoryHelper<IXPrimitive> m_RepoHelper;
+
         internal SwMemorySolidGeometryBuilder(ISwApplication app, IMemoryGeometryBuilderDocumentProvider geomBuilderDocsProvider, IMemoryGeometryBuilderToleranceProvider tolProvider)
         {
             m_App = app;
 
             m_TolProvider = tolProvider;
+
+            m_RepoHelper = new RepositoryHelper<IXPrimitive>(this,
+                TransactionFactory<IXPrimitive>.Create(() => new SwTempSolidExtrusion(null, m_App, false)),
+                TransactionFactory<IXPrimitive>.Create(() => new SwTempSolidRevolve(null, m_App, false)),
+                TransactionFactory<IXPrimitive>.Create(() => new SwTempSolidSweep(null, (SwPart)m_GeomBuilderDocsProvider.ProvideDocument(typeof(SwTempSolidSweep)), m_App, false)),
+                TransactionFactory<IXPrimitive>.Create(() => new SwTempSolidKnit(null, m_App, false, m_TolProvider)));
 
             m_MathUtils = m_App.Sw.IGetMathUtility();
             m_Modeler = m_App.Sw.IGetModeler();
@@ -54,21 +65,19 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public bool TryGet(string name, out IXPrimitive ent) => throw new NotImplementedException();
 
-        public void AddRange(IEnumerable<IXPrimitive> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
+        public void AddRange(IEnumerable<IXPrimitive> ents, CancellationToken cancellationToken) 
+            => m_RepoHelper.AddRange(ents, cancellationToken);
 
         public void RemoveRange(IEnumerable<IXPrimitive> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
 
         public T PreCreate<T>() where T : IXPrimitive
-            => RepositoryHelper.PreCreate<IXPrimitive, T>(this,
-                () => new SwTempSolidExtrusion(null, m_App, false),
-                () => new SwTempSolidRevolve(null, m_App, false),
-                () => new SwTempSolidSweep(null, (SwPart)m_GeomBuilderDocsProvider.ProvideDocument(typeof(SwTempSolidSweep)), m_App, false),
-                () => new SwTempSolidKnit(null, m_App, false, m_TolProvider));
+            => m_RepoHelper.PreCreate<T>();
 
         public IEnumerator<IXPrimitive> GetEnumerator() => throw new NotImplementedException();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
     }
 }

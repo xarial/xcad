@@ -22,9 +22,10 @@ namespace Xarial.XCad.SwDocumentManager.Data
 
     internal abstract class SwDmCustomPropertiesCollection : ISwDmCustomPropertiesCollection
     {
-        public IXProperty this[string name] => RepositoryHelper.Get(this, name);
+        public IXProperty this[string name] => m_RepoHelper.Get(name);
 
-        public void AddRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
+        public void AddRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken)
+            => m_RepoHelper.AddRange(ents, cancellationToken);
 
         public T PreCreate<T>() where T : IXProperty => (T)CreatePropertyInstance("", false);
 
@@ -50,9 +51,17 @@ namespace Xarial.XCad.SwDocumentManager.Data
             }
         }
 
+        private readonly RepositoryHelper<IXProperty> m_RepoHelper;
+
+        protected SwDmCustomPropertiesCollection() 
+        {
+            m_RepoHelper = new RepositoryHelper<IXProperty>(this);
+        }
+
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public abstract int Count { get; }
         public abstract IEnumerator<IXProperty> GetEnumerator();

@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public IEnumerator<IXPrimitive> GetEnumerator() => throw new NotImplementedException();
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
-            => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public int Count => throw new NotImplementedException();
         public IXPrimitive this[string name] => throw new NotImplementedException();
@@ -47,21 +47,25 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         private readonly IMemoryGeometryBuilderToleranceProvider m_TolProvider;
 
+        private readonly RepositoryHelper<IXPrimitive> m_RepoHelper;
+
         internal SwMemorySheetGeometryBuilder(SwApplication app, IMemoryGeometryBuilderToleranceProvider tolProvider)
         {
             m_App = app;
 
             m_TolProvider = tolProvider;
 
+            m_RepoHelper = new RepositoryHelper<IXPrimitive>(this,
+                TransactionFactory<IXPrimitive>.Create(() => new SwTempPlanarSheet(null, m_App, false, m_TolProvider)),
+                TransactionFactory<IXPrimitive>.Create(() => new SwTempSurfaceKnit(null, m_App, false, m_TolProvider)),
+                TransactionFactory<IXPrimitive>.Create(() => new SwTempSurfaceExtrusion(null, m_App, false)),
+                TransactionFactory<IXPrimitive>.Create(() => new SwTempSurfaceLoft(null, m_App, false)));
+
             m_MathUtils = m_App.Sw.IGetMathUtility();
             m_Modeler = m_App.Sw.IGetModeler();
         }
 
         public T PreCreate<T>() where T : IXPrimitive
-            => RepositoryHelper.PreCreate<IXPrimitive, T>(this, 
-                () => new SwTempPlanarSheet(null, m_App, false, m_TolProvider),
-                () => new SwTempSurfaceKnit(null, m_App, false, m_TolProvider),
-                () => new SwTempSurfaceExtrusion(null, m_App, false),
-                () => new SwTempSurfaceLoft(null, m_App, false));
+            => m_RepoHelper.PreCreate<T>();
     }
 }

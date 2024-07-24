@@ -21,8 +21,16 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
+    /// <summary>
+    /// SOLIDWORKS specific memory geometry builder of wire bodies
+    /// </summary>
     public interface ISwMemoryWireGeometryBuilder : IXWireGeometryBuilder
     {
+        /// <summary>
+        /// Merge curves
+        /// </summary>
+        /// <param name="curves">Curves to merge</param>
+        /// <returns>Merged curve</returns>
         ISwCurve Merge(ISwCurve[] curves);
     }
 
@@ -38,9 +46,21 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public IXWireEntity this[string name] => throw new NotImplementedException();
 
+        private readonly RepositoryHelper<IXWireEntity> m_RepoHelper;
+
         internal SwMemoryWireGeometryBuilder(SwApplication app)
         {
             m_App = app;
+
+            m_RepoHelper = new RepositoryHelper<IXWireEntity>(this,
+                TransactionFactory<IXWireEntity>.Create(() => new SwTempWireBody(null, m_App)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwCircleCurve(null, null, m_App, false)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwArcCurve(null, null, m_App, false)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwLineCurve(null, null, m_App, false)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwPolylineCurve(null, null, m_App, false)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwPoint(null, null, m_App)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwLoop(null, null, m_App)));
+
             m_MathUtils = app.Sw.IGetMathUtility();
             m_Modeler = app.Sw.IGetModeler();
         }
@@ -60,20 +80,14 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public bool TryGet(string name, out IXWireEntity ent)
             => throw new NotImplementedException();
 
-        public void AddRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
+        public void AddRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken) 
+            => m_RepoHelper.AddRange(ents, cancellationToken);
 
         public void RemoveRange(IEnumerable<IXWireEntity> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public T PreCreate<T>() where T : IXWireEntity
-            => RepositoryHelper.PreCreate<IXWireEntity, T>(this,
-                () => new SwTempWireBody(null, m_App),
-                () => new SwCircleCurve(null, null, m_App, false),
-                () => new SwArcCurve(null, null, m_App, false),
-                () => new SwLineCurve(null, null, m_App, false),
-                () => new SwPolylineCurve(null, null, m_App, false),
-                () => new SwPoint(null, null, m_App),
-                () => new SwLoop(null, null, m_App));
+            => m_RepoHelper.PreCreate<T>();
 
         public IEnumerator<IXWireEntity> GetEnumerator()
             => throw new NotImplementedException();
@@ -81,6 +95,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         IEnumerator IEnumerable.GetEnumerator()
             => throw new NotImplementedException();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
     }
 }

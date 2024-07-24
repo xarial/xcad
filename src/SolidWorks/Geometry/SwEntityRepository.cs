@@ -42,10 +42,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public void AddRange(IEnumerable<ISwEntity> ents, CancellationToken cancellationToken)
             => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<ISwEntity> ents, CancellationToken cancellationToken)
-            => RepositoryHelper.RemoveAll(this, ents, cancellationToken);
+            => m_RepoHelper.RemoveAll(ents, cancellationToken);
 
         public bool TryGet(string name, out ISwEntity ent) 
-            => RepositoryHelper.TryFindByName(this, name, out ent);
+            => m_RepoHelper.TryFindByName(name, out ent);
         
         public T PreCreate<T>() where T : IXEntity
             => throw new NotSupportedException();
@@ -82,7 +82,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 silhouetteEdges = true;
             }
 
-            foreach (var ent in RepositoryHelper.FilterDefault(IterateEntities(faces, edges, vertices, silhouetteEdges), filters, reverseOrder))
+            foreach (var ent in m_RepoHelper.FilterDefault(IterateEntities(faces, edges, vertices, silhouetteEdges), filters, reverseOrder))
             {
                 yield return ent;
             }
@@ -91,6 +91,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public IEnumerator<ISwEntity> GetEnumerator() => IterateAllEntities().GetEnumerator();
 
         private IEnumerable<ISwEntity> IterateAllEntities() => IterateEntities(true, true, true, true);
+
+        private readonly RepositoryHelper<ISwEntity> m_RepoHelper;
+
+        protected SwEntityRepository() 
+        {
+            m_RepoHelper = new RepositoryHelper<ISwEntity>(this);
+        }
 
         protected abstract IEnumerable<ISwEntity> IterateEntities(bool faces, bool edges, bool vertices, bool silhouetteEdges);
     }

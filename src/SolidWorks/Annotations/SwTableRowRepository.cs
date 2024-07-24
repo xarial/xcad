@@ -20,7 +20,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
     {
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IXTableRow this[string name] => RepositoryHelper.Get(this, name);
+        public IXTableRow this[string name] => m_RepoHelper.Get(name);
 
         public IXTableRow this[int index] => CreateRow(index);
 
@@ -36,10 +36,15 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         protected Lazy<SwTableColumnRepository> m_ColumnsLazy;
 
+        private readonly RepositoryHelper<IXTableRow> m_RepoHelper;
+
         internal SwTableRowRepository(SwTable table, ChangeTracker changeTracker) 
         {
             m_Table = table;
             m_ColumnsLazy = new Lazy<SwTableColumnRepository>(() => table.Columns);
+
+            m_RepoHelper = new RepositoryHelper<IXTableRow>(this,
+                TransactionFactory<IXTableRow>.Create(() => CreateRow(null)));
 
             m_ChangeTracker = changeTracker;
 
@@ -47,17 +52,16 @@ namespace Xarial.XCad.SolidWorks.Annotations
         }
 
         public void AddRange(IEnumerable<IXTableRow> ents, CancellationToken cancellationToken)
-            => RepositoryHelper.AddRange(ents, cancellationToken);
+            => m_RepoHelper.AddRange(ents, cancellationToken);
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
-            => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public IEnumerator<IXTableRow> GetEnumerator() 
             => IterateRows<SwTableRow>().GetEnumerator();
 
         public T PreCreate<T>() where T : IXTableRow
-            => RepositoryHelper.PreCreate<IXTableRow, T>(this, 
-                () => CreateRow(null));
+            => m_RepoHelper.PreCreate<T>();
 
         /// <remarks>
         /// Due to current bug in SOLIDWORKS removing rows (both from API or UI) will break the indices of visible rows

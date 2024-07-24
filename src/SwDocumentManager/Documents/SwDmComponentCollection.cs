@@ -43,16 +43,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly Dictionary<string, SwDmComponent> m_ComponentsCache;
 
+        private readonly RepositoryHelper<IXComponent> m_RepoHelper;
+
         internal SwDmComponentCollection(SwDmAssembly parentAssm, ISwDmConfiguration conf)
         {
             m_ParentAssm = parentAssm;
             m_Conf = conf;
 
+            m_RepoHelper = new RepositoryHelper<IXComponent>(this);
+
             m_PathResolver = new SwDmFilePathResolver();
             m_ComponentsCache = new Dictionary<string, SwDmComponent>(StringComparer.CurrentCultureIgnoreCase);
         }
 
-        public IXComponent this[string name] => RepositoryHelper.Get(this, name);
+        public IXComponent this[string name] => m_RepoHelper.Get(name);
 
         public int Count
         {
@@ -169,7 +173,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             .Select(CreateComponentInstance)
             .GetEnumerator();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         protected virtual SwDmComponent CreateComponentInstance(ISwDMComponent dmComp) 
         {

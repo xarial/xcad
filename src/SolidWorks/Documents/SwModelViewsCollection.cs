@@ -38,10 +38,14 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected readonly SwDocument m_Doc;
         protected readonly SwApplication m_App;
 
+        private readonly RepositoryHelper<IXModelView> m_RepoHelper;
+
         public SwModelViewsCollection(SwDocument doc, SwApplication app)
         {
             m_Doc = doc;
             m_App = app;
+
+            m_RepoHelper = new RepositoryHelper<IXModelView>(this);
         }
 
         public int Count => m_Doc.Model.GetModelViewCount() - 1;
@@ -63,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public ISwNamedView this[string name] => (ISwNamedView)RepositoryHelper.Get(this, name);
+        public ISwNamedView this[string name] => (ISwNamedView)m_RepoHelper.Get(name);
 
         public bool TryGet(string name, out IXModelView ent)
         {
@@ -74,7 +78,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             return view != null;
         }
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public void AddRange(IEnumerable<IXModelView> ents, CancellationToken cancellationToken) => throw new NotImplementedException();
 

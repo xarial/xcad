@@ -863,11 +863,15 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SwAssembly m_Assm;
         internal SwComponent Component { get; }
 
+        private readonly RepositoryHelper<IXFeature> m_RepoHelper;
+
         public SwComponentFeatureManager(SwComponent comp, SwAssembly assm, SwApplication app, Context context) 
             : base(assm, app, context)
         {
             m_Assm = assm;
             Component = comp;
+
+            m_RepoHelper = new RepositoryHelper<IXFeature>(this);
         }
 
         public override void AddRange(IEnumerable<IXFeature> feats, CancellationToken cancellationToken)
@@ -880,7 +884,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, GetFirstFeature(), new Context(Component));
 
-        public override IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public override IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         protected internal override IFeature GetFirstFeature() => Component.Component.FirstFeature();
 

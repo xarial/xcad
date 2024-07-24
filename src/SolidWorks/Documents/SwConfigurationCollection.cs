@@ -25,6 +25,9 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
+    /// <summary>
+    /// SOLIDWORKS specific configuration collection
+    /// </summary>
     public interface ISwConfigurationCollection : IXConfigurationRepository, IDisposable
     {
         ISwConfiguration PreCreate();
@@ -58,11 +61,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal Lazy<ISwConfiguration> ActiveNonCommittedConfigurationLazy { get; }
 
+        private readonly RepositoryHelper<IXConfiguration> m_RepoHelper;
+
         internal SwConfigurationCollection(SwDocument3D doc, SwApplication app)
         {
             m_App = app;
             m_Doc = doc;
             m_ConfigurationActivatedEventsHandler = new ConfigurationActivatedEventsHandler(doc, app);
+
+            m_RepoHelper = new RepositoryHelper<IXConfiguration>(this);
 
             ActiveNonCommittedConfigurationLazy = new Lazy<ISwConfiguration>(() => 
             {
@@ -74,7 +81,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             });
         }
 
-        public IXConfiguration this[string name] => RepositoryHelper.Get(this, name);
+        public IXConfiguration this[string name] => m_RepoHelper.Get(name);
 
         public bool TryGet(string name, out IXConfiguration ent)
         {
@@ -153,7 +160,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public virtual ISwConfiguration PreCreate() => new SwConfiguration(null, m_Doc, m_App, false);
 
-        public void AddRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
+        public void AddRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken) => m_RepoHelper.AddRange(ents, cancellationToken);
 
         public void Dispose()
         {
@@ -161,7 +168,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public virtual IEnumerator<IXConfiguration> GetEnumerator() => new SwConfigurationEnumerator(m_App, m_Doc);
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public void RemoveRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken)
         {

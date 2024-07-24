@@ -178,10 +178,15 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly SheetCreatedEventsHandler m_SheetCreatedEventsHandler;
 
+        private readonly RepositoryHelper<IXSheet> m_RepoHelper;
+
         internal SwSheetCollection(SwDrawing doc, SwApplication app)
         {
             m_App = app;
             m_Drawing = doc;
+
+            m_RepoHelper = new RepositoryHelper<IXSheet>(this,
+                TransactionFactory<IXSheet>.Create(() => new SwSheet(null, m_Drawing, m_Drawing.OwnerApplication)));
 
             m_SheetCreatedEventsHandler = new SheetCreatedEventsHandler(m_Drawing, app);
 
@@ -189,7 +194,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Cache = new SwSheetsCache(doc, app, this, s => s.Name);
         }
 
-        public IXSheet this[string name] => RepositoryHelper.Get(this, name);
+        public IXSheet this[string name] => m_RepoHelper.Get(name);
 
         public bool TryGet(string name, out IXSheet ent)
         {
@@ -260,7 +265,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (m_Drawing.IsCommitted)
             {
-                RepositoryHelper.AddRange(sheets, cancellationToken);
+                m_RepoHelper.AddRange(sheets, cancellationToken);
             }
             else
             {
@@ -304,11 +309,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public T PreCreate<T>() where T : IXSheet
-            => RepositoryHelper.PreCreate<IXSheet, T>(this,
-                () => new SwSheet(null, m_Drawing, m_Drawing.OwnerApplication));
+            => m_RepoHelper.PreCreate<T>();
 
         private IEnumerable<IXSheet> IterateSheets() 
         {

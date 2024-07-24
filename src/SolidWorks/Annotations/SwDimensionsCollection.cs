@@ -31,7 +31,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
     {
         IXDimension IXRepository<IXDimension>.this[string name] => this[name];
 
-        public ISwDimension this[string name] => (ISwDimension)RepositoryHelper.Get(this, name);
+        public ISwDimension this[string name] => (ISwDimension)m_RepoHelper.Get(name);
 
         public abstract bool TryGet(string name, out IXDimension ent);
 
@@ -39,9 +39,12 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         protected readonly Context m_Context;
 
+        private readonly RepositoryHelper<IXDimension> m_RepoHelper;
+
         protected SwDimensionsCollection(Context context) 
         {
             m_Context = context;
+            m_RepoHelper = new RepositoryHelper<IXDimension>(this);
         }
 
         public void AddRange(IEnumerable<IXDimension> ents, CancellationToken cancellationToken)
@@ -54,7 +57,8 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public void Dispose()
         {

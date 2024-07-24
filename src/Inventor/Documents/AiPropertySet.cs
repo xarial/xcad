@@ -20,8 +20,14 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.Inventor.Documents
 {
+    /// <summary>
+    /// Autodesk Inventor property set
+    /// </summary>
     public interface IAiPropertySet : IXPropertyRepository 
     {
+        /// <summary>
+        /// Pointer to the property set
+        /// </summary>
         PropertySet PropertySet { get; }
     }
 
@@ -33,12 +39,16 @@ namespace Xarial.XCad.Inventor.Documents
 
         private readonly AiDocument m_Doc;
 
+        protected readonly RepositoryHelper<IXProperty> m_RepoHelper;
+
         internal AiPropertySet(AiDocument doc) 
         {
             m_Doc = doc;
+
+            m_RepoHelper = new RepositoryHelper<IXProperty>(this);
         }
 
-        public IXProperty this[string name] => RepositoryHelper.Get(this, name);
+        public IXProperty this[string name] => m_RepoHelper.Get(name);
 
         public abstract int Count { get; }
 
@@ -48,7 +58,7 @@ namespace Xarial.XCad.Inventor.Documents
             => throw new NotImplementedException();
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
-            => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public IEnumerator<IXProperty> GetEnumerator() => EnumerateProperties().GetEnumerator();
 
@@ -74,7 +84,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public override int Count => PropertySet.Count;
 
-        public override bool TryGet(string name, out IXProperty ent) => RepositoryHelper.TryFindByName(this, name, out ent);
+        public override bool TryGet(string name, out IXProperty ent) => m_RepoHelper.TryFindByName(name, out ent);
 
         protected override IEnumerable<AiProperty> EnumerateProperties()
         {
@@ -96,7 +106,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public override int Count => EnumerateProperties().Count();
 
-        public override bool TryGet(string name, out IXProperty ent) => RepositoryHelper.TryFindByName(this, name, out ent);
+        public override bool TryGet(string name, out IXProperty ent) => m_RepoHelper.TryFindByName(name, out ent);
 
         protected override IEnumerable<AiProperty> EnumerateProperties()
         {
@@ -124,7 +134,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public override int Count => EnumerateProperties().Count();
 
-        public override bool TryGet(string name, out IXProperty ent) => RepositoryHelper.TryFindByName(this, name, out ent);
+        public override bool TryGet(string name, out IXProperty ent) => m_RepoHelper.TryFindByName(name, out ent);
 
         protected override IEnumerable<AiProperty> EnumerateProperties()
         {

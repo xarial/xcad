@@ -30,12 +30,16 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        private readonly RepositoryHelper<IXBody> m_RepoHelper;
+
         internal SwBodyCollection(ISwDocument rootDoc)
         {
             m_RootDoc = rootDoc;
+
+            m_RepoHelper = new RepositoryHelper<IXBody>(this);
         }
 
-        public IXBody this[string name] => RepositoryHelper.Get(this, name);
+        public IXBody this[string name] => m_RepoHelper.Get(name);
 
         public int Count => SelectAllBodies().Count();
 
@@ -83,7 +87,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 wire = true;
             }
 
-            foreach (var ent in RepositoryHelper.FilterDefault(TrySelectSpecificBodies(solid, surface, wire), filters, reverseOrder))
+            foreach (var ent in m_RepoHelper.FilterDefault(TrySelectSpecificBodies(solid, surface, wire), filters, reverseOrder))
             {
                 yield return ent;
             }

@@ -25,8 +25,12 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.Inventor.Documents
 {
+    /// <summary>
+    /// Autodesk Inventor specific documents collection
+    /// </summary>
     public interface IAiDocumentsCollection : IXDocumentRepository 
     {
+        /// <inheritdoc/>
         IAiDocument this[Document doc] { get; }
     }
 
@@ -87,15 +91,23 @@ namespace Xarial.XCad.Inventor.Documents
 
         private DocumentEventDelegate m_DocumentLoaded;
 
+        private readonly RepositoryHelper<IXDocument> m_RepoHelper;
+
         internal AiDocumentsCollection(AiApplication app, IXLogger logger) 
         {
             m_App = app;
             m_Logger = logger;
 
+            m_RepoHelper = new RepositoryHelper<IXDocument>(this,
+                TransactionFactory<IXDocument>.Create(() => new AiUnknownDocument(null, m_App)),
+                TransactionFactory<IXDocument>.Create(() => new AiPart(null, m_App)),
+                TransactionFactory<IXDocument>.Create(() => new AiAssembly(null, m_App)),
+                TransactionFactory<IXDocument>.Create(() => new AiDrawing(null, m_App)));
+
             m_DocsHandler = new DocumentsHandler(app, logger);
         }
 
-        public IXDocument this[string name] => RepositoryHelper.Get(this, name);
+        public IXDocument this[string name] => m_RepoHelper.Get(name);
 
         public IAiDocument this[Document doc] => CreateDocument(doc, m_App);
 
@@ -128,10 +140,10 @@ namespace Xarial.XCad.Inventor.Documents
         public int Count => m_App.Application.Documents.Count;
 
         public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken)
-            => RepositoryHelper.AddRange(ents, cancellationToken);
+            => m_RepoHelper.AddRange(ents, cancellationToken);
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
-            => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public IEnumerator<IXDocument> GetEnumerator() 
         {
@@ -146,11 +158,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public T PreCreate<T>() where T : IXDocument
         {
-            var doc = RepositoryHelper.PreCreate<IXDocument, T>(this,
-                () => new AiUnknownDocument(null, m_App),
-                () => new AiPart(null, m_App),
-                () => new AiAssembly(null, m_App),
-                () => new AiDrawing(null, m_App));
+            var doc = m_RepoHelper.PreCreate<T>();
 
             if (!(doc is AiDocument))
             {
@@ -161,7 +169,7 @@ namespace Xarial.XCad.Inventor.Documents
         }
 
         public void RegisterHandler<THandler>(Func<THandler> handlerFact) where THandler : IDocumentHandler
-            => m_DocsHandler.RegisterHandler<THandler>(handlerFact);
+            => m_DocsHandler.RegisterHandler(handlerFact);
 
         public void UnregisterHandler<THandler>()
             where THandler : IDocumentHandler

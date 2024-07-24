@@ -72,15 +72,19 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int Count => SelMgr.GetSelectedObjectCount2(-1);
 
-        public IXSelObject this[string name] => RepositoryHelper.Get(this, name);
+        public IXSelObject this[string name] => m_RepoHelper.Get(name);
 
         private readonly ISwApplication m_App;
+
+        private readonly RepositoryHelper<IXSelObject> m_RepoHelper;
 
         internal SwSelectionCollection(SwDocument doc, ISwApplication app) 
         {
             m_Doc = doc;
             m_App = app;
-            
+
+            m_RepoHelper = new RepositoryHelper<IXSelObject>(this);
+
             m_NewSelectionEventHandler = new NewSelectionEventHandler(doc, app);
             m_ClearSelectionEventHandler = new ClearSelectionEventHandler(doc, app);
         }
@@ -160,7 +164,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public bool TryGet(string name, out IXSelObject ent)
         {

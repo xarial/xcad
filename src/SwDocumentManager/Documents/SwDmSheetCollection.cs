@@ -35,12 +35,15 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly SwDmDrawing m_Drw;
 
+        private readonly RepositoryHelper<IXSheet> m_RepoHelper;
+
         internal SwDmSheetCollection(SwDmDrawing drw) 
         {
             m_Drw = drw;
+            m_RepoHelper = new RepositoryHelper<IXSheet>(this);
         }
 
-        public IXSheet this[string name]  => RepositoryHelper.Get(this, name);
+        public IXSheet this[string name]  => m_RepoHelper.Get(name);
 
         public IXSheet Active 
         {
@@ -56,7 +59,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IEnumerator<IXSheet> GetEnumerator() => new SwDmSheetEnumerator(m_Drw);
 
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public bool TryGet(string name, out IXSheet ent)
         {

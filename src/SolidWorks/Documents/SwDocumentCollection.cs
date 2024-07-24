@@ -180,13 +180,22 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public int Count => m_SwApp.GetDocumentCount();
 
-        public IXDocument this[string name] => RepositoryHelper.Get(this, name);
+        public IXDocument this[string name] => m_RepoHelper.Get(name);
+
+        private readonly RepositoryHelper<IXDocument> m_RepoHelper;
 
         internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
             m_App = app;
             m_SwApp = (SldWorks)m_App.Sw;
             m_Logger = logger;
+
+            m_RepoHelper = new RepositoryHelper<IXDocument>(this,
+                TransactionFactory<IXDocument>.Create(() => new SwUnknownDocument(null, m_App, m_Logger, false)),
+                TransactionFactory<IXDocument>.Create(() => new SwUnknownDocument3D(null, m_App, m_Logger, false)),
+                TransactionFactory<IXDocument>.Create(() => new SwPart(null, m_App, m_Logger, false)),
+                TransactionFactory<IXDocument>.Create(() => new SwAssembly(null, m_App, m_Logger, false)),
+                TransactionFactory<IXDocument>.Create(() => new SwDrawing(null, m_App, m_Logger, false)));
 
             m_DocsHandler = new DocumentsHandler(app, m_Logger);
         }
@@ -225,7 +234,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
-            => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
+            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         private int OnFileOpenPostNotify(string fileName)
         {
@@ -322,12 +331,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public T PreCreate<T>() where T : IXDocument
         {
-            var doc = RepositoryHelper.PreCreate<IXDocument, T>(this,
-                () => new SwUnknownDocument(null, m_App, m_Logger, false),
-                () => new SwUnknownDocument3D(null, m_App, m_Logger, false),
-                () => new SwPart(null, m_App, m_Logger, false),
-                () => new SwAssembly(null, m_App, m_Logger, false),
-                () => new SwDrawing(null, m_App, m_Logger, false));
+            var doc = m_RepoHelper.PreCreate<T>();
 
             if (!(doc is SwDocument))
             {
@@ -358,7 +362,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken) => RepositoryHelper.AddRange(ents, cancellationToken);
+        public void AddRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken) 
+            => m_RepoHelper.AddRange(ents, cancellationToken);
 
         public void RemoveRange(IEnumerable<IXDocument> ents, CancellationToken cancellationToken)
         {
