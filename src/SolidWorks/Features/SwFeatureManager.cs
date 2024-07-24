@@ -93,13 +93,13 @@ namespace Xarial.XCad.SolidWorks.Features
             m_Context = context;
 
             m_RepoHelper = new RepositoryHelper<IXFeature>(this,
-                    () => new SwSketch2D(default(ISketch), Document, m_App, false),
-                    () => new SwSketch3D(default(ISketch), Document, m_App, false),
-                    () => new SwMacroFeature(null, Document, m_App, false),
-                    () => new SwDumbBody(null, Document, m_App, false),
-                    () => new SwPlane(null, Document, m_App, false),
-                    () => new SwCoordinateSystem(null, Document, m_App, false),
-                    () => new SwSketchPicture(default(IFeature), Document, m_App, false));
+                    TransactionFactory<IXFeature>.Create(() => new SwSketch2D(default(ISketch), Document, m_App, false)),
+                    TransactionFactory<IXFeature>.Create(() => new SwSketch3D(default(ISketch), Document, m_App, false)),
+                    TransactionFactory<IXFeature>.Create(() => new SwMacroFeature(null, Document, m_App, false)),
+                    TransactionFactory<IXFeature>.Create(() => new SwDumbBody(null, Document, m_App, false)),
+                    TransactionFactory<IXFeature>.Create(() => new SwPlane(null, Document, m_App, false)),
+                    TransactionFactory<IXFeature>.Create(() => new SwCoordinateSystem(null, Document, m_App, false)),
+                    TransactionFactory<IXFeature>.Create(() => new SwSketchPicture(default(IFeature), Document, m_App, false)));
 
             m_FeatureCreatedEventsHandler = new FeatureCreatedEventsHandler(doc, app);
 

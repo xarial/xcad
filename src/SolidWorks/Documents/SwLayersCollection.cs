@@ -38,7 +38,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_App = app;
 
             m_RepoHelper = new RepositoryHelper<IXLayer>(this,
-                () => new SwLayer(null, m_Doc, m_App));
+                TransactionFactory<IXLayer>.Create(() => new SwLayer(null, m_Doc, m_App)));
         }
 
         public IXLayer this[string name] => m_RepoHelper.Get(name);

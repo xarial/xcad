@@ -43,7 +43,8 @@ namespace Xarial.XCad.SolidWorks.Annotations
             m_Table = table;
             m_ColumnsLazy = new Lazy<SwTableColumnRepository>(() => table.Columns);
 
-            m_RepoHelper = new RepositoryHelper<IXTableRow>(this, () => CreateRow(null));
+            m_RepoHelper = new RepositoryHelper<IXTableRow>(this,
+                TransactionFactory<IXTableRow>.Create(() => CreateRow(null)));
 
             m_ChangeTracker = changeTracker;
 

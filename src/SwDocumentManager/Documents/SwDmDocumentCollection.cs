@@ -106,11 +106,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_DmApp = dmApp;
 
             m_RepoHelper = new RepositoryHelper<IXDocument>(this,
-                () => new SwDmUnknownDocument(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
-                () => new SwDmUnknownDocument3D(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
-                () => new SwDmPart(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
-                () => new SwDmAssembly(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null),
-                () => new SwDmDrawing(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null));
+                TransactionFactory<IXDocument>.Create(() => new SwDmUnknownDocument(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null)),
+                TransactionFactory<IXDocument>.Create(() => new SwDmUnknownDocument3D(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null)),
+                TransactionFactory<IXDocument>.Create(() => new SwDmPart(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null)),
+                TransactionFactory<IXDocument>.Create(() => new SwDmAssembly(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null)),
+                TransactionFactory<IXDocument>.Create(() => new SwDmDrawing(m_DmApp, null, false, OnDocumentCreated, OnDocumentClosed, null)));
 
             m_Documents = new List<ISwDmDocument>();
         }

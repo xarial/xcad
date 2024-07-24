@@ -191,11 +191,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Logger = logger;
 
             m_RepoHelper = new RepositoryHelper<IXDocument>(this,
-                () => new SwUnknownDocument(null, m_App, m_Logger, false),
-                () => new SwUnknownDocument3D(null, m_App, m_Logger, false),
-                () => new SwPart(null, m_App, m_Logger, false),
-                () => new SwAssembly(null, m_App, m_Logger, false),
-                () => new SwDrawing(null, m_App, m_Logger, false));
+                TransactionFactory<IXDocument>.Create(() => new SwUnknownDocument(null, m_App, m_Logger, false)),
+                TransactionFactory<IXDocument>.Create(() => new SwUnknownDocument3D(null, m_App, m_Logger, false)),
+                TransactionFactory<IXDocument>.Create(() => new SwPart(null, m_App, m_Logger, false)),
+                TransactionFactory<IXDocument>.Create(() => new SwAssembly(null, m_App, m_Logger, false)),
+                TransactionFactory<IXDocument>.Create(() => new SwDrawing(null, m_App, m_Logger, false)));
 
             m_DocsHandler = new DocumentsHandler(app, m_Logger);
         }

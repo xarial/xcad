@@ -53,13 +53,13 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_App = app;
 
             m_RepoHelper = new RepositoryHelper<IXWireEntity>(this,
-                () => new SwTempWireBody(null, m_App),
-                () => new SwCircleCurve(null, null, m_App, false),
-                () => new SwArcCurve(null, null, m_App, false),
-                () => new SwLineCurve(null, null, m_App, false),
-                () => new SwPolylineCurve(null, null, m_App, false),
-                () => new SwPoint(null, null, m_App),
-                () => new SwLoop(null, null, m_App));
+                TransactionFactory<IXWireEntity>.Create(() => new SwTempWireBody(null, m_App)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwCircleCurve(null, null, m_App, false)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwArcCurve(null, null, m_App, false)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwLineCurve(null, null, m_App, false)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwPolylineCurve(null, null, m_App, false)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwPoint(null, null, m_App)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwLoop(null, null, m_App)));
 
             m_MathUtils = app.Sw.IGetMathUtility();
             m_Modeler = app.Sw.IGetModeler();

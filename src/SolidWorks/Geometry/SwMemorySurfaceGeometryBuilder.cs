@@ -56,10 +56,10 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_TolProvider = tolProvider;
 
             m_RepoHelper = new RepositoryHelper<IXPrimitive>(this,
-                () => new SwTempPlanarSheet(null, m_App, false, m_TolProvider),
-                () => new SwTempSurfaceKnit(null, m_App, false, m_TolProvider),
-                () => new SwTempSurfaceExtrusion(null, m_App, false),
-                () => new SwTempSurfaceLoft(null, m_App, false));
+                TransactionFactory<IXPrimitive>.Create(() => new SwTempPlanarSheet(null, m_App, false, m_TolProvider)),
+                TransactionFactory<IXPrimitive>.Create(() => new SwTempSurfaceKnit(null, m_App, false, m_TolProvider)),
+                TransactionFactory<IXPrimitive>.Create(() => new SwTempSurfaceExtrusion(null, m_App, false)),
+                TransactionFactory<IXPrimitive>.Create(() => new SwTempSurfaceLoft(null, m_App, false)));
 
             m_MathUtils = m_App.Sw.IGetMathUtility();
             m_Modeler = m_App.Sw.IGetModeler();

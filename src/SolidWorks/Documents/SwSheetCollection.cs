@@ -186,7 +186,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Drawing = doc;
 
             m_RepoHelper = new RepositoryHelper<IXSheet>(this,
-                () => new SwSheet(null, m_Drawing, m_Drawing.OwnerApplication));
+                TransactionFactory<IXSheet>.Create(() => new SwSheet(null, m_Drawing, m_Drawing.OwnerApplication)));
 
             m_SheetCreatedEventsHandler = new SheetCreatedEventsHandler(m_Drawing, app);
 

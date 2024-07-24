@@ -43,11 +43,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Doc = doc;
 
             m_RepoHelper = new RepositoryHelper<IXAnnotation>(this,
-                () => SwNote.New(null, m_Doc, m_Doc.OwnerApplication),
-                () => SwDrawingNote.New(null, (SwDrawing)m_Doc, m_Doc.OwnerApplication),
-                () => new SwSectionLine(null, m_Doc, m_Doc.OwnerApplication),
-                () => new SwBreakLine(null, m_Doc, m_Doc.OwnerApplication),
-                () => new SwDetailCircle(null, m_Doc, m_Doc.OwnerApplication));
+                TransactionFactory<IXAnnotation>.Create(() => SwNote.New(null, m_Doc, m_Doc.OwnerApplication)),
+                TransactionFactory<IXAnnotation>.Create(() => SwDrawingNote.New(null, (SwDrawing)m_Doc, m_Doc.OwnerApplication)),
+                TransactionFactory<IXAnnotation>.Create(() => new SwSectionLine(null, m_Doc, m_Doc.OwnerApplication)),
+                TransactionFactory<IXAnnotation>.Create(() => new SwBreakLine(null, m_Doc, m_Doc.OwnerApplication)),
+                TransactionFactory<IXAnnotation>.Create(() => new SwDetailCircle(null, m_Doc, m_Doc.OwnerApplication)));
         }
 
         public IXAnnotation this[string name] => m_RepoHelper.Get(name);

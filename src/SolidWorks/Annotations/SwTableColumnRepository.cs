@@ -44,7 +44,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
             m_Table = table;
 
             m_RepoHelper = new RepositoryHelper<IXTableColumn>(this,
-                () => new SwTableColumn(m_Table, null, m_ChangeTracker));
+                TransactionFactory<IXTableColumn>.Create(() => new SwTableColumn(m_Table, null, m_ChangeTracker)));
 
             m_ItemNumberColumnLazy = new Lazy<SwTableColumn>(GetItemNumberColumn);
 

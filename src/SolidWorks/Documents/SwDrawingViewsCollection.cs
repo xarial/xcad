@@ -52,13 +52,13 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Sheet = sheet;
 
             m_RepoHelper = new RepositoryHelper<IXDrawingView>(this,
-                () => new SwModelBasedDrawingView(m_Draw, m_Sheet),
-                () => new SwProjectedDrawingView(m_Draw, m_Sheet),
-                () => new SwAuxiliaryDrawingView(m_Draw, m_Sheet),
-                () => new SwDetailDrawingView(m_Draw, m_Sheet),
-                () => new SwSectionDrawingView(m_Draw, m_Sheet),
-                () => new SwFlatPatternDrawingView(m_Draw, m_Sheet),
-                () => new SwRelativeView(m_Draw, m_Sheet));
+                TransactionFactory<IXDrawingView>.Create(() => new SwModelBasedDrawingView(m_Draw, m_Sheet)),
+                TransactionFactory<IXDrawingView>.Create(() => new SwProjectedDrawingView(m_Draw, m_Sheet)),
+                TransactionFactory<IXDrawingView>.Create(() => new SwAuxiliaryDrawingView(m_Draw, m_Sheet)),
+                TransactionFactory<IXDrawingView>.Create(() => new SwDetailDrawingView(m_Draw, m_Sheet)),
+                TransactionFactory<IXDrawingView>.Create(() => new SwSectionDrawingView(m_Draw, m_Sheet)),
+                TransactionFactory<IXDrawingView>.Create(() => new SwFlatPatternDrawingView(m_Draw, m_Sheet)),
+                TransactionFactory<IXDrawingView>.Create(() => new SwRelativeView(m_Draw, m_Sheet)));
 
             m_ViewCreatedEventsHandler = new DrawingViewCreatedEventsHandler(m_Sheet, m_Draw, m_Draw.OwnerApplication);
 

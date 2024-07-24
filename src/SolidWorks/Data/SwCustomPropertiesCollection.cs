@@ -83,7 +83,8 @@ namespace Xarial.XCad.SolidWorks.Data
             m_Doc = doc;
             m_App = app;
 
-            m_RepoHelper = new RepositoryHelper<IXProperty>(this, () => PreCreate());
+            m_RepoHelper = new RepositoryHelper<IXProperty>(this,
+                TransactionFactory<IXProperty>.Create(() => PreCreate()));
         }
 
         private bool Exists(string name) 

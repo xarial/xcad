@@ -99,10 +99,10 @@ namespace Xarial.XCad.Inventor.Documents
             m_Logger = logger;
 
             m_RepoHelper = new RepositoryHelper<IXDocument>(this,
-                () => new AiUnknownDocument(null, m_App),
-                () => new AiPart(null, m_App),
-                () => new AiAssembly(null, m_App),
-                () => new AiDrawing(null, m_App));
+                TransactionFactory<IXDocument>.Create(() => new AiUnknownDocument(null, m_App)),
+                TransactionFactory<IXDocument>.Create(() => new AiPart(null, m_App)),
+                TransactionFactory<IXDocument>.Create(() => new AiAssembly(null, m_App)),
+                TransactionFactory<IXDocument>.Create(() => new AiDrawing(null, m_App)));
 
             m_DocsHandler = new DocumentsHandler(app, logger);
         }

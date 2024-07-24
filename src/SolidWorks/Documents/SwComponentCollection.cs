@@ -121,8 +121,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             RootAssembly = assm;
 
             m_RepoHelper = new RepositoryHelper<IXComponent>(this,
-                () => new SwPartComponent(null, RootAssembly, RootAssembly.OwnerApplication),
-                () => new SwAssemblyComponent(null, RootAssembly, RootAssembly.OwnerApplication));
+                TransactionFactory<IXComponent>.Create(() => new SwPartComponent(null, RootAssembly, RootAssembly.OwnerApplication)),
+                TransactionFactory<IXComponent>.Create(() => new SwAssemblyComponent(null, RootAssembly, RootAssembly.OwnerApplication)));
 
             m_Cache = new EntityCache<IXComponent>(assm, this, c => c.Name);
         }

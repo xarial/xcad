@@ -72,14 +72,14 @@ namespace Xarial.XCad.SolidWorks.Sketch
             m_Cache = new EntityCache<IXWireEntity>(sketch, this, s => ((IXSketchEntity)s).Name);
 
             m_RepoHelper = new RepositoryHelper<IXWireEntity>(this,
-                () => new SwSketchLine(m_Sketch, m_Doc, m_App),
-                () => new SwSketchPoint(m_Sketch, m_Doc, m_App),
-                () => new SwSketchCircle(m_Sketch, m_Doc, m_App),
-                () => new SwSketchArc(m_Sketch, m_Doc, m_App),
-                () => new SwSketchEllipse(m_Sketch, m_Doc, m_App),
-                () => new SwSketchSpline(m_Sketch, m_Doc, m_App),
-                () => new SwSketchText(m_Sketch, m_Doc, m_App),
-                () => new SwSketchPicture(m_Sketch, m_Doc, m_App));
+                TransactionFactory<IXWireEntity>.Create(() => new SwSketchLine(m_Sketch, m_Doc, m_App)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwSketchPoint(m_Sketch, m_Doc, m_App)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwSketchCircle(m_Sketch, m_Doc, m_App)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwSketchArc(m_Sketch, m_Doc, m_App)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwSketchEllipse(m_Sketch, m_Doc, m_App)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwSketchSpline(m_Sketch, m_Doc, m_App)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwSketchText(m_Sketch, m_Doc, m_App)),
+                TransactionFactory<IXWireEntity>.Create(() => new SwSketchPicture(m_Sketch, m_Doc, m_App)));
         }
 
         internal void CommitCache(CancellationToken cancellationToken) => m_Cache.Commit(cancellationToken);
