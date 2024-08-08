@@ -407,20 +407,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         protected override IBody2 CreateTempBody(CancellationToken cancellationToken)
         {
-            var curves = Segments.SelectMany(s => 
-            {
-                switch (s) 
-                {
-                    case ISwCurve curve:
-                        return curve.Curves;
-
-                    case ISwEdge edge:
-                        return edge.Definition.Curves;
-
-                    default:
-                        throw new NotSupportedException("Only edges and curves are supported for the segments");
-                }
-            }).ToArray();
+            var curves = Segments.SelectMany(s => s.GetCurve().Curves).ToArray();
 
             if (!curves.Any())
             {

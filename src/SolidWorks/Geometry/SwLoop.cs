@@ -130,27 +130,28 @@ namespace Xarial.XCad.SolidWorks.Geometry
         {
             foreach (var seg in loop.Segments)
             {
-                ISwCurve segCurve;
+                yield return seg.GetCurve();
+            }
+        }
+    }
 
-                switch (seg)
-                {
-                    case ISwCurve curve:
-                        segCurve = curve;
-                        break;
+    internal static class SwSegmentExtensions 
+    {
+        internal static ISwCurve GetCurve(this IXSegment seg)
+        {
+            switch (seg)
+            {
+                case ISwCurve curve:
+                    return curve;
 
-                    case ISwEdge edge:
-                        segCurve = edge.Definition;
-                        break;
+                case ISwEdge edge:
+                    return edge.Definition;
 
-                    case ISwSketchSegment skSeg:
-                        segCurve = skSeg.Definition;
-                        break;
+                case ISwSketchSegment skSeg:
+                    return skSeg.Definition;
 
-                    default:
-                        throw new NotSupportedException();
-                }
-
-                yield return segCurve;
+                default:
+                    throw new NotSupportedException();
             }
         }
     }

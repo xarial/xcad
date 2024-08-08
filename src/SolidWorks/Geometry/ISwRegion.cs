@@ -61,15 +61,40 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
                 else
                 {
-                    //TODO: check if not colinear
+                    //TODO: check if not parallel
                     //TODO: check if all on the same plane
-                    //TODO: fix if a single curve
 
-                    var refVec1 = outerLoop.Segments[0].EndPoint.Coordinate - outerLoop.Segments[0].StartPoint.Coordinate;
-                    var refVec2 = outerLoop.Segments[1].EndPoint.Coordinate - outerLoop.Segments[1].StartPoint.Coordinate;
+                    Vector refVec1;
+                    Vector refVec2;
+                    Point orig;
+
+                    if (outerLoop.Segments.Length > 1)
+                    {
+                        refVec1 = outerLoop.Segments[0].EndPoint.Coordinate - outerLoop.Segments[0].StartPoint.Coordinate;
+                        refVec2 = outerLoop.Segments[1].EndPoint.Coordinate - outerLoop.Segments[1].StartPoint.Coordinate;
+
+                        orig = outerLoop.Segments[0].StartPoint.Coordinate;
+                    }
+                    else 
+                    {
+                        var seg = outerLoop.Segments.First();
+                        var curve = seg.GetCurve();
+
+                        curve.GetUBoundary(out var uMin, out var uMax);
+
+                        var startPt = curve.CalculateLocation(uMin, out _);
+                        var midPt = curve.CalculateLocation((uMax - uMin) / 3, out _);
+                        var endPt = curve.CalculateLocation((uMax - uMin) * 2 / 3, out _);
+
+                        refVec1 = midPt - startPt;
+                        refVec2 = endPt - midPt;
+
+                        orig = startPt;
+                    }
+
                     var normVec = refVec1.Cross(refVec2);
 
-                    return new Plane(outerLoop.Segments[0].StartPoint.Coordinate, normVec, refVec1);
+                    return new Plane(orig, normVec, refVec1);
                 }
             }
         }

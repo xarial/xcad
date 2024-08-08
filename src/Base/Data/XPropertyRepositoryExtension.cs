@@ -22,7 +22,7 @@ namespace Xarial.XCad.Data
         /// </summary>
         /// <param name="prps">Repository</param>
         /// <param name="prpName">Name of the property</param>
-        /// <param name="prpVal">Proeprty value</param>
+        /// <param name="prpVal">Property value</param>
         /// <remarks>This method will change the value of existing property or create new one if not exist</remarks>
         public static void Set(this IXPropertyRepository prps, string prpName, object prpVal)
         {
