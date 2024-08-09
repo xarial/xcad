@@ -201,6 +201,71 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void RegionPlaneTest()
+        {
+            var plane1 = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(
+                m_App.MemoryGeometryBuilder.CreateLine(new Point(0, 0, 0), new Point(1, 0, 0)),
+                m_App.MemoryGeometryBuilder.CreateLine(new Point(1, 0, 0), new Point(1, 1, 0)),
+                m_App.MemoryGeometryBuilder.CreateLine(new Point(1, 1, 0), new Point(0, 1, 0)),
+                m_App.MemoryGeometryBuilder.CreateLine(new Point(0, 1, 0), new Point(0, 0, 0))
+                ).Plane;
+
+            var plane2 = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(
+                m_App.MemoryGeometryBuilder.CreateLine(new Point(0, 0, 0), new Point(1, 0, 0)),
+                m_App.MemoryGeometryBuilder.CreateLine(new Point(0, 0, 0), new Point(0.5, 0, 0)),
+                m_App.MemoryGeometryBuilder.CreateLine(new Point(1, 0, 0), new Point(1, 1, 0)),
+                m_App.MemoryGeometryBuilder.CreateLine(new Point(1, 1, 0), new Point(0, 1, 0)),
+                m_App.MemoryGeometryBuilder.CreateLine(new Point(0, 1, 0), new Point(0, 0, 0))
+                ).Plane;
+
+            var poly1 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
+            poly1.Points = new Point[] { new Point(0, 0, 0), new Point(1, 0, 0), new Point(1, 1, 0) };
+            poly1.Mode = PolylineMode_e.Loop;
+            poly1.Commit();
+
+            var plane3 = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(poly1).Plane;
+
+            var poly2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
+            poly2.Points = new Point[] { new Point(0, 0, 0), new Point(0.5, 0, 0), new Point(1, 0, 0), new Point(1, 1, 0) };
+            poly2.Mode = PolylineMode_e.Loop;
+            poly2.Commit();
+
+            var plane4 = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(poly2).Plane;
+
+            var circleCurve = (ISwCurve)m_App.MemoryGeometryBuilder.CreateCircle(new Point(0, 0, 0), new Vector(0, 0, 1), 0.1);
+            var bSplineCurve = circleCurve.Curves.First().ICopy().MakeBsplineCurve2();
+
+            var plane5 = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(
+                m_App.CreateObjectFromDispatch<ISwCurve>(bSplineCurve, null)).Plane;
+
+            var norm1 = plane1.Normal.Normalize();
+            var norm2 = plane2.Normal.Normalize();
+            var norm3 = plane3.Normal.Normalize();
+            var norm4 = plane4.Normal.Normalize();
+            var norm5 = plane5.Normal.Normalize();
+
+            Assert.That(norm1.X, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(norm1.Y, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(norm1.Z, Is.EqualTo(1).Within(0.0001).Percent);
+
+            Assert.That(norm2.X, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(norm2.Y, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(norm2.Z, Is.EqualTo(1).Within(0.0001).Percent);
+
+            Assert.That(norm3.X, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(norm3.Y, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(norm3.Z, Is.EqualTo(1).Within(0.0001).Percent);
+
+            Assert.That(norm4.X, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(norm4.Y, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(norm4.Z, Is.EqualTo(1).Within(0.0001).Percent);
+
+            Assert.That(norm5.X, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(norm5.Y, Is.EqualTo(0).Within(0.0001).Percent);
+            Assert.That(norm5.Z, Is.EqualTo(1).Within(0.0001).Percent);
+        }
+
+        [Test]
         public void ExtrusionPolylineTest()
         {
             var profile = m_App.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();

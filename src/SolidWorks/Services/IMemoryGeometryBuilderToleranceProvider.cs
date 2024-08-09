@@ -42,6 +42,11 @@ namespace Xarial.XCad.SolidWorks.Services
         /// Tolerance for comparing angles
         /// </summary>
         double Angle { get; }
+
+        /// <summary>
+        /// Tolerance for comparing directions
+        /// </summary>
+        double Direction { get; }
     }
 
     internal class DefaultMemoryGeometryBuilderToleranceProvider : IMemoryGeometryBuilderToleranceProvider
@@ -52,5 +57,6 @@ namespace Xarial.XCad.SolidWorks.Services
         public double Numeric => 1E-12;
         public double Length => 1E-8;
         public double Angle => 1E-6;
+        public double Direction => 1E-6;
     }
 }

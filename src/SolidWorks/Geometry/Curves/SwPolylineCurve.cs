@@ -25,9 +25,12 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
     internal class SwPolylineCurve : SwCurve, ISwPolylineCurve
     {
+        private readonly SwMemoryGeometryBuilder m_GeomBuilder;
+
         internal SwPolylineCurve(ICurve[] curves, SwDocument doc, SwApplication app, bool isCreated) 
             : base(curves, doc, app, isCreated)
         {
+            m_GeomBuilder = (SwMemoryGeometryBuilder)app.MemoryGeometryBuilder;
             m_Creator.CachedProperties.Set(PolylineMode_e.Strip, nameof(Mode));
         }
 
@@ -68,10 +71,30 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             if (Points?.Length > 2)
             {
                 //TODO: validate that all points are on the plane
-                plane = new Plane(Points.First(),
-                    (Points[1] - Points[0]).Cross(Points[2] - Points[1]),
-                    Points[1] - Points[0]);
 
+                var orig = Points.First();
+
+                var refVec1 = Points[1] - Points[0];
+                Vector refVec2;
+
+                int i = 0;
+
+                do
+                {
+                    i++;
+
+                    if (i + 1 < Points.Length)
+                    {
+                        refVec2 = Points[i + 1] - Points[i];
+                    }
+                    else
+                    {
+                        plane = null;
+                        return false;
+                    }
+                } while (refVec1.IsParallel(refVec2, m_GeomBuilder.TolProvider.Direction));
+
+                plane = new Plane(orig, refVec1.Cross(refVec2), refVec1);
                 return true;
             }
             else 

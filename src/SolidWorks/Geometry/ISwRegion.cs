@@ -19,6 +19,7 @@ using Xarial.XCad.Geometry.Wires;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Sketch;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry
 {
@@ -61,18 +62,36 @@ namespace Xarial.XCad.SolidWorks.Geometry
                 }
                 else
                 {
-                    //TODO: check if not parallel
                     //TODO: check if all on the same plane
 
                     Vector refVec1;
                     Vector refVec2;
                     Point orig;
-
+                    
                     if (outerLoop.Segments.Length > 1)
                     {
-                        refVec1 = outerLoop.Segments[0].EndPoint.Coordinate - outerLoop.Segments[0].StartPoint.Coordinate;
-                        refVec2 = outerLoop.Segments[1].EndPoint.Coordinate - outerLoop.Segments[1].StartPoint.Coordinate;
+                        var firstSeg = outerLoop.Segments.First();
 
+                        refVec1 = firstSeg.EndPoint.Coordinate - firstSeg.StartPoint.Coordinate;
+
+                        int i = 0;
+
+                        do
+                        {
+                            i++;
+
+                            if (i < outerLoop.Segments.Length)
+                            {
+                                var seg = outerLoop.Segments[i];
+
+                                refVec2 = seg.EndPoint.Coordinate - seg.StartPoint.Coordinate;
+                            }
+                            else 
+                            {
+                                throw new Exception("Failed to find segments normal");
+                            }
+                        } while (refVec1.IsParallel(refVec2, m_GeomBuilder.TolProvider.Direction));
+                        
                         orig = outerLoop.Segments[0].StartPoint.Coordinate;
                     }
                     else 
@@ -86,6 +105,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
                         var midPt = curve.CalculateLocation((uMax - uMin) / 3, out _);
                         var endPt = curve.CalculateLocation((uMax - uMin) * 2 / 3, out _);
 
+                        //TODO: add similar to the above validation if the parameters creating the parallel vectors
                         refVec1 = midPt - startPt;
                         refVec2 = endPt - midPt;
 
@@ -105,43 +125,53 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 var plane = Plane;
 
-                var planarSurf = m_GeomBuilder.Modeler.CreatePlanarSurface2(
-                        plane.Point.ToArray(), plane.Normal.ToArray(), plane.Direction.ToArray()) as ISurface;
+                var planarSurf = (ISurface)m_GeomBuilder.Modeler.CreatePlanarSurface2(
+                        plane.Point.ToArray(), plane.Normal.ToArray(), plane.Direction.ToArray());
 
                 if (planarSurf == null)
                 {
+                    planarSurf = (ISurface)m_GeomBuilder.Modeler.CreatePlanarSurface2(
+                        MathUtils.Round(plane.Point, m_GeomBuilder.TolProvider.Length).ToArray(),
+                        MathUtils.Round(plane.Normal, m_GeomBuilder.TolProvider.Direction).ToArray(),
+                        MathUtils.Round(plane.Direction, m_GeomBuilder.TolProvider.Direction).ToArray());
+                }
+
+                if (planarSurf != null)
+                {
+                    var boundary = new List<ICurve>();
+
+                    boundary.AddRange(IterateCurves(OuterLoop));
+
+                    const ICurve LOOP_SEPARATOR = null;
+
+                    foreach (var innerLoop in InnerLoops ?? new ISwLoop[0])
+                    {
+                        boundary.Add(LOOP_SEPARATOR);
+                        boundary.AddRange(IterateCurves(innerLoop));
+                    }
+
+                    IBody2 sheetBody;
+
+                    if (m_GeomBuilder.Application.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017, 4))
+                    {
+                        sheetBody = planarSurf.CreateTrimmedSheet5(boundary.ToArray(), true, m_GeomBuilder.TolProvider.Trimming) as Body2;
+                    }
+                    else
+                    {
+                        sheetBody = planarSurf.CreateTrimmedSheet4(boundary.ToArray(), true) as Body2;
+                    }
+
+                    if (sheetBody == null)
+                    {
+                        throw new Exception("Failed to create profile sheet body");
+                    }
+
+                    return m_GeomBuilder.Application.CreateObjectFromDispatch<ISwTempPlanarSheetBody>(sheetBody, null);
+                }
+                else 
+                {
                     throw new Exception("Failed to create plane");
                 }
-
-                var boundary = new List<ICurve>();
-
-                boundary.AddRange(IterateCurves(OuterLoop));
-
-                const ICurve LOOP_SEPARATOR = null;
-
-                foreach (var innerLoop in InnerLoops ?? new ISwLoop[0]) 
-                {
-                    boundary.Add(LOOP_SEPARATOR);
-                    boundary.AddRange(IterateCurves(innerLoop));
-                }
-
-                IBody2 sheetBody;
-
-                if (m_GeomBuilder.Application.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017, 4))
-                {
-                    sheetBody = planarSurf.CreateTrimmedSheet5(boundary.ToArray(), true, m_GeomBuilder.TolProvider.Trimming) as Body2;
-                }
-                else
-                {
-                    sheetBody = planarSurf.CreateTrimmedSheet4(boundary.ToArray(), true) as Body2;
-                }
-
-                if (sheetBody == null)
-                {
-                    throw new Exception("Failed to create profile sheet body");
-                }
-
-                return m_GeomBuilder.Application.CreateObjectFromDispatch<ISwTempPlanarSheetBody>(sheetBody, null);
             }
         }
 
