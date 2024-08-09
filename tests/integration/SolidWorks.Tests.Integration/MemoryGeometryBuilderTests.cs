@@ -211,8 +211,8 @@ namespace SolidWorks.Tests.Integration
                 ).Plane;
 
             var plane2 = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(
-                m_App.MemoryGeometryBuilder.CreateLine(new Point(0, 0, 0), new Point(1, 0, 0)),
                 m_App.MemoryGeometryBuilder.CreateLine(new Point(0, 0, 0), new Point(0.5, 0, 0)),
+                m_App.MemoryGeometryBuilder.CreateLine(new Point(0.5, 0, 0), new Point(1, 0, 0)),
                 m_App.MemoryGeometryBuilder.CreateLine(new Point(1, 0, 0), new Point(1, 1, 0)),
                 m_App.MemoryGeometryBuilder.CreateLine(new Point(1, 1, 0), new Point(0, 1, 0)),
                 m_App.MemoryGeometryBuilder.CreateLine(new Point(0, 1, 0), new Point(0, 0, 0))
@@ -237,6 +237,24 @@ namespace SolidWorks.Tests.Integration
 
             var plane5 = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(
                 m_App.CreateObjectFromDispatch<ISwCurve>(bSplineCurve, null)).Plane;
+
+            var poly3 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
+            poly3.Points = new Point[] { new Point(0, 0, 0), new Point(0.5, 0, 0), new Point(1, 0, 0) };
+            poly3.Mode = PolylineMode_e.Loop;
+            poly3.Commit();
+
+            Assert.Throws<Exception>(() => 
+            {
+                var p = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(poly3).Plane; 
+            });
+
+            Assert.Throws<Exception>(() =>
+            {
+                var p = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(
+                    m_App.MemoryGeometryBuilder.CreateLine(new Point(0, 0, 0), new Point(0.5, 0, 0)),
+                    m_App.MemoryGeometryBuilder.CreateLine(new Point(0.5, 0, 0), new Point(1, 0, 0)),
+                    m_App.MemoryGeometryBuilder.CreateLine(new Point(1, 0, 0), new Point(0, 0, 0))).Plane;
+            });
 
             var norm1 = plane1.Normal.Normalize();
             var norm2 = plane2.Normal.Normalize();
