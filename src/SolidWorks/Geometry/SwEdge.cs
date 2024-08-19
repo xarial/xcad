@@ -41,7 +41,11 @@ namespace Xarial.XCad.SolidWorks.Geometry
             {
                 foreach (IFace2 face in (m_Edge.Edge.GetTwoAdjacentFaces2() as object[]).ValueOrEmpty())
                 {
-                    yield return m_Edge.OwnerApplication.CreateObjectFromDispatch<SwFace>(face, m_Edge.OwnerDocument);
+                    //NOTE: for a sheet body one of the faces will be null
+                    if (face != null)
+                    {
+                        yield return m_Edge.OwnerApplication.CreateObjectFromDispatch<SwFace>(face, m_Edge.OwnerDocument);
+                    }
                 }
             }
 
