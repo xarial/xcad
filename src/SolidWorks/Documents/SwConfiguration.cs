@@ -248,6 +248,36 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        internal override void Select(bool append, ISelectData selData)
+        {
+            if (!Configuration.Select2(append, (SelectData)selData)) 
+            {
+                throw new Exception("Failed to select configuration");
+            }
+        }
+
+        public override void Delete()
+        {
+            if (m_Doc.Configurations.Active.Equals(this)) 
+            {
+                var otherConf = (ISwConfiguration)m_Doc.Configurations.Except(new ISwConfiguration[] { this }, new XObjectEqualityComparer<IXConfiguration>()).FirstOrDefault();
+
+                if (otherConf != null)
+                {
+                    m_Doc.Configurations.Active = otherConf;
+                }
+                else 
+                {
+                    throw new Exception("Cannot delete the last configuration");
+                }
+            }
+
+            if (!m_Doc.Model.DeleteConfiguration2(Name))
+            {
+                throw new Exception($"Failed to delete configuration '{Name}'");
+            }
+        }
+
         private string GetPropertyValue(ICustomPropertyManager prpMgr, string prpName) 
         {
             string resVal;

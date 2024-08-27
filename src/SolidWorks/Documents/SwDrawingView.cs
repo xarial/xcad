@@ -1793,7 +1793,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 catch (Exception ex)
                 {
-                    throw new InvalidFlatPatternConfigurationException(ex);
+                    throw new InvalidFlatPatternConfigurationException(ex, OwnerDocument.CreateObjectFromDispatch<ISwDrawingView>(view));
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();

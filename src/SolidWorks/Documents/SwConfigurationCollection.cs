@@ -176,20 +176,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (conf.IsCommitted)
                 {
-                    if (Count == 1) 
-                    {
-                        throw new Exception("Cannot delete the last configuration");
-                    }
-
-                    if (string.Equals(Active.Name, conf.Name)) 
-                    {
-                        Active = (ISwConfiguration)this.First(c => !string.Equals(c.Name, conf.Name, StringComparison.CurrentCultureIgnoreCase));
-                    }
-
-                    if (!m_Doc.Model.DeleteConfiguration2(conf.Name)) 
-                    {
-                        throw new Exception($"Failed to delete configuration '{conf.Name}'");
-                    }
+                    conf.Delete();
                 }
                 else 
                 {
