@@ -18,6 +18,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Utils;
 using System.Runtime.InteropServices;
+using Xarial.XCad.Exceptions;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -30,6 +31,18 @@ namespace Xarial.XCad.SolidWorks.Features
         /// Definition of coordinate system
         /// </summary>
         ICoordinateSystemFeatureData CoordSys { get; }
+    }
+
+    internal class SwCoordinateSystemEditor : SwFeatureEditor<ICoordinateSystemFeatureData>
+    {
+        public SwCoordinateSystemEditor(SwFeature feat, ICoordinateSystemFeatureData featData) : base(feat, featData)
+        {
+        }
+
+        protected override void CancelEdit(ICoordinateSystemFeatureData featData) => featData.ReleaseSelectionAccess();
+
+        protected override bool StartEdit(ICoordinateSystemFeatureData featData, ISwDocument doc, ISwComponent comp)
+            => featData.AccessSelections((ModelDoc2)doc?.Model, (Component2)comp?.Component);
     }
 
     internal class SwCoordinateSystem : SwFeature, ISwCoordinateSystem
@@ -45,7 +58,30 @@ namespace Xarial.XCad.SolidWorks.Features
         }
 
         public TransformMatrix Transform
-            => CoordSys.Transform.ToTransformMatrix();
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return CoordSys.Transform.ToTransformMatrix();
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<TransformMatrix>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
 
         public IXPoint Origin 
         {
@@ -277,49 +313,73 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
+        public override IEditor<IXFeature> Edit() => new SwCoordinateSystemEditor(this, CoordSys);
+
         protected override IFeature InsertFeature(CancellationToken cancellationToken)
         {
-            using (var selGrp = new SelectionGroup(OwnerDocument, true)) 
+            var transform = Transform;
+
+            IFeature feat;
+
+            if (transform == null)
             {
-                var selMgr = OwnerDocument.Model.ISelectionManager;
-
-                if (Origin != null) 
+                using (var selGrp = new SelectionGroup(OwnerDocument, true))
                 {
-                    var selData = selMgr.CreateSelectData();
-                    selData.Mark = 1;
-                    selGrp.Add(((ISwObject)Origin).Dispatch, selData);
+                    var selMgr = OwnerDocument.Model.ISelectionManager;
+
+                    if (Origin != null)
+                    {
+                        var selData = selMgr.CreateSelectData();
+                        selData.Mark = 1;
+                        selGrp.Add(((ISwObject)Origin).Dispatch, selData);
+                    }
+
+                    if (AxisX != null)
+                    {
+                        var selData = selMgr.CreateSelectData();
+                        selData.Mark = 2;
+                        selGrp.Add(((ISwObject)AxisX).Dispatch, selData);
+                    }
+
+                    if (AxisY != null)
+                    {
+                        var selData = selMgr.CreateSelectData();
+                        selData.Mark = 4;
+                        selGrp.Add(((ISwObject)AxisY).Dispatch, selData);
+                    }
+
+                    if (AxisZ != null)
+                    {
+                        var selData = selMgr.CreateSelectData();
+                        selData.Mark = 8;
+                        selGrp.Add(((ISwObject)AxisZ).Dispatch, selData);
+                    }
+
+                    feat = OwnerDocument.Model.FeatureManager.InsertCoordinateSystem(AxisXFlipped, AxisYFlipped, AxisZFlipped);
                 }
-
-                if (AxisX != null)
-                {
-                    var selData = selMgr.CreateSelectData();
-                    selData.Mark = 2;
-                    selGrp.Add(((ISwObject)AxisX).Dispatch, selData);
-                }
-
-                if (AxisY != null)
-                {
-                    var selData = selMgr.CreateSelectData();
-                    selData.Mark = 4;
-                    selGrp.Add(((ISwObject)AxisY).Dispatch, selData);
-                }
-
-                if (AxisZ != null)
-                {
-                    var selData = selMgr.CreateSelectData();
-                    selData.Mark = 8;
-                    selGrp.Add(((ISwObject)AxisZ).Dispatch, selData);
-                }
-
-                var feat = OwnerDocument.Model.FeatureManager.InsertCoordinateSystem(AxisXFlipped, AxisYFlipped, AxisZFlipped);
-
-                if (feat != null)
-                {
-                    CoordSys = (ICoordinateSystemFeatureData)feat.GetDefinition();
-                }
-
-                return feat;
             }
+            else 
+            {
+                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2022))
+                {
+                    var translation = transform.Translation;
+
+                    feat = OwnerDocument.Model.FeatureManager.CreateCoordinateSystemUsingNumericalValues(true,
+                        translation.X, translation.Y, translation.Z,
+                        true, transform.Roll, transform.Pitch, transform.Yaw);
+                }
+                else 
+                {
+                    throw new NotSupportedException("Value based coordinate system is supported in SOLIDWORKS 2022 adn newer");
+                }
+            }
+
+            if (feat != null)
+            {
+                CoordSys = (ICoordinateSystemFeatureData)feat.GetDefinition();
+            }
+
+            return feat;
         }
     }
 }

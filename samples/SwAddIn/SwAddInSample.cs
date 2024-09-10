@@ -804,38 +804,67 @@ namespace SwAddInExample
         {
             var doc = Application.Documents.Active;
 
-            var dirX = new Vector(1, 1, 1);
-            var dirY = dirX.CreateAnyPerpendicular();
-            var dirZ = dirX.Cross(dirY);
-            var orig = new Point(0.1, 0.2, 0.3);
+            //create (from transforms)
+            var coordSysTransf = doc.Features.PreCreateCoordinateSystem();
+            coordSysTransf.Transform = TransformMatrix.CreateFromRotation(Math.PI / 2, 0, 0) 
+                * TransformMatrix.CreateFromTranslation(new Vector(0.1, 0.2, 0.3));
+            coordSysTransf.Commit();
 
-            var sketch = doc.Features.PreCreate3DSketch();
-
-            var origPt = sketch.Entities.PreCreatePoint();
-            origPt.Coordinate = orig;
-            sketch.Entities.Add(origPt);
-
-            var lineX = sketch.Entities.PreCreateLine();
-            lineX.Geometry = new Line(orig, orig.Move(dirX, 0.1));
-            sketch.Entities.Add(lineX);
-
-            var lineY = sketch.Entities.PreCreateLine();
-            lineY.Geometry = new Line(orig, orig.Move(dirY, 0.1));
-            sketch.Entities.Add(lineY);
-
-            var lineZ = sketch.Entities.PreCreateLine();
-            lineZ.Geometry = new Line(orig, orig.Move(dirZ, 0.1));
-            sketch.Entities.Add(lineZ);
-
-            sketch.Commit();
+            //create
+            CreateCoordinateSystemSketch(doc,
+                new Vector(1, 1, 1), new Point(0.1, 0.2, 0.3),
+                out var orig, out var lineX, out var lineY, out var lineZ);
 
             var coordSys = doc.Features.PreCreateCoordinateSystem();
-            coordSys.Origin = origPt;
+            coordSys.Origin = orig;
             coordSys.AxisX = lineX;
             coordSys.AxisY = lineY;
             coordSys.AxisZ = lineZ;
 
             coordSys.Commit();
+
+            //edit
+            coordSys = doc.Selections.OfType<IXCoordinateSystem>().First();
+
+            CreateCoordinateSystemSketch(doc,
+                new Vector(0, 0, 1), new Point(-0.1, -0.2, -0.3),
+                out orig, out lineX, out lineY, out lineZ);
+
+            using (coordSys.Edit())
+            {
+                coordSys.Origin = orig;
+                coordSys.AxisX = lineX;
+                coordSys.AxisY = lineY;
+                coordSys.AxisZ = lineZ;
+            }
+        }
+
+        private void CreateCoordinateSystemSketch(IXDocument doc,
+            Vector dirX, Point orig,
+            out IXPoint origPt, out IXLine lineX, out IXLine lineY, out IXLine lineZ)
+        {
+            var dirY = dirX.CreateAnyPerpendicular();
+            var dirZ = dirX.Cross(dirY);
+
+            var sketch = doc.Features.PreCreate3DSketch();
+
+            origPt = sketch.Entities.PreCreatePoint();
+            origPt.Coordinate = orig;
+            sketch.Entities.Add(origPt);
+
+            lineX = sketch.Entities.PreCreateLine();
+            lineX.Geometry = new Line(orig, orig.Move(dirX, 0.1));
+            sketch.Entities.Add(lineX);
+
+            lineY = sketch.Entities.PreCreateLine();
+            lineY.Geometry = new Line(orig, orig.Move(dirY, 0.1));
+            sketch.Entities.Add(lineY);
+
+            lineZ = sketch.Entities.PreCreateLine();
+            lineZ.Geometry = new Line(orig, orig.Move(dirZ, 0.1));
+            sketch.Entities.Add(lineZ);
+
+            sketch.Commit();
         }
 
         private void OnCommandStateResolve(Commands_e spec, CommandState state)

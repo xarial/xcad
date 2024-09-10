@@ -56,6 +56,6 @@ namespace Xarial.XCad.Features
         /// <summary>
         /// Transformation of this coordinate system
         /// </summary>
-        TransformMatrix Transform { get; }
+        TransformMatrix Transform { get; set; }
     }
 }
