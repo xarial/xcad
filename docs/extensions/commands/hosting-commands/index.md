@@ -13,7 +13,7 @@ In order to add command group it is required to call the **AddCommandGroup** met
 
 It is required to provide the void handler function with a parameter of enumerator which will be called by framework when command is clicked.
 
-<<< @/_src/Extension\CommandsManager\CommandsAddIn.cs#CommandGroup
+<<< @/_src/Extension/CommandsManager/CommandsAddIn.cs#CommandGroup
 
 ### Menu
 
@@ -42,7 +42,7 @@ Command item can be added to tab box by setting the *showInCmdTabBox* parameter 
 * Text below icon (TextBelow)
 * Text to the right to icon, aligned horizontally (TextHorizontal)
 
-<<< @/_src/Extension\CommandsManager\CommandTabBox.cs
+<<< @/_src/Extension/CommandsManager/CommandTabBox.cs
 
 ## Context Menu
 
@@ -54,6 +54,6 @@ It is required to provide the void handler function with a parameter of enumerat
 
 It is optionally required to specify the selection type of where this menu should be displayed.
 
-<<< @/_src/Extension\CommandsManager\CommandsAddIn.cs#ContextMenu
+<<< @/_src/Extension/CommandsManager/CommandsAddIn.cs#ContextMenu
 
 

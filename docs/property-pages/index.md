@@ -21,7 +21,7 @@ Explore [Property Manager Page complete example](https://github.com/xarial/xcad-
 
 Start by defining the data model required to be filled by property manager page.
 
-<<< @/_src/PropertyPage\Overview.cs#Simple
+<<< @/_src/PropertyPage/Overview.cs#Simple
 
 Use properties with public getters and setters
 
@@ -31,7 +31,7 @@ Create handler for property manager page by inheriting the public class from **X
 
 This class will be instantiated by the framework and will allow handling the property manager specific events from the add-in.
 
-<<< @/_src/PropertyPage\Overview.cs#PMPageHandler
+<<< @/_src/PropertyPage/Overview.cs#PMPageHandler
 
 > Class must be com visible and have public parameterless constructor.
 
@@ -41,7 +41,7 @@ Data model can directly inherit the handler.
 
 If it is required to exclude the members in the data model from control generation such members should be decorated with **Xarial.XCad.UI.PropertyPage.Attributes.ExcludeControlAttribute**
 
-<<< @/_src/PropertyPage\Overview.cs#Ignore
+<<< @/_src/PropertyPage/Overview.cs#Ignore
 
 ## Creating instance
 
@@ -49,6 +49,6 @@ Create instance of the property manager page by passing the type of the handler 
 
 > Data model can contain predefined (default) values. Framework will automatically use this values in the corresponding controls.
 
-<<< @/_src/PropertyPage\Overview.cs#CreateInstance
+<<< @/_src/PropertyPage/Overview.cs#CreateInstance
 
 > Store instance of the data model and the property page in the class variables. This will allow to reuse the data model in the different page instances.

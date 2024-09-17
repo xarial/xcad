@@ -11,6 +11,6 @@ In order to create a button in the property manager page, it is required to decl
 
 The pointer to void function assigned to this property is a handler of the button:
 
-<<< @/_src/PropertyPage\Controls\Button.cs
+<<< @/_src/PropertyPage/Controls/Button.cs
 
 Visit [bitmap button](../bitmap-button/index#button) for more information of how to create button with image.

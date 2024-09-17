@@ -16,7 +16,7 @@ xCAD framework will automatically register the add-in by performing 2 steps (no 
 
 * Adding the required parameters to the Windows Registry. To skip an automatic registration decorate the add-in class with **Xarial.XCad.Extensions.Attributes.SkipRegistrationAttribute**.
 
-<<< @/_src/Extension\Register.cs#SkipReg
+<<< @/_src/Extension/Register.cs#SkipReg
 
 > It might be required to run Visual Studio As Administrator to allow the registration of COM object and adding the keys to registry.
 
@@ -26,7 +26,7 @@ To define add-in just add the [ComVisibleAttribute](https://docs.microsoft.com/e
 
 Although it is not a essential requirement, it is recommended to assign the GUID to the add-in class via [GuidAttribute](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.guidattribute?view=netcore-3.1).
 
-<<< @/_src/Extension\Register.cs#NetFramework
+<<< @/_src/Extension/Register.cs#NetFramework
 
 ## .NET Core
 
@@ -40,7 +40,7 @@ In addition, it is required to add the *EnableComHosting* property into the *.cs
 </PropertyGroup>
 ```
 
-<<< @/_src/Extension\Register.cs#NetCore
+<<< @/_src/Extension/Register.cs#NetCore
 
 It is also required to change the SDK of the add-in project to *Microsoft.NET.Sdk.WindowsDesktop* and set the *UseWindowsForms* attribute. This would enable the support for resources and other windows specific .NET classes used by framework.
 

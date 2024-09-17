@@ -9,6 +9,6 @@ order: 3
 
 Group box will be automatically created for all complex types in the data model
 
-<<< @/_src/PropertyPage\Controls\Group.cs
+<<< @/_src/PropertyPage/Controls/Group.cs
 
 > SOLIDWORKS doesn't support groups nested into other groups, so all the nested complex types will be added as the groups to the main property manager page.

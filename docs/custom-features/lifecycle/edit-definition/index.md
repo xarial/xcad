@@ -10,4 +10,4 @@ Edit definition allows to modify the parameters of an existing feature. Edit def
 
 Use **ISwMacroFeature``<TParams>``.Parameters** property to read and write the parameters of this macro feature. Set the value to **null** to revert changes and rollback the feature.
 
-<<< @/_src/CustomFeature\EditMacroFeatureDefinition.cs
+<<< @/_src/CustomFeature/EditMacroFeatureDefinition.cs

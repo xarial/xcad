@@ -12,7 +12,7 @@ Decorate the control classes with **TitleAttribute** and **IconAttribute** to as
 
 Taskpane can be created by calling the method below. Pointer to **IXTaskPane** provides an access to underlying properties and the pointer to the created control.
 
-<<< @/_src/Extension\Panels\PanelsAddIn.cs#TaskPaneSimple
+<<< @/_src/Extension/Panels/PanelsAddIn.cs#TaskPaneSimple
 
 ## Commands Task Pane
 
@@ -20,4 +20,4 @@ Taskpane can be created by calling the method below. Pointer to **IXTaskPane** p
 
 Additionally task pane can contain custom command buttons.
 
-<<< @/_src/Extension\Panels\PanelsAddIn.cs#TaskPaneCommands
+<<< @/_src/Extension/Panels/PanelsAddIn.cs#TaskPaneCommands

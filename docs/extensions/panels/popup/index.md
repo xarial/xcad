@@ -12,4 +12,4 @@ xCAD framework allows to show custom [Windows Form](https://docs.microsoft.com/e
 
 Framework will automatically assign SOLIDWORKS window as a parent window for the forms.
 
-<<< @/_src/Extension\Panels\PanelsAddIn.cs#Popup
+<<< @/_src/Extension/Panels/PanelsAddIn.cs#Popup

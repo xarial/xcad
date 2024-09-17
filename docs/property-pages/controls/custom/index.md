@@ -15,11 +15,11 @@ Both [Windows Forms controls](https://docs.microsoft.com/en-us/dotnet/api/system
 
 Create a property of any type which will represent data model bound to the control.
 
-<<< @/_src/PropertyPage\Controls\CustomControl.cs#WinForms
+<<< @/_src/PropertyPage/Controls/CustomControl.cs#WinForms
 
 In order to properly associate data model with property manager page, it is required to implement the **IXCustomControl** interface in the windows forms control.
 
-<<< @/_src/PropertyPage\Controls\CustomWinFormsControl.cs
+<<< @/_src/PropertyPage/Controls/CustomWinFormsControl.cs
 
 Framework will bind **DataContext** property to the corresponding property in the data model of property manager page.
 
@@ -29,8 +29,8 @@ Framework will bind **DataContext** property to the corresponding property in th
 
 Create a property of any type which will represent data model bound to the control.
 
-<<< @/_src/PropertyPage\Controls\CustomControl.cs#Wpf
+<<< @/_src/PropertyPage/Controls/CustomControl.cs#Wpf
 
 The value of this property will be automatically assigned to the [FrameworkElemet::DataContext](https://docs.microsoft.com/en-us/dotnet/api/system.windows.frameworkelement.datacontext) property of the control. So it is possible to use WPF binding.
 
-<<< @/_src/PropertyPage\Controls\CustomWpfControl.xaml
+<<< @/_src/PropertyPage/Controls/CustomWpfControl.xaml

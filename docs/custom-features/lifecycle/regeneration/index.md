@@ -10,6 +10,6 @@ Use **CustomFeatureRebuildResult** class to generate the required output.
 
 Feature can generate the following output
 
-<<< @/_src/CustomFeature\RegenerationResults.cs
+<<< @/_src/CustomFeature/RegenerationResults.cs
 
 Use **IXGeometryBuilder** interface if feature needs to create new bodies. Only temp bodies can be returned from the regeneration method.

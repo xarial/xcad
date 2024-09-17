@@ -19,7 +19,7 @@ Common styles can be customized via **ControlOptionsAttribute** by decorating th
 
 This attribute allows to define the alignment, position, size as well as background and foreground colours:
 
-<<< @/_src/PropertyPage\Controls\CommonOptions.cs#Style
+<<< @/_src/PropertyPage/Controls/CommonOptions.cs#Style
 
 ![Custom background and foreground colours applied to textbox](textbox-foreground-background.png)
 
@@ -35,7 +35,7 @@ Tooltip for controls can be set by applying the [DescriptionAttribute](https://d
 
 Standard icon defined in **BitmapLabelType_e** enumeration can be set to control via **StandardControlIconAttribute** attribute.
 
-<<< @/_src/PropertyPage\Controls\CommonOptions.cs#StandardIcon
+<<< @/_src/PropertyPage/Controls/CommonOptions.cs#StandardIcon
 
 Use the below map of all available standard icons:
 
@@ -71,4 +71,4 @@ Use the below map of all available standard icons:
 
 Custom icon can be set via overloaded constructor of **IconAttribute** attribute
 
-<<< @/_src/PropertyPage\Controls\CommonOptions.cs#CustomIcon
+<<< @/_src/PropertyPage/Controls/CommonOptions.cs#CustomIcon

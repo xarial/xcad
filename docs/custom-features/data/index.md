@@ -15,4 +15,4 @@ Required data can be defined within the macro feature data model. Special parame
 
 Data model is used both as input and output of macro feature. Parameters can be accessed via **SwMacroFeature``<TParams>``.Parameters** property and also passed to **OnRebuild** handler.
 
-<<< @/_src/CustomFeature\MacroFeatureParameters.cs
+<<< @/_src/CustomFeature/MacroFeatureParameters.cs

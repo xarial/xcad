@@ -10,4 +10,4 @@ order: 9
 
 Options group can be defined by decorating the property of type Enum with **OptionBoxAttribute**.
 
-<<< @/_src/PropertyPage\Controls\OptionBox.cs
+<<< @/_src/PropertyPage/Controls/OptionBox.cs

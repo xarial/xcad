@@ -14,12 +14,12 @@ Implement the **ParametersVersionConverter** to convert from the latest version 
 
 Old version of parameters
 
-<<< @/_src/CustomFeature\BackwardCompatibility.cs#OldParams
+<<< @/_src/CustomFeature/BackwardCompatibility.cs#OldParams
 
 New version of parameters
 
-<<< @/_src/CustomFeature\BackwardCompatibility.cs#NewParams
+<<< @/_src/CustomFeature/BackwardCompatibility.cs#NewParams
 
 Converter between version 1 and 2 can be implemented in the following way:
 
-<<< @/_src/CustomFeature\BackwardCompatibility.cs#Converter
+<<< @/_src/CustomFeature/BackwardCompatibility.cs#Converter

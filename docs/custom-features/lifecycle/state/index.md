@@ -6,4 +6,4 @@ order: 3
 ---
 This handler is called every time state of the feature is changed. It should be used to provide additional security for macro feature.
 
-<<< @/_src/CustomFeature\UpdateStateMacroFeature.cs
+<<< @/_src/CustomFeature/UpdateStateMacroFeature.cs
