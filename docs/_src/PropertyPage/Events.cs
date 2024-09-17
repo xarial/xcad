@@ -38,14 +38,14 @@ namespace Xarial.XCad.Documentation
             #endregion Closed
         }
 
-        #region DataChanged
+        #region DataChanged2
         private void OnDataChanged()
         {
             var text = m_Data.Text;
             //handle the data changing, e.g. update preview
         }
-        #endregion DataChanged
-        #region Closing
+        #endregion DataChanged2
+        #region Closing2
         private void OnClosing(PageCloseReasons_e reason, PageClosingArg arg)
         {
             if (reason == PageCloseReasons_e.Okay)
@@ -58,8 +58,8 @@ namespace Xarial.XCad.Documentation
                 }
             }
         }
-        #endregion Closing
-        #region Closed
+        #endregion Closing2
+        #region Closed2
         private void OnClosed(PageCloseReasons_e reason)
         {
             if (reason == PageCloseReasons_e.Okay)
@@ -71,7 +71,7 @@ namespace Xarial.XCad.Documentation
                 //release resources
             }
         }
-        #endregion Closed
+        #endregion Closed2
         #endregion Main
     }
 }

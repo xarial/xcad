@@ -13,14 +13,14 @@ namespace Xarial.XCad.Documentation
         {
             // Initialize the add-in, create menu, load data etc.
         }
-        #endregion
+        #endregion Connect
 
         #region Disconnect
         public override void OnDisconnect()
         {
             // Dispose the add-in's resources
         }
-        #endregion
+        #endregion Disconnect
 
         #region SwObjects
         private void AccessSwObjects()

@@ -11,16 +11,16 @@ public class DataModelCommonOpts
     #region Style
     [ControlOptions(backgroundColor: KnownColor.Green, textColor: KnownColor.Yellow)]
     public string TextField { get; set; } = "Sample Text";
-    #endregion
+    #endregion Style
 
     #region StandardIcon
     [Description("Depth Value")]
     [StandardControlIcon(BitmapLabelType_e.Depth)]
     public string Depth { get; set; }
-    #endregion
+    #endregion StandardIcon
 
     #region CustomIcon
     [Icon(typeof(Resources), nameof(Resources.OffsetImage))]
     public double Offset { get; set; }
-    #endregion
+    #endregion CustomIcon
 }

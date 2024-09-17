@@ -9,16 +9,16 @@ namespace Xarial.XCad.Documentation
     [ComVisible(true), Guid("97BB0C2A-7844-4925-9070-E810613D5D0D")]
     public class EvaluationAddIn : SwAddInEx
     {
+        #region BoundingBox
         private void ReadBoundingBox()
         {
-            // # endregion BoundingBox
-#endregion BoundingBox
-        }
 
+            #endregion BoundingBox
+        }
+        #region MassProperties
         private void ReadMassProperties()
         {
-            // # endregion MassProperties
-#endregion MassProperties
+            #endregion MassProperties
         }
     }
 }

@@ -19,7 +19,7 @@ public class SubMenuAndSpacerAddIn : SwAddInEx
         [CommandSpacer]
         Command2
     }
-    #endregion
+    #endregion Spacer
 
     [Title("Sub Menu Commands")]
     #region SubMenu
@@ -29,7 +29,7 @@ public class SubMenuAndSpacerAddIn : SwAddInEx
         SubCommand1,
         SubCommand2
     }
-    #endregion
+    #endregion SubMenu
 
     public override void OnConnect()
     {
@@ -44,6 +44,6 @@ public class SubMenuAndSpacerAddIn : SwAddInEx
     private void OnButtonClick(SubCommands_e cmd)
     {
     }
-    #endregion
+    #endregion SpacerAndSubMenu
 }
 

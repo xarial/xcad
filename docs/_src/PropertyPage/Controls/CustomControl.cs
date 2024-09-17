@@ -13,7 +13,7 @@ public class CustomWinFormsControlPage
     [CustomControl(typeof(CustomWinFormsControl))]
     public CustomControlWinFormsModel Model { get; set; } = new CustomControlWinFormsModel();
 }
-#endregion
+#endregion WinForms
 
 #region Wpf
 public class CustomControlWpfModel : INotifyPropertyChanged
@@ -38,4 +38,4 @@ public class CustomWpfControlPage
     [CustomControl(typeof(CustomWpfControl))]
     public CustomControlWinFormsModel Model { get; set; } = new CustomControlWinFormsModel();
 }
-#endregion
+#endregion Wpf

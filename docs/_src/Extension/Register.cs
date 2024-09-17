@@ -52,5 +52,5 @@ namespace Xarial.XCad.Documentation.Extension
         {
         }
     }
-    #endregion
+    #endregion NetCore
 }

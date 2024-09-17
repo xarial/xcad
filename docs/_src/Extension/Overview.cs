@@ -43,12 +43,12 @@ namespace Xarial.XCad.Documentation
             Command2
         }
         #endregion CommandGroup
-        #region TaskPane
+        #region TaskPane2
         public enum TaskPaneCommands_e
         {
             Command1
         }
-        #endregion TaskPane
+        #endregion TaskPane2
         #region DocHandler
         public class MyDocumentHandler : SwDocumentHandler
         {
@@ -103,28 +103,28 @@ namespace Xarial.XCad.Documentation
         #endregion DocHandler
         public override void OnConnect()
         {
-            #region CommandGroup
+            #region CommandGroup2
             this.CommandManager.AddCommandGroup`< Commands_e >`().CommandClick += OnButtonClick;
-            #endregion CommandGroup
+            #endregion CommandGroup2
             #region DocHandler
             Application.Documents.RegisterHandler<MyDocumentHandler>();
             #endregion DocHandler
-            #region TaskPane
+            #region TaskPane3
             var taskPane = this.CreateTaskPane<TaskPaneControl, TaskPaneCommands_e>();
             taskPane.ButtonClick += OnTaskPaneCommandClick;
             TaskPaneControl ctrl = taskPane.Control;
-            #endregion TaskPane
+            #endregion TaskPane3
             #region 3rdParty
             Application.Documents.Active.StreamWriteAvailable += OnWriteToStream;
             #endregion 3rdParty
         }
 
-        #region CommandGroup
+        #region CommandGroup3
         private void OnButtonClick(Commands_e cmd)
         {
             //handle commands
         }
-        #endregion CommandGroup
+        #endregion CommandGroup3
         #region 3rdParty
         private void OnWriteToStream(IXDocument doc)
         {
@@ -138,7 +138,7 @@ namespace Xarial.XCad.Documentation
             }
         }
         #endregion 3rdParty
-        #region TaskPane
+        #region TaskPane4
         private void OnTaskPaneCommandClick(TaskPaneCommands_e cmd)
         {
             switch (cmd)
@@ -148,6 +148,6 @@ namespace Xarial.XCad.Documentation
                     break;
             }
         }
-        #endregion TaskPane
+        #endregion TaskPane4
     }
 }

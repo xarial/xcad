@@ -9,7 +9,8 @@ order: 12
 
 Static bitmap will be created in the property manager page for the properties of [Image](https://docs.microsoft.com/en-us/dotnet/api/system.drawing.image?view=netframework-4.8) type or other types assignable from this type, e.g. [Bitmap](https://docs.microsoft.com/en-us/dotnet/api/system.drawing.bitmap?view=netframework-4.8)
 
-<<< @/_src/PropertyPage/Controls/Bitmap.cs
+<<< @/_src/PropertyPage/Controls/Bitmap.cs#Control
+<<< @/_src/PropertyPage/Controls/Bitmap.cs#Control2
 
 ## Bitmap size
 

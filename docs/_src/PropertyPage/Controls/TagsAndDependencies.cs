@@ -79,7 +79,7 @@ namespace Xarial.XCad.Documentation
             source.Visible = (Groups_e)source.Tag == curGrp;
         }
     }
-    #endregion
+    #endregion CascadingVisibility
 
     #region Enable
     [ComVisible(true)]
@@ -99,7 +99,7 @@ namespace Xarial.XCad.Documentation
             source.Enabled = (bool)dependencies.First().GetValue();
         }
     }
-    #endregion
+    #endregion Enable
 
     [ComVisible(true), Guid("D745F780-C031-4A2B-A627-AC8C7C61F421")]
     public class TagsAndDependencies : SwAddInEx

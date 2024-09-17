@@ -1,4 +1,5 @@
-﻿using Xarial.XCad.Base.Attributes;
+﻿#region WithGroup
+using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.Documentation.Properties;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 
@@ -12,8 +13,9 @@ public class TabDataModel
     }
 
     public TabControl1 Tab1 { get; set; }
+    #endregion WithGroup
 
-    #region WithGroup
+    #region WithGroup2
     public class TabControl2
     {
         public class Group1
@@ -27,5 +29,7 @@ public class TabDataModel
 
     [Tab]
     public TabControl2 Tab2 { get; set; }
-    #endregion
+    #endregion WithGroup2
+    #region WithGroup3    
 }
+#endregion WithGroup3

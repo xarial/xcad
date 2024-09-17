@@ -35,7 +35,7 @@ namespace Xarial.XCad.Documentation.Extension.Panels
         }
 
         private IXTaskPane<WpfControl> m_TaskPane;
-        #endregion
+        #endregion TaskPaneCommands
 
         public override void OnConnect()
         {
@@ -46,11 +46,11 @@ namespace Xarial.XCad.Documentation.Extension.Panels
             WinFormControl control = taskPane.Control;
             #endregion TaskPaneSimple
 
-            #region TaskPaneCommands
+            #region TaskPaneCommands2
             var cmdTaskPane = this.CreateTaskPane<WpfControl, TaskPaneCommands_e>();
             cmdTaskPane.ButtonClick += OnTaskPaneButtonClick;
             m_TaskPane = cmdTaskPane;
-            #endregion TaskPaneCommands
+            #endregion TaskPaneCommands2
         }
 
         private void OnCommandClick(PanelCommands_e spec)
@@ -80,7 +80,7 @@ namespace Xarial.XCad.Documentation.Extension.Panels
             #endregion Popup
         }
 
-        #region TaskPaneCommands
+        #region TaskPaneCommands3
         private void OnTaskPaneButtonClick(TaskPaneCommands_e spec)
         {
             switch (spec)
@@ -94,6 +94,6 @@ namespace Xarial.XCad.Documentation.Extension.Panels
                     break;
             }
         }
-        #endregion TaskPaneCommands
+        #endregion TaskPaneCommands3
     }
 }

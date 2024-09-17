@@ -61,7 +61,7 @@ namespace Xarial.XCad.Documentation
             m_D1Dim.ValueChanged -= OnDimensionValueChanged;
         }
     }
-    #endregion
+    #endregion EventHandlers
 
     [ComVisible(true), Guid("A57F10A3-D23F-40C9-92DA-D4AE92E4FE8C")]
     public class EventsAddIn : SwAddInEx

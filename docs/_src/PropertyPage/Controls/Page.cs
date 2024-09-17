@@ -10,7 +10,7 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 public class DataModelPageOpts
 {
 }
-#endregion
+#endregion Options
 
 #region Attribution
 [Icon(typeof(Resources), nameof(Resources.PageIcon))]
@@ -19,11 +19,11 @@ public class DataModelPageOpts
 public class DataModelPageAtts
 {
 }
-#endregion
+#endregion Attribution
 
 #region HelpLinks
 [Help("<Help URL>", "<What's New URL>")]
 public class DataModelHelpLinks
 {
 }
-#endregion
+#endregion HelpLinks

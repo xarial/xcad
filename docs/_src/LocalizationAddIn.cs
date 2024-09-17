@@ -23,7 +23,7 @@ namespace Xarial.XCad.Documentation
         [Summary(typeof(Resources), nameof(Resources.NumericFieldDescription))]
         public double NumericField { get; set; }
     }
-    #endregion
+    #endregion PMPage
 
     #region MacroFeature
     [Title(typeof(Resources), nameof(Resources.MacroFeatureBaseName))]
@@ -49,7 +49,7 @@ namespace Xarial.XCad.Documentation
             }
         }
     }
-    #endregion
+    #endregion MacroFeature
 
     [ComVisible(true), Guid("CD96ACAE-57E6-400F-927A-27D912407663")]
     public class LocalizationAddIn : SwAddInEx
@@ -67,7 +67,7 @@ namespace Xarial.XCad.Documentation
             [Summary(typeof(Resources), nameof(Resources.CreateMacroFeatureCommandHint))]
             CreateMacroFeature
         }
-        #endregion
+        #endregion Commands
 
         [ComVisible(true)]
         public class PMPageHandler : SwPropertyManagerPageHandler

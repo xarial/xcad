@@ -6,7 +6,7 @@ order: 3
 ---
 xCAD framework can be used to create out-of-process (stand-alone) applications, such as Console, Windows Forms, WPF etc. in .NET Framework or .NET Core.
 
-<!--youtube id: 0ubF-INE7bg-->
+<YouTube id="0ubF-INE7bg" />
 
 ## SOLIDWORKS
 

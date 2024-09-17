@@ -18,27 +18,31 @@ Registration command differs depending on if the add-in developed using .NET Fra
 
 ### .NET Framework
 
-```
+::: code-group
+
+``` [Register]
 > %windir%\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe "Full Path To Add-in dll"
 ```
 
-To unregister add-in use the following command:
-
-```
+``` [unregister]
 > %windir%\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe "Full Path To Add-in dll" /u
 ```
 
+:::
+
 ### .NET Core
 
-```
+::: code-group
+
+``` [Register]
 > regsvr32 "Full Path To Add-in .comhost.dll"
 ```
 
-To unregister add-in use the following command:
-
-```
+``` [Unregister]
 > regsvr32 "Full Path To Add-in .comhost.dll" /u
 ```
+
+:::
 
 If **Xarial.XCad.Extensions.Attributes.SkipRegistrationAttribute** is used then all the required registry information will not be added and it is additionally required to add the registry keys when registering the add-in by running the following .reg file, where
 

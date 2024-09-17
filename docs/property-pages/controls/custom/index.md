@@ -33,4 +33,4 @@ Create a property of any type which will represent data model bound to the contr
 
 The value of this property will be automatically assigned to the [FrameworkElemet::DataContext](https://docs.microsoft.com/en-us/dotnet/api/system.windows.frameworkelement.datacontext) property of the control. So it is possible to use WPF binding.
 
-<<< @/_src/PropertyPage/Controls/CustomWpfControl.xaml
+<<< @/_src/PropertyPage/Controls/CustomWpfControl.xaml{xml}

@@ -9,10 +9,11 @@ order: 3
 
 Tab containers are created for the complex types decorated with **TabAttribute**.
 
-<<< @/_src/PropertyPage/Controls/Tab.cs
+<<< @/_src/PropertyPage/Controls/Tab.cs#WithGroup
+<<< @/_src/PropertyPage/Controls/Tab.cs#WithGroup3
 
 ## Tab with nested groups
 
 Controls can be added directly to tabs or can reside in the nested groups:
 
-<<< @/_src/PropertyPage/Controls/Tab.cs#WithGroup
+<<< @/_src/PropertyPage/Controls/Tab.cs#WithGroup2

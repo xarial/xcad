@@ -20,7 +20,7 @@ public class SelectionBoxDataModel
     [SelectionBoxOptions(new Type[] { typeof(IXEdge), typeof(IXNote), typeof(IXCoordinateSystem) })]
     public ISwSelObject Dispatch { get; set; }
 }
-#endregion
+#endregion Single
 
 #region List
 public class SelectionBoxListDataModel
@@ -30,7 +30,7 @@ public class SelectionBoxListDataModel
     [SelectionBoxOptions(new Type[] { typeof(IXEdge), typeof(IXNote), typeof(IXCoordinateSystem) })]
     public List<ISwSelObject> Dispatches { get; set; } = new List<ISwSelObject>();
 }
-#endregion
+#endregion List
 
 #region CustomFilter
 public class SelectionBoxCustomSelectionFilterDataModel
@@ -58,4 +58,4 @@ public class SelectionBoxCustomSelectionFilterDataModel
         }
     }
 }
-#endregion
+#endregion CustomFilter

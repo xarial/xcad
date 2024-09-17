@@ -8,7 +8,7 @@ public class BitmapButtonDataModel
     #region Button
     [BitmapButton(typeof(Resources), nameof(Resources.BitmapSample))]
     public Action Button1 { get; set; } = new Action(() => { });
-    #endregion
+    #endregion Button
 
     #region Toggle
     [BitmapButton(typeof(Resources), nameof(Resources.BitmapSample))]
@@ -16,12 +16,12 @@ public class BitmapButtonDataModel
 
     [BitmapButton(typeof(Resources), nameof(Resources.BitmapSample))]
     public bool Toggle2 { get; set; } = true;
-    #endregion
+    #endregion Toggle
 
     #region Size
     [BitmapButton(typeof(Resources), nameof(Resources.BitmapSample), 48, 48)]
     public Action Button2 { get; set; } = new Action(() => { });
-    #endregion
+    #endregion Size
 
     #region Standard
     [BitmapButton(Xarial.XCad.UI.PropertyPage.Enums.BitmapButtonLabelType_e.AlongZ)]
@@ -29,5 +29,5 @@ public class BitmapButtonDataModel
 
     [BitmapButton(Xarial.XCad.UI.PropertyPage.Enums.BitmapButtonLabelType_e.Draft)]
     public bool Standard2 { get; set; }
-    #endregion
+    #endregion Standard
 }

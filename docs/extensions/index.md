@@ -13,7 +13,9 @@ The functionality includes
 * Events management
 * Task Panes, Feature Manager Tab, Model View Tab
 
-<!--youtube id: IyUkJf7xmLY-->
+<div class="video_wrapper">
+    <iframe frameborder="0" width="100%" height="100%" src="https://www.youtube.com/embed/IyUkJf7xmLY" allowfullscreen=""></iframe>
+</div>
 
 ## Features Overview
 
@@ -30,6 +32,8 @@ To Register add-in just declare a public class and add COMVisible attribute (no 
 Commands can be defined by creating an enumerations. Commands can be customized by adding attributes to assign title, tooltip, icon etc. Commands can be grouped under sub menus. Simply specify the image (transparency is supported) and framework will create required bitmaps compatible with SOLIDWORKS. No need to assign gray background to enable transparency, no need to scale images to fit the required sizes - simply use any image and framework will do the rest. Use resources to localize the add-in.
 
 <<< @/_src/Extension/Overview.cs#CommandGroup
+<<< @/_src/Extension/Overview.cs#CommandGroup2
+<<< @/_src/Extension/Overview.cs#CommandGroup3
 
 ### Managing Documents Lifecycle and Events
 
@@ -50,3 +54,6 @@ Just specify User Control to host and framework will do the rest:
 #### Task Pane
 
 <<< @/_src/Extension/Overview.cs#TaskPane
+<<< @/_src/Extension/Overview.cs#TaskPane2
+<<< @/_src/Extension/Overview.cs#TaskPane3
+<<< @/_src/Extension/Overview.cs#TaskPane4

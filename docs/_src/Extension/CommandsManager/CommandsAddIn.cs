@@ -23,7 +23,7 @@ public class CommandsAddIn : SwAddInEx
         #endregion ContextMenu
     }
 
-    #region CommandGroup
+    #region CommandGroup2
     private void OnCommandsAButtonClick(CommandsA_e cmd)
     {
         //handle the button click
@@ -38,8 +38,8 @@ public class CommandsAddIn : SwAddInEx
     {
         //handle the button click
     }
-    #endregion CommandGroup
-    #region ContextMenu
+    #endregion CommandGroup2
+    #region ContextMenu2
     private void OnCommandsDContextMenuClick(CommandsD_e cmd)
     {
         //handle the context menu click
@@ -49,6 +49,6 @@ public class CommandsAddIn : SwAddInEx
     {
         //handle the context menu click
     }
-    #endregion ContextMenu
+    #endregion ContextMenu2
     #endregion HostingCommands
 }

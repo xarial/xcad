@@ -21,3 +21,5 @@ Taskpane can be created by calling the method below. Pointer to **IXTaskPane** p
 Additionally task pane can contain custom command buttons.
 
 <<< @/_src/Extension/Panels/PanelsAddIn.cs#TaskPaneCommands
+<<< @/_src/Extension/Panels/PanelsAddIn.cs#TaskPaneCommands2
+<<< @/_src/Extension/Panels/PanelsAddIn.cs#TaskPaneCommands3
