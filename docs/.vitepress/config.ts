@@ -18,6 +18,7 @@ export default defineConfig({
     title: 'XCad',
     description: 'SOLIDWORKS API development made easy',
     srcDir: "./",
+    base:"/xcad/",
     themeConfig: {
         logo: '/logo.svg',
         search: {
