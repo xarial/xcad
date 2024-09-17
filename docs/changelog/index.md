@@ -189,7 +189,7 @@ CreatePreviewGeometry
 
 ## 0.6.0 - September 13, 2020
 
-* Implemented [#5 - Updating Combobox based on another comboBox selection change](https://github.com/xarial/xcad/issues/5). Refer [help documentation](/property-pages/controls/combo-box#dynamic-items-provider) for more information
+* Implemented [#5 - Updating Combobox based on another comboBox selection change](https://github.com/xarial/xcad/issues/5). Refer [help documentation](../property-pages/controls/combo-box/index#dynamic-items-provider) for more information
 
 * Implemented [#6 - Add Support to Bitmap Button](https://github.com/xarial/xcad/issues/6)
 

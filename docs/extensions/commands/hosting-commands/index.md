@@ -5,7 +5,7 @@ description: Hosting options for SOLIDWORKS commands using xCAD (command group, 
 image: commands-toolbar.png
 order: 2
 ---
-[Defined commands](/extension/commands/defining-commands/) can be hosted in different locations of SOLIDWORKS commands area: [command group](#command-group), which includes [menu](#menu), [toolbar](#toolbar) and [command tab box (ribbon)](#command-tab-box) as well as in the [context menu](#context-menu)
+[Defined commands](../../../extensions/commands/defining-commands/index) can be hosted in different locations of SOLIDWORKS commands area: [command group](#command-group), which includes [menu](#menu), [toolbar](#toolbar) and [command tab box (ribbon)](#command-tab-box) as well as in the [context menu](#context-menu)
 
 ## Command Group
 

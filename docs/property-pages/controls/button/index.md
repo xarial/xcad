@@ -13,4 +13,4 @@ The pointer to void function assigned to this property is a handler of the butto
 
 <<< @/_src/PropertyPage\Controls\Button.cs
 
-Visit [bitmap button](../bitmap-button#button) for more information of how to create button with image.
+Visit [bitmap button](../bitmap-button/index#button) for more information of how to create button with image.

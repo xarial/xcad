@@ -11,4 +11,4 @@ CheckBox control (toggle) will be automatically created for all properties of **
 
 <<< @/_src/PropertyPage\Controls\CheckBox.cs
 
-Visit [toggle bitmap button](../bitmap-button#toggle) for more information of how to create toggle button with image.
+Visit [toggle bitmap button](../bitmap-button/index#toggle) for more information of how to create toggle button with image.

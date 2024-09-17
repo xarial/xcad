@@ -40,7 +40,7 @@ Refer [Command Group Icons Example](https://github.com/xarial/xcad-examples/tree
 
 Each command can be assigned with the operation scope (i.e. the environment where this command can be executed, e.g. Part, Assembly etc.). Scope can be assigned with **CommandItemInfoAttribute** attribute by specifying the values in *suppWorkspaces* parameter of the attribute's constructor. The **WorkspaceTypes_e** is a flag enumeration, so it is possible to combine the workspaces.
 
-Framework will automatically disable/enable the commands based on the active environment as per the specified scope. For additional logic for assigning the state visit [Custom Enable Command State](/extension/commands/command-states/) article.
+Framework will automatically disable/enable the commands based on the active environment as per the specified scope. For additional logic for assigning the state visit [Custom Enable Command State](../../../extensions/commands/command-states/index) article.
 
 <<< @/_src/Extension\CommandsManager\CommandsScope.cs
 
