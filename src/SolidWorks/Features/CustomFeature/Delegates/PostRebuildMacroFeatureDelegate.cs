@@ -22,6 +22,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Delegates
 
     /// <inheritdoc/>
     /// <param name="parameters">Parameters</param>
-    public delegate void PostRebuildMacroFeatureDelegate<TParams>(ISwApplication app, ISwDocument model, ISwMacroFeature<TParams> feature, TParams parameters)
+    public delegate void PostRebuildMacroFeatureDelegate`<TParams>`(ISwApplication app, ISwDocument model, ISwMacroFeature`<TParams>` feature, TParams parameters)
         where TParams : class;
 }

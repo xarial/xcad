@@ -56,14 +56,14 @@ namespace Xarial.XCad.Features.CustomFeature
     /// Represents the custom feature definition bound to the parameters data model
     /// </summary>
     /// <typeparam name="TParams"></typeparam>
-    public interface IXCustomFeatureDefinition<TParams> : IXCustomFeatureDefinition
+    public interface IXCustomFeatureDefinition`<TParams>` : IXCustomFeatureDefinition
         where TParams : class
     {
         /// <inheritdoc cref="IXCustomFeatureDefinition.OnRebuild(IXApplication, IXDocument, IXCustomFeature)"/>
         /// <param name="alignDim">Handler to align dimensions. Use <see cref="AlignDimension(IXDimension, Point[], Vector, Vector)"/> helper function</param>
         /// <returns>Result of the regeneration</returns>
-        CustomFeatureRebuildResult OnRebuild(IXApplication app, IXDocument model, IXCustomFeature<TParams> feature,
-            out AlignDimensionDelegate<TParams> alignDim);
+        CustomFeatureRebuildResult OnRebuild(IXApplication app, IXDocument model, IXCustomFeature`<TParams>` feature,
+            out AlignDimensionDelegate`<TParams>` alignDim);
 
         /// <summary>
         /// Helper function to align the dimensions of the macro feature
@@ -81,7 +81,7 @@ namespace Xarial.XCad.Features.CustomFeature
     /// </summary>
     /// <typeparam name="TParams">Parameters of this custom feature</typeparam>
     /// <typeparam name="TPage">Page editor of this custom feature</typeparam>
-    public interface IXCustomFeatureDefinition<TParams, TPage> : IXCustomFeatureDefinition<TParams>
+    public interface IXCustomFeatureDefinition<TParams, TPage> : IXCustomFeatureDefinition`<TParams>`
         where TParams : class
         where TPage : class
     {
@@ -101,8 +101,8 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <param name="alignDim">Function to align dimensions</param>
         /// <returns>Geometry of this macro feature</returns>
         /// <remarks>Extract current parameters from the feature via <see cref="IXCustomFeature{TParams}.Parameters"/></remarks>
-        IXBody[] CreateGeometry(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat,
-            out AlignDimensionDelegate<TParams> alignDim);
+        IXBody[] CreateGeometry(IXApplication app, IXDocument doc, IXCustomFeature`<TParams>` feat,
+            out AlignDimensionDelegate`<TParams>` alignDim);
 
         /// <summary>
         /// Creates preview geometry for the custom feature
@@ -115,7 +115,7 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <param name="assignPreviewColor">Handler to specify the custom color for the preview body</param>
         /// <returns>Preview bodies</returns>
         /// <remarks>Extract current parameters from the feature via <see cref="IXCustomFeature{TParams}.Parameters"/></remarks>
-        IXMemoryBody[] CreatePreviewGeometry(IXApplication app, IXDocument model, IXCustomFeature<TParams> feat, TPage page,
+        IXMemoryBody[] CreatePreviewGeometry(IXApplication app, IXDocument model, IXCustomFeature`<TParams>` feat, TPage page,
             out ShouldHidePreviewEditBodyDelegate<TParams, TPage> shouldHidePreviewEdit,
             out AssignPreviewBodyColorDelegate assignPreviewColor);
 

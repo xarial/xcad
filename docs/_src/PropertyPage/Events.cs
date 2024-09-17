@@ -16,7 +16,7 @@ namespace Xarial.XCad.Documentation
             public string Text { get; set; }
         }
 
-        //--- Main
+        #region Main
 
         private DataModel m_Data;
 
@@ -27,25 +27,25 @@ namespace Xarial.XCad.Documentation
             m_Data = new DataModel();
             m_Page = this.CreatePage<DataModel>();
 
-            //--- DataChanged
+            #region DataChanged
             m_Page.DataChanged += OnDataChanged;
-            //---
-            //--- Closing
+            #endregion DataChanged
+            #region Closing
             m_Page.Closing += OnClosing;
-            //---
-            //--- Closed
+            #endregion Closing
+            #region Closed
             m_Page.Closed += OnClosed;
-            //---
+            #endregion Closed
         }
 
-        //--- DataChanged
+        #region DataChanged
         private void OnDataChanged()
         {
             var text = m_Data.Text;
             //handle the data changing, e.g. update preview
         }
-        //---
-        //--- Closing
+        #endregion DataChanged
+        #region Closing
         private void OnClosing(PageCloseReasons_e reason, PageClosingArg arg)
         {
             if (reason == PageCloseReasons_e.Okay)
@@ -58,8 +58,8 @@ namespace Xarial.XCad.Documentation
                 }
             }
         }
-        //---
-        //--- Closed
+        #endregion Closing
+        #region Closed
         private void OnClosed(PageCloseReasons_e reason)
         {
             if (reason == PageCloseReasons_e.Okay)
@@ -71,7 +71,7 @@ namespace Xarial.XCad.Documentation
                 //release resources
             }
         }
-        //---
-        //---
+        #endregion Closed
+        #endregion Main
     }
 }

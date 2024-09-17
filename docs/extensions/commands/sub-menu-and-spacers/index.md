@@ -9,7 +9,7 @@ order: 3
 
 Spacer can be added between the commands by decorating the command using the **CommandSpacerAttribute**. Spacer will be added before this command.
 
-{% code-snippet { file-name: ~Extension\CommandsManager\SubMenuAndSpacerAddIn.*, regions: [Spacer] } %}
+<<< @/_src/Extension\CommandsManager\SubMenuAndSpacerAddIn.cs#Spacer
 
 If command tab tab boxes are created for this command group (i.e. *showInCmdTabBox* parameter is set to *true* in the **CommandItemInfoAttribute**), spacer is not reflected in the corresponding command tab box.
 
@@ -17,13 +17,13 @@ If command tab tab boxes are created for this command group (i.e. *showInCmdTabB
 
 Sub-menus for the command groups can be defined by calling the corresponding overload of the **CommandGroupParent** attribute and specifying the type of the parent menu group or the user id
 
-{% code-snippet { file-name: ~Extension\CommandsManager\SubMenuAndSpacerAddIn.*, regions: [SubMenu] } %}
+<<< @/_src/Extension\CommandsManager\SubMenuAndSpacerAddIn.cs#SubMenu
 
 Sub menus are rendered in separate tab boxes in the command tab.
 
 ## Example
 
-{% code-snippet { file-name: ~Extension\CommandsManager\SubMenuAndSpacerAddIn.*, regions: [SpacerAndSubMenu] } %}
+<<< @/_src/Extension\CommandsManager\SubMenuAndSpacerAddIn.cs#SpacerAndSubMenu
 
 The above commands configuration would result in the following menu and command tab boxes created:
 

@@ -14,20 +14,20 @@ using Xarial.XCad.SwDocumentManager.Documents;
 
 namespace Xarial.XCad.SwDocumentManager
 {
-    public interface ISwDmSelObject : ISwDmObject, IXSelObject 
+    public interface ISwDmSelObject : ISwDmObject, IXSelObject
     {
-    
+
     }
 
     internal class SwDmSelObject : SwDmObject, ISwDmSelObject
     {
-        #region Not Supported
-        
+        // #region Not Supported
+
         public virtual void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
         public void Delete() => throw new NotSupportedException();
         public void Select(bool append) => throw new NotSupportedException();
 
-        #endregion
+        // #endregion
 
         public SwDmSelObject(object disp, SwDmApplication ownerApp, SwDmDocument ownerDoc) : base(disp, ownerApp, ownerDoc)
         {

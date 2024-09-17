@@ -16,15 +16,15 @@
 
 Visual Studio and Visual Studio Code templates can be installed from [NuGet](https://www.nuget.org/packages/Xarial.XCad.Templates/)
 
-~~~
+```
 > dotnet new install Xarial.XCad.Templates
-~~~
+```
 
 ## SOLIDWORKS Add-in Applications
 
 It has never been easier to create SOLIDWORKS add-ins with toolbar and menu commands.
 
-~~~ cs
+``` cs
 [ComVisible(true)]
 public class XCadAddIn : SwAddInEx
 {
@@ -36,7 +36,7 @@ public class XCadAddIn : SwAddInEx
 
     public override void OnConnect()
     {
-        this.CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandsButtonClick;
+        this.CommandManager.AddCommandGroup`<Commands_e>`().CommandClick += OnCommandsButtonClick;
     }
 
     private void OnCommandsButtonClick(Commands_e cmd)
@@ -44,13 +44,13 @@ public class XCadAddIn : SwAddInEx
         //TODO: handle the button click
     }
 }
-~~~
+```
 
 ## Property Manager Pages
 
 Framework reinvents the way you work with Property Manager Pages. No need to code a complex code behind for adding the controls and handling the values. Simply define your data model and the framework will build the suitable Property Manager Page automatically and two-way bind controls to the data model.
 
-~~~ cs
+``` cs
 [ComVisible(true)]
 public class IntroPmpPageAddIn : SwAddInEx
 {
@@ -74,7 +74,7 @@ public class IntroPmpPageAddIn : SwAddInEx
     {
         m_Page = this.CreatePage<MyPMPageData>();
         m_Page.Closed += OnPageClosed;
-        this.CommandManager.AddCommandGroup<Commands_e>().CommandClick += ShowPmpPage;
+        this.CommandManager.AddCommandGroup`<Commands_e>`().CommandClick += ShowPmpPage;
     }
 
     private void ShowPmpPage(Commands_e cmd)
@@ -89,13 +89,13 @@ public class IntroPmpPageAddIn : SwAddInEx
         Debug.Print($"Selection component name: {m_Data.Component.Name}");
     }
 }
-~~~
+```
 
 ## Macro Features
 
 Complex macro features became an ease with xCAD.NET
 
-~~~ cs
+``` cs
 [ComVisible(true)]
 public class IntroMacroFeatureAddIn : SwAddInEx 
 {
@@ -130,7 +130,7 @@ public class IntroMacroFeatureAddIn : SwAddInEx
 
     public override void OnConnect()
     {
-        this.CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandsButtonClick;
+        this.CommandManager.AddCommandGroup`<Commands_e>`().CommandClick += OnCommandsButtonClick;
     }
 
     private void OnCommandsButtonClick(Commands_e cmd)
@@ -143,13 +143,13 @@ public class IntroMacroFeatureAddIn : SwAddInEx
         }
     }
 }
-~~~
+```
 
 ## SOLIDWORKS And Document Manager API
 
 xCAD.NET allows to write the same code targeting different CAD implementation in a completely agnostic way. Example below demonstrates how to perform opening of assembly, traversing components recursively and closing the assembly via SOLIDWORKS API and [SOLIDWORKS Document Manager API](https://www.codestack.net/solidworks-document-manager-api/) using the same code base.
 
-~~~ cs
+``` cs
 static void Main(string[] args)
 {
     var assmFilePath = @"C:\sample-assembly.sldasm";
@@ -181,7 +181,7 @@ private static void IterateComponentsRecursively(IXComponentRepository compsRepo
         IterateComponentsRecursively(comp.Children, level + 1);
     }
 }
-~~~
+```
 
 ## Target Frameworks
 
@@ -201,18 +201,18 @@ When building the SOLIDWORKS add-ins see the information below
 * Run Visual Studio as an Administrator
 * Install [Xarial.XCad.SolidWorks](https://www.nuget.org/packages/Xarial.XCad.SolidWorks) package from the nuget and create add-in class as shown above
 * Add the following property into the project file (*.csproj or *.vbproj)
-~~~ xml
+``` xml
 <PropertyGroup>
     <EnableComHosting>true</EnableComHosting>
 </PropertyGroup>
-~~~
+```
 * Build the solution. Add-in will be automatically registered. Clean the solution to unregister the add-in.
 
 ### .NET Core Only
 
 Automatic registration does not work in .NET Core and it needs to be called manually by adding the following code into the add-in (this is not required for .NET6)
 
-~~~ cs
+``` cs
 [ComRegisterFunction]
 public static void RegisterFunction(Type t)
 {
@@ -224,7 +224,7 @@ public static void UnregisterFunction(Type t)
 {
     SwAddInEx.UnregisterFunction(t);
 }
-~~~
+```
 
 Watch the [video demonstrations YouTube playlist](https://www.youtube.com/watch?v=YLFwqTX_V2I&list=PLZ8T-hyutVIEXMFgJ462Ou6Szjk26gPVo) of xCAD in action.
 

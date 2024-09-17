@@ -44,7 +44,7 @@ Use *eraser* button to clean messages (marked in blue)
 
 Custom messages and exceptions can be logged from xCAD module. Log can be accessed from **IXExtension::Logger** property allowing to log custom messages and exception from the module.
 
-{% code-snippet { file-name: ~LogAddIn.* } %}
+<<< @/_src/LogAddIn.cs
 
 ## Debugging xCAD.NET Source Code
 
@@ -70,4 +70,4 @@ Now it is possible to press F11 or click step into command to debug the source c
 
 See below the video demonstration of debugging the xCAD.NET source code using Source Link
 
-{% youtube id: dUzFDly9okA %}
+<!--youtube id: dUzFDly9okA-->

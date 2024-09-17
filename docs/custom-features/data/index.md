@@ -13,6 +13,6 @@ Macro feature can store additional metadata and entities. The data includes
 
 Required data can be defined within the macro feature data model. Special parameters (such as selections, edit bodies or dimensions) should be decorated with appropriate attributes, all other properties will be considered as parameters.
 
-Data model is used both as input and output of macro feature. Parameters can be accessed via **SwMacroFeature<TParams>.Parameters** property and also passed to **OnRebuild** handler.
+Data model is used both as input and output of macro feature. Parameters can be accessed via **SwMacroFeature``<TParams>``.Parameters** property and also passed to **OnRebuild** handler.
 
-{% code-snippet { file-name: ~CustomFeature\MacroFeatureParameters.* } %}
+<<< @/_src/CustomFeature\MacroFeatureParameters.cs

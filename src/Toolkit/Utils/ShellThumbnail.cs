@@ -18,7 +18,7 @@ namespace Xarial.XCad.Toolkit.Utils
     /// <summary>
     /// Represents the thumbnai
     /// </summary>
-    public interface IShellThumbnail : IDisposable 
+    public interface IShellThumbnail : IDisposable
     {
         /// <summary>
         /// hBitmap of the thumbnail image
@@ -32,7 +32,7 @@ namespace Xarial.XCad.Toolkit.Utils
         /// <inheritdoc/>
         public IntPtr BitmapHandle { get; }
 
-        #region Windows API
+        // #region Windows API
 
         [ComImport]
         [Guid("bcc18b79-ba16-442f-80c4-8a59c30c463b")]
@@ -70,9 +70,9 @@ namespace Xarial.XCad.Toolkit.Utils
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool DeleteObject([In] IntPtr hObject);
 
-        #endregion
+        // #endregion
 
-        public ShellThumbnail(string filePath, int width = 1024, int height = 1024) 
+        public ShellThumbnail(string filePath, int width = 1024, int height = 1024)
         {
             if (!File.Exists(filePath))
             {
@@ -99,7 +99,7 @@ namespace Xarial.XCad.Toolkit.Utils
                     DeleteObject(BitmapHandle);
                 }
             }
-            catch 
+            catch
             {
             }
         }

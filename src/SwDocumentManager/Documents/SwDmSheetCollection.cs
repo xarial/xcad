@@ -19,32 +19,32 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
-    public interface ISwDmSheetCollection : IXSheetRepository 
+    public interface ISwDmSheetCollection : IXSheetRepository
     {
     }
 
     internal class SwDmSheetCollection : ISwDmSheetCollection
     {
-        #region Not Supported
+        // #region Not Supported
         public event SheetActivatedDelegate SheetActivated { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
         public event SheetCreatedDelegate SheetCreated { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
         public void AddRange(IEnumerable<IXSheet> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<IXSheet> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXSheet => throw new NotSupportedException();
-        #endregion
+        // #endregion
 
         private readonly SwDmDrawing m_Drw;
 
-        internal SwDmSheetCollection(SwDmDrawing drw) 
+        internal SwDmSheetCollection(SwDmDrawing drw)
         {
             m_Drw = drw;
         }
 
-        public IXSheet this[string name]  => RepositoryHelper.Get(this, name);
+        public IXSheet this[string name] => RepositoryHelper.Get(this, name);
 
-        public IXSheet Active 
+        public IXSheet Active
         {
-            get 
+            get
             {
                 var activeSheetName = (m_Drw.Document as ISwDMDocument10).GetActiveSheetName();
                 return this[activeSheetName];

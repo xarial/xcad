@@ -13,7 +13,7 @@ public class TabDataModel
 
     public TabControl1 Tab1 { get; set; }
 
-    //--- WithGroup
+    #region WithGroup
     public class TabControl2
     {
         public class Group1
@@ -27,5 +27,5 @@ public class TabDataModel
 
     [Tab]
     public TabControl2 Tab2 { get; set; }
-    //---
+    #endregion
 }

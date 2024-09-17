@@ -36,7 +36,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDmCutListItem : SwDmSelObject, ISwDmCutListItem
     {
-        #region Not Supported
+        // #region Not Supported
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
         public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IEnumerable<IXFace> Faces => throw new NotSupportedException();
@@ -48,10 +48,10 @@ namespace Xarial.XCad.SwDocumentManager.Features
         public IXEntityRepository AdjacentEntities => throw new NotSupportedException();
         public XCad.Geometry.Structures.Point FindClosestPoint(XCad.Geometry.Structures.Point point) => throw new NotSupportedException();
         public bool IsUserFeature => throw new NotSupportedException();
-        #endregion
+        // #endregion
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
-        
+
         public ISwDMCutListItem2 CutListItem { get; }
 
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
@@ -62,7 +62,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
         {
             CutListItem = cutListItem;
             m_Part = doc;
-            
+
             m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(
                 () => new SwDmCutListCustomPropertiesCollection(this, m_Part, m_Conf));
         }
@@ -72,28 +72,28 @@ namespace Xarial.XCad.SwDocumentManager.Features
             m_Conf = conf;
         }
 
-        public IEnumerable<IXSolidBody> Bodies 
+        public IEnumerable<IXSolidBody> Bodies
         {
-            get 
+            get
             {
-                for (int i = 0; i < CutListItem.Quantity; i++) 
+                for (int i = 0; i < CutListItem.Quantity; i++)
                 {
                     yield return new SwDmSolidBody(m_Part);
                 }
             }
         }
 
-        public string Name 
+        public string Name
         {
-            get => CutListItem.Name; 
-            set => CutListItem.Name = value; 
+            get => CutListItem.Name;
+            set => CutListItem.Name = value;
         }
 
         public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
 
         public CutListStatus_e Status
         {
-            get 
+            get
             {
                 if (m_Part.IsVersionNewerOrEqual(SwDmVersion_e.Sw2021))
                 {
@@ -112,20 +112,20 @@ namespace Xarial.XCad.SwDocumentManager.Features
                         throw new Exception("Failed to extract the BOM status. Save document in SW 2021 or newer");
                     }
                 }
-                else 
+                else
                 {
                     throw new NotSupportedException("This API is available in SW 2021 or newer");
                 }
             }
         }
 
-        public CutListType_e Type 
+        public CutListType_e Type
         {
-            get 
+            get
             {
                 if (m_Part.IsVersionNewerOrEqual(SwDmVersion_e.Sw2021))
                 {
-                    switch (((ISwDMCutListItem4)CutListItem).CutlistType) 
+                    switch (((ISwDMCutListItem4)CutListItem).CutlistType)
                     {
                         case swDMCutListType_e.swDMCutListType_SolidBody:
                             return CutListType_e.SolidBody;
@@ -140,7 +140,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
                             throw new NotSupportedException("Unrecognized cut-list item type");
                     }
                 }
-                else 
+                else
                 {
                     throw new NotSupportedException("This propery is only supported in SOLIDWORKS 2021 or newer");
                 }

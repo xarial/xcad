@@ -23,20 +23,20 @@ namespace Xarial.XCad.SwDocumentManager.Features
 {
     internal class SwDmCutListItemCollection : IXCutListItemRepository
     {
-        #region Not Supported
+        // #region Not Supported
 
-        public event CutListRebuildDelegate CutListRebuild 
+        public event CutListRebuildDelegate CutListRebuild
         {
             add => throw new NotSupportedException();
             remove => throw new NotSupportedException();
         }
         public T PreCreate<T>() where T : IXCutListItem => throw new NotSupportedException();
-        #endregion
+        // #endregion
 
         private readonly ISwDmPartConfiguration m_Conf;
         private readonly SwDmPart m_Part;
 
-        internal SwDmCutListItemCollection(ISwDmPartConfiguration conf, SwDmPart part) 
+        internal SwDmCutListItemCollection(ISwDmPartConfiguration conf, SwDmPart part)
         {
             m_Conf = conf;
             m_Part = part;
@@ -74,7 +74,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
-        private IEnumerable<IXCutListItem> IterateCutLists() 
+        private IEnumerable<IXCutListItem> IterateCutLists()
         {
             object[] cutListItems = null;
 

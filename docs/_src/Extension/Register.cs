@@ -10,7 +10,7 @@ namespace Xarial.XCad.Documentation.Extension
 {
     namespace Framework
     {
-        //--- NetFramework
+        #region NetFramework
         [ComVisible(true)]
         public class SampleAddIn : SwAddInEx
         {
@@ -18,21 +18,21 @@ namespace Xarial.XCad.Documentation.Extension
             {
             }
         }
-        //---
+        #endregion NetFramework
     }
 
     namespace SkipReg
     {
-        //--- SkipReg
+        #region SkipReg
         [ComVisible(true)]
         [Extensions.Attributes.SkipRegistration]
         public class SampleAddIn : SwAddInEx
         {
-            //--- 
+            #endregion SkipReg
         }
     }
 
-    //--- NetCore
+    #region NetCore
     [ComVisible(true), Guid("612378E1-C962-468C-9810-AF5AE1245EB7")]
     public class SampleAddIn : SwAddInEx
     {
@@ -52,5 +52,5 @@ namespace Xarial.XCad.Documentation.Extension
         {
         }
     }
-    //---
+    #endregion
 }

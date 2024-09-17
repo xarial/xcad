@@ -20,7 +20,7 @@
             base.Dispose(disposing);
         }
 
-        #region Component Designer generated code
+        // #region Component Designer generated code
 
         /// <summary> 
         /// Required method for Designer support - do not modify 
@@ -60,7 +60,7 @@
 
         }
 
-        #endregion
+        // #endregion
 
         private System.Windows.Forms.Label lblMessage;
         private System.Windows.Forms.TextBox textBox1;

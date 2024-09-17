@@ -27,7 +27,7 @@ namespace Xarial.XCad.Toolkit.Data
 
         public void Commit(int grfCommitFlags)
             => m_Stream.Flush();
-        
+
         public void Read(byte[] pv, int cb, IntPtr pcbRead)
             => System.Runtime.InteropServices.Marshal.WriteInt64(pcbRead, m_Stream.Read(pv, 0, cb));
 
@@ -93,7 +93,7 @@ namespace Xarial.XCad.Toolkit.Data
             System.Runtime.InteropServices.Marshal.WriteInt64(pcbWritten, cb);
         }
 
-        #region NotSupported
+        // #region NotSupported
 
         public void CopyTo(IStream pstm, long cb, IntPtr pcbRead, IntPtr pcbWritten)
             => throw new NotImplementedException();
@@ -107,6 +107,6 @@ namespace Xarial.XCad.Toolkit.Data
         public void UnlockRegion(long libOffset, long cb, int dwLockType)
             => throw new NotImplementedException();
 
-        #endregion
+        // #endregion
     }
 }

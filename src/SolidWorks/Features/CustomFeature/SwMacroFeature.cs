@@ -124,7 +124,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     {
                         var editComp = ((IXAssembly)OwnerDocument).EditingComponent;
 
-                        if (editComp != null) 
+                        if (editComp != null)
                         {
                             return editComp.Transformation;
                         }
@@ -192,7 +192,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
     }
 
-    public interface ISwMacroFeature<TParams> : ISwMacroFeature, IXCustomFeature<TParams>
+    public interface ISwMacroFeature`<TParams>` : ISwMacroFeature, IXCustomFeature`<TParams>`
         where TParams : class
     {
     }
@@ -209,13 +209,13 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             => featData.AccessSelections(doc?.Model, comp?.Component);
     }
 
-    internal class SwMacroFeature<TParams> : SwMacroFeature, ISwMacroFeature<TParams>
+    internal class SwMacroFeature`<TParams>` : SwMacroFeature, ISwMacroFeature`<TParams>`
         where TParams : class
     {
         private readonly CustomFeatureParametersParser m_ParamsParser;
         private TParams m_ParametersCache;
 
-        internal static SwMacroFeature CreateSpecificInstance(IFeature feat, SwDocument doc, SwApplication app, Type paramType) 
+        internal static SwMacroFeature CreateSpecificInstance(IFeature feat, SwDocument doc, SwApplication app, Type paramType)
         {
             var macroFeatType = typeof(SwMacroFeature<>).MakeGenericType(paramType);
 
@@ -226,7 +226,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             var constr = macroFeatType.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null,
                 new Type[] { typeof(IFeature), typeof(SwDocument), typeof(SwApplication), typeof(bool) }, null);
 
-            if (constr == null) 
+            if (constr == null)
             {
                 Debug.Assert(false, "Modify the parameters above");
                 throw new Exception("Failed to create instance of the macro feature - incorrect parameters");
@@ -281,7 +281,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             {
                 return transform;
             }
-            else 
+            else
             {
                 if (entity is IXEntity)
                 {
@@ -335,34 +335,34 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        internal void ApplyParametersCache() 
+        internal void ApplyParametersCache()
         {
             if (!IsCommitted)
             {
                 throw new Exception("Feature is not committed");
             }
 
-            if(!UseCachedParameters)
+            if (!UseCachedParameters)
             {
                 throw new Exception("Feature is not editing");
             }
 
-            if (m_ParametersCache == null) 
+            if (m_ParametersCache == null)
             {
                 throw new Exception("Feature does not have parameters cache");
             }
 
             WriteParameters(m_ParametersCache, out _);
         }
-        
+
         protected override IFeature InsertFeature(CancellationToken cancellationToken)
             => InsertComFeatureWithParameters();
 
         protected override void ValidateDefinitionType()
         {
-            if (!typeof(SwMacroFeatureDefinition<TParams>).IsAssignableFrom(DefinitionType))
+            if (!typeof(SwMacroFeatureDefinition`< TParams >`).IsAssignableFrom(DefinitionType))
             {
-                throw new MacroFeatureDefinitionTypeMismatch(DefinitionType, typeof(SwMacroFeatureDefinition<TParams>));
+                throw new MacroFeatureDefinitionTypeMismatch(DefinitionType, typeof(SwMacroFeatureDefinition`< TParams >`));
             }
         }
 
@@ -592,7 +592,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         {
             Version dimsVersion;
             string versVal;
-            
+
             FeatureData.GetStringByName(name, out versVal);
 
             if (!Version.TryParse(versVal, out dimsVersion))
@@ -608,7 +608,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             if (param != null)
             {
                 paramNames = new string[param.Length];
-                paramTypes  = new int[param.Length];
+                paramTypes = new int[param.Length];
                 paramValues = new string[param.Length];
 
                 for (int i = 0; i < param.Length; i++)

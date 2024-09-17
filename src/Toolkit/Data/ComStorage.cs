@@ -17,7 +17,7 @@ using Xarial.XCad.Data;
 
 namespace Xarial.XCad.Toolkit.Data
 {
-    #region WinAPI
+    // #region WinAPI
 
     [Flags]
     internal enum STGM : int
@@ -92,7 +92,7 @@ namespace Xarial.XCad.Toolkit.Data
         void Stat(out System.Runtime.InteropServices.ComTypes.STATSTG pstatstg, uint grfStatFlag);
     }
 
-    #endregion
+    // #endregion
 
     /// <summary>
     /// Represents the implementation of Storage in .NET
@@ -108,12 +108,12 @@ namespace Xarial.XCad.Toolkit.Data
             Load(storage);
         }
 
-        protected ComStorage(bool writable) 
+        protected ComStorage(bool writable)
         {
             m_IsWritable = writable;
         }
 
-        protected void Load(IComStorage storage) 
+        protected void Load(IComStorage storage)
         {
             if (storage == null)
             {

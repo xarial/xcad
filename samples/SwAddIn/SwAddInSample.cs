@@ -84,7 +84,7 @@ namespace SwAddInExample
     }
 
     [ComVisible(true)]
-    public class SwDefaultPropertyManagerPageHandler : SwPropertyManagerPageHandler 
+    public class SwDefaultPropertyManagerPageHandler : SwPropertyManagerPageHandler
     {
     }
 
@@ -128,8 +128,8 @@ namespace SwAddInExample
             public object GetValue(object context)
             {
                 var dict = context as Dictionary<string, object>;
-                
-                if (!dict.TryGetValue(Name, out object val)) 
+
+                if (!dict.TryGetValue(Name, out object val))
                 {
                     val = Activator.CreateInstance(DataType);
                 }
@@ -145,7 +145,7 @@ namespace SwAddInExample
         }
 
         [Icon(typeof(Resources), nameof(Resources.xarial))]
-        public enum Commands_e 
+        public enum Commands_e
         {
             [Icon(typeof(Resources), nameof(Resources.xarial))]
             OpenDoc,
@@ -228,7 +228,7 @@ namespace SwAddInExample
         [Title("Sample Context Menu")]
         //[ContextMenuCommandGroupInfo(25, typeof(IXSketchPicture))]
         //[SwContextMenuCommandGroupInfo(25, swSelectType_e.swSelANNOTATIONTABLES)]
-        public enum ContextMenuCommands_e 
+        public enum ContextMenuCommands_e
         {
             Command1,
 
@@ -237,7 +237,7 @@ namespace SwAddInExample
 
         [Icon(typeof(Resources), nameof(Resources.xarial))]
         [Title("Sample Task Pane")]
-        public enum TaskPaneButtons_e 
+        public enum TaskPaneButtons_e
         {
             [Icon(typeof(Resources), nameof(Resources.xarial))]
             Button1,
@@ -250,7 +250,7 @@ namespace SwAddInExample
         }
 
         [Title(typeof(Resources), nameof(Resources.TabName))]
-        public enum Commands3_3 
+        public enum Commands3_3
         {
             [CommandItemInfo(true, true, WorkspaceTypes_e.AllDocuments, true)]
             Command1
@@ -270,7 +270,7 @@ namespace SwAddInExample
         private IXCalloutBase m_Callout;
 
         [CommandGroupInfo(1)]
-        public enum Commands1_e 
+        public enum Commands1_e
         {
             Cmd1,
             //Cmd2,
@@ -288,7 +288,7 @@ namespace SwAddInExample
         }
 
         [Title("Main Menu")]
-        public enum MainCommands1_e 
+        public enum MainCommands1_e
         {
         }
 
@@ -302,7 +302,7 @@ namespace SwAddInExample
 
         private readonly Xarial.XToolkit.Helpers.AssemblyResolver m_AssmResolver;
 
-        public SwAddInSample() 
+        public SwAddInSample()
         {
             m_AssmResolver = new Xarial.XToolkit.Helpers.AssemblyResolver(AppDomain.CurrentDomain, "xCAD.NET");
             m_AssmResolver.RegisterAssemblyReferenceResolver(
@@ -356,7 +356,7 @@ namespace SwAddInExample
                     }
                 });
 
-                CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
+                CommandManager.AddCommandGroup`< Commands_e >`().CommandClick += OnCommandClick;
                 CommandManager.AddContextMenu<ContextMenuCommands_e, IXFace>().CommandClick += OnContextMenuCommandClick;
 
                 CommandManager.AddCommandGroup<Commands3_3>().CommandClick += OnCommands3Click;
@@ -374,7 +374,7 @@ namespace SwAddInExample
                 m_ComboBoxPage = this.CreatePage<PmpComboBoxData>();
                 m_ComboBoxPage.Closed += OnComboBoxPageClosed;
             }
-            catch 
+            catch
             {
                 Debug.Assert(false);
             }
@@ -438,7 +438,7 @@ namespace SwAddInExample
 
         private void OnClosed(PageCloseReasons_e reason)
         {
-            if (reason == PageCloseReasons_e.Okay) 
+            if (reason == PageCloseReasons_e.Okay)
             {
                 var feat = Application.Documents.Active.Features.CreateCustomFeature<SimpleMacroFeature>();
                 //var feat = Application.Documents.Active.Features.CreateCustomFeature<SampleMacroFeature, PmpMacroFeatData>(m_MacroFeatPmpData);
@@ -450,14 +450,14 @@ namespace SwAddInExample
         private ISwDimension m_WatchedDim;
         private ISwCustomProperty m_WatchedPrp;
 
-        private void WatchDimension() 
+        private void WatchDimension()
         {
             if (m_WatchedDim == null)
             {
                 m_WatchedDim = Application.Documents.Active.Dimensions["D1@Sketch1"];
                 m_WatchedDim.ValueChanged += OnDimValueChanged;
             }
-            else 
+            else
             {
                 m_WatchedDim.ValueChanged -= OnDimValueChanged;
                 m_WatchedDim = null;
@@ -468,7 +468,7 @@ namespace SwAddInExample
         {
         }
 
-        private void WatchCustomProperty() 
+        private void WatchCustomProperty()
         {
             m_WatchedPrp = Application.Documents.Active.Properties["Test"];
             m_WatchedPrp.ValueChanged += OnPropertyValueChanged;
@@ -498,7 +498,7 @@ namespace SwAddInExample
                         break;
 
                     case Commands_e.ShowPmPage:
-                        if (m_Page != null) 
+                        if (m_Page != null)
                         {
                             m_Page.Closed -= OnPageClosed;
                         }
@@ -582,7 +582,7 @@ namespace SwAddInExample
                             m_Window.Closed += OnWindowClosed;
                             m_Window.Show(dock);
                         }
-                        else 
+                        else
                         {
                             var winForm = this.CreatePopupWinForm<WinForm>();
                             winForm.ShowDialog(dock);
@@ -672,7 +672,7 @@ namespace SwAddInExample
                             m_Callout.Foreground = StandardSelectionColor_e.Primary;
                             m_Callout.Commit();
                         }
-                        else 
+                        else
                         {
                             m_Callout.Visible = false;
                             m_Callout.Dispose();
@@ -690,7 +690,7 @@ namespace SwAddInExample
                             m_Triad.Transform = TransformMatrix.Compose(x, y, z, new Xarial.XCad.Geometry.Structures.Point(0.1, 0.1, 0.1));
                             m_Triad.Commit();
                         }
-                        else 
+                        else
                         {
                             m_Triad.Visible = false;
                             m_Triad.Dispose();
@@ -747,7 +747,7 @@ namespace SwAddInExample
                         break;
                 }
             }
-            catch 
+            catch
             {
                 Debug.Assert(false);
             }
@@ -755,7 +755,7 @@ namespace SwAddInExample
 
         private void OnPageKeystrokeHook(IControl ctrl, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            
+
         }
 
         private void ReplaceCompDoc()
@@ -835,7 +835,7 @@ namespace SwAddInExample
                 else
                 {
                     var bmp = new System.Drawing.Bitmap(50, 50);
-                    
+
                     using (var graph = System.Drawing.Graphics.FromImage(bmp))
                     {
                         graph.FillRectangle(System.Drawing.Brushes.Red, new System.Drawing.RectangleF(0f, 0f, 50f, 50f));
@@ -845,7 +845,7 @@ namespace SwAddInExample
                     {
                         pict = ((IXDrawing)doc).Sheets.Last().Sketch.Entities.PreCreate<IXSketchPicture>();
                     }
-                    else 
+                    else
                     {
                         pict = doc.Features.PreCreate<IXSketchPicture>();
                     }
@@ -857,11 +857,11 @@ namespace SwAddInExample
                     var sketch = pict.OwnerSketch;
                 }
             }
-            else 
+            else
             {
                 if (serialize)
                 {
-                    using (var stream = new MemoryStream()) 
+                    using (var stream = new MemoryStream())
                     {
                         pict.Serialize(stream);
 
@@ -870,7 +870,7 @@ namespace SwAddInExample
                         var id = Convert.ToBase64String(stream.GetBuffer());
                     }
                 }
-                else 
+                else
                 {
                     doc.Features.Remove(pict);
                 }
@@ -887,7 +887,7 @@ namespace SwAddInExample
                 {
                     SaveImage(filePath);
                 }
-                else 
+                else
                 {
                     var thread = new Thread(() => SaveImage(filePath));
                     thread.SetApartmentState(ApartmentState.STA);
@@ -906,17 +906,17 @@ namespace SwAddInExample
         private void CreateDrawing()
         {
             var drw = Application.Documents.PreCreateDrawing();
-            
+
             var sheet = drw.Sheets.First();
             sheet.PaperSize = new PaperSize(0.1, 0.1);
             sheet.Scale = new Scale(1, 1);
 
             var view = sheet.DrawingViews.PreCreate<IXRelativeDrawingView>();
-            
+
             view.Orientation = new RelativeDrawingViewOrientation(
                 (IXPlanarFace)Application.Documents.Active.Selections.ElementAt(0), StandardViewType_e.Front,
                 (IXPlanarFace)Application.Documents.Active.Selections.ElementAt(1), StandardViewType_e.Bottom);
-            
+
             view.Bodies = new IXBody[] { ((IXPlanarFace)Application.Documents.Active.Selections.First()).Body };
 
             sheet.DrawingViews.Add(view);
@@ -931,18 +931,18 @@ namespace SwAddInExample
             var bestFit = true;
             var bbox = ((ISwDocument3D)Application.Documents.Active).Evaluation.PreCreateBoundingBox();
             bbox.Scope = Application.Documents.Active.Selections.OfType<IXBody>().ToArray();
-            if (!bbox.Scope.Any()) 
+            if (!bbox.Scope.Any())
             {
                 bbox.Scope = null;
             }
             bbox.BestFit = bestFit;
             bbox.RelativeTo = relativeTo;
             bbox.Commit();
-            
+
             var box = bbox.Box;
-            
+
             var bboxSketch = Application.Documents.Active.Features.PreCreate3DSketch();
-            
+
             var centerPt = (IXSketchPoint)bboxSketch.Entities.PreCreatePoint();
             centerPt.Coordinate = box.CenterPoint;
             centerPt.Color = System.Drawing.Color.Yellow;
@@ -986,7 +986,7 @@ namespace SwAddInExample
             lines[11].Geometry = new Line(box.GetLeftBottomBack(), box.GetRightBottomBack());
 
             var axes = new IXSketchLine[3];
-            
+
             axes[0] = (IXSketchLine)bboxSketch.Entities.PreCreateLine();
             axes[0].Geometry = new Line(box.CenterPoint, box.CenterPoint.Move(box.AxisX, 0.1));
             axes[0].Color = System.Drawing.Color.Red;
@@ -1022,11 +1022,11 @@ namespace SwAddInExample
                 part = (IXPart)Application.Documents.Active;
                 conf = part.Configurations.Active;
             }
-            else 
+            else
             {
                 throw new NotSupportedException();
             }
-                
+
             var opts = FlatPatternViewOptions_e.BendLines;
             var sheetMetalBody = Application.Documents.Active.Selections.OfType<IXSolidBody>().FirstOrDefault();
 

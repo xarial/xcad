@@ -11,14 +11,14 @@ namespace Xarial.XCad.Documentation
     {
         private void ReadBoundingBox()
         {
-            //---BoundingBox
-            //---
+            // # endregion BoundingBox
+#endregion BoundingBox
         }
 
         private void ReadMassProperties()
         {
-            //---MassProperties
-            //---
+            // # endregion MassProperties
+#endregion MassProperties
         }
     }
 }

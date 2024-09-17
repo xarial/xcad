@@ -45,7 +45,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal abstract class SwDmComponent : SwDmSelObject, ISwDmComponent
     {
-        #region Not Supported
+        // #region Not Supported
         public IXFeatureRepository Features => throw new NotSupportedException();
         public IXBodyRepository Bodies => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
@@ -53,7 +53,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
         public IEditor<IXComponent> Edit() => throw new NotSupportedException();
 
-        #endregion
+        // #endregion
 
         IXDocument3D IXComponent.ReferencedDocument { get => ReferencedDocument; set => ReferencedDocument = (ISwDmDocument3D)value; }
         IXConfiguration IXComponent.ReferencedConfiguration { get => ReferencedConfiguration; set => ReferencedConfiguration = (ISwDmConfiguration)value; }
@@ -67,17 +67,17 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly Lazy<string> m_PathLazy;
         private readonly Lazy<IXComponentRepository> m_ChildrenLazy;
-                
+
         internal SwDmComponent(SwDmAssembly parentAssm, ISwDMComponent comp) : base(comp, parentAssm.OwnerApplication, parentAssm)
         {
             Component = comp;
             ParentAssembly = parentAssm;
             m_FilePathResolver = new SwDmFilePathResolver();
 
-            m_PathLazy = new Lazy<string>(() => 
+            m_PathLazy = new Lazy<string>(() =>
             {
                 var rootDir = Path.GetDirectoryName(ParentAssembly.Path);
-                
+
                 var cachedPath = CachedPath;
 
                 var changedPath = ParentAssembly.ChangedReferences.EnumerateByFileName(cachedPath).LastOrDefault();
@@ -86,7 +86,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 {
                     cachedPath = changedPath;
                 }
-                
+
                 try
                 {
                     return m_FilePathResolver.ResolvePath(rootDir, cachedPath);
@@ -101,14 +101,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     {
                         return m_FilePathResolver.ResolvePath(nonVirtRootDir, cachedPath);
                     }
-                    else 
+                    else
                     {
                         throw;
                     }
                 }
             });
 
-            m_ChildrenLazy = new Lazy<IXComponentRepository>(() => 
+            m_ChildrenLazy = new Lazy<IXComponentRepository>(() =>
             {
                 if (!Component.IsSuppressed() && ReferencedDocument is SwDmAssembly)
                 {
@@ -128,7 +128,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             });
         }
 
-        private string GetFirstNonVirtualParentDirectry() 
+        private string GetFirstNonVirtualParentDirectry()
         {
             var comp = this;
 
@@ -136,7 +136,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 var parentComp = comp.Parent;
 
-                if (parentComp == null || !((ISwDMComponent3)parentComp.Component).IsVirtual) 
+                if (parentComp == null || !((ISwDMComponent3)parentComp.Component).IsVirtual)
                 {
                     return Path.GetDirectoryName(comp.ParentAssembly.Path);
                 }
@@ -161,10 +161,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 {
                     return Parent.FullName + "/" + Name;
                 }
-                else 
+                else
                 {
                     return Name;
-                }   
+                }
             }
         }
 
@@ -172,7 +172,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private string GetPath() => m_PathLazy.Value;
 
-        public ISwDmConfiguration ReferencedConfiguration 
+        public ISwDmConfiguration ReferencedConfiguration
         {
             get => GetReferencedConfiguration(Component.ConfigurationName);
             set => throw new NotSupportedException();
@@ -217,7 +217,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                 return state;
             }
-            set 
+            set
             {
                 var isExcludedFromBom = ((ISwDMComponent5)Component).ExcludeFromBOM == (int)swDmExcludeFromBOMResult.swDmExcludeFromBOM_TRUE;
 
@@ -234,7 +234,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public TransformMatrix Transformation
         {
-            get 
+            get
             {
                 var data = (double[])Component.Transform;
 
@@ -246,34 +246,34 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     data[8] * scale, data[9] * scale, data[10] * scale, 0,
                     data[12], data[13], data[14], 1);
 
-                if (Parent != null) 
+                if (Parent != null)
                 {
                     transform = transform.Multiply(Parent.Transformation);
                 }
 
                 return transform;
             }
-            set => throw new NotSupportedException("Transform of the component cannot be modified"); 
+            set => throw new NotSupportedException("Transform of the component cannot be modified");
         }
 
-        public string Reference 
+        public string Reference
         {
-            get 
+            get
             {
                 if (ParentAssembly.IsVersionNewerOrEqual(SwDmVersion_e.Sw2018))
                 {
                     return ((ISwDMComponent10)Component).ComponentReference;
                 }
-                else 
+                else
                 {
                     throw new NotSupportedException("This property is only supported from SOLIDWORKS 2018 or newer");
                 }
             }
-            set => throw new NotSupportedException(); 
+            set => throw new NotSupportedException();
         }
 
         private ISwDmDocument3D m_CachedDocument;
-        
+
         public IXComponentRepository Children => m_ChildrenLazy.Value;
 
         protected TDocument GetSpecificReferencedDocument<TDocument>()
@@ -380,7 +380,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         internal SwDmComponent Parent { get; set; }
 
-        public ISwDmDocument3D ReferencedDocument 
+        public ISwDmDocument3D ReferencedDocument
         {
             get => GetReferencedDocument();
             set => throw new NotSupportedException();
@@ -415,9 +415,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal abstract class SwDmComponentConfiguration : SwDmConfiguration
     {
-        #region Not Supported
+        // #region Not Supported
         public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-        #endregion
+        // #endregion
 
         protected readonly SwDmComponent m_Comp;
 
@@ -428,8 +428,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_Comp = comp;
             m_ConfName = confName;
         }
-        
-        public override string Name 
+
+        public override string Name
         {
             get => m_ConfName;
             set => throw new NotSupportedException();
@@ -445,7 +445,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 {
                     return m_Comp.GetReferencedConfiguration(parentConfName);
                 }
-                else 
+                else
                 {
                     return null;
                 }
@@ -488,7 +488,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly SwDmComponent m_ParentComp;
 
         internal SwDmSubComponentCollection(SwDmComponent parentComp,
-            SwDmAssembly rootAssm, ISwDmConfiguration conf) 
+            SwDmAssembly rootAssm, ISwDmConfiguration conf)
             : base(rootAssm, conf)
         {
             m_ParentComp = parentComp;
@@ -496,7 +496,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         protected override SwDmComponent CreateComponentInstance(ISwDMComponent dmComp)
         {
-            var comp =  base.CreateComponentInstance(dmComp);
+            var comp = base.CreateComponentInstance(dmComp);
             comp.Parent = m_ParentComp;
             return comp;
         }
@@ -504,12 +504,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class EmptyComponentCollection : IXComponentRepository
     {
-        #region Not Supported
+        // #region Not Supported
         public event ComponentInsertedDelegate ComponentInserted { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
         public void AddRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXComponent => throw new NotSupportedException();
-        #endregion
+        // #endregion
 
         public IXComponent this[string name] => throw new Exception("No components");
 
@@ -519,7 +519,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IEnumerator<IXComponent> GetEnumerator()
         {
-            yield break; 
+            yield break;
         }
 
         public bool TryGet(string name, out IXComponent ent)

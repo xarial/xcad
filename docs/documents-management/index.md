@@ -8,11 +8,11 @@ xCAD frameworks provides utility class to manage document life cycle by creating
 
 Call **IXDocumentCollection::RegisterHandler** method and pass the type of document handler as a generic argument. Handle [common events](events/) (e.g. saving, selection, rebuilding, [3rd party storage access](/third-party-data-storage/)) or specific event within the handler implementation.
 
-{% code-snippet { file-name: ~DocMgrAddIn.*, regions: [DocHandlerInit] } %}
+<<< @/_src/DocMgrAddIn.cs#DocHandlerInit
 
 Define the document handler either by implementing the **IDocumentHandler** interface or **SwDocumentHandler** class. 
 
-{% code-snippet { file-name: ~DocMgrAddIn.*, regions: [DocHandlerDefinition] } %}
+<<< @/_src/DocMgrAddIn.cs#DocHandlerDefinition
 
 Override methods of document handler and implement required functionality attached for each specific SOLIDWORKS model (such as handle events, load, write data etc.)
 

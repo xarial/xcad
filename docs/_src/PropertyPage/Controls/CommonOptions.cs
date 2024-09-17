@@ -8,19 +8,19 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 
 public class DataModelCommonOpts
 {
-    //--- Style
+    #region Style
     [ControlOptions(backgroundColor: KnownColor.Green, textColor: KnownColor.Yellow)]
     public string TextField { get; set; } = "Sample Text";
-    //---
+    #endregion
 
-    //--- StandardIcon
+    #region StandardIcon
     [Description("Depth Value")]
     [StandardControlIcon(BitmapLabelType_e.Depth)]
     public string Depth { get; set; }
-    //---
+    #endregion
 
-    //--- CustomIcon
+    #region CustomIcon
     [Icon(typeof(Resources), nameof(Resources.OffsetImage))]
     public double Offset { get; set; }
-    //---
+    #endregion
 }

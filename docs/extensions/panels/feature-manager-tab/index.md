@@ -12,4 +12,4 @@ This functionality is only available for Part and Assembly documents
 
 Decorate the control classes with **TitleAttribute** and **IconAttribute** to assign a tab tooltip and icon.
 
-{% code-snippet { file-name: ~Extension\Panels\PanelsAddIn.*, regions: [FeatMgrTab] } %}
+<<< @/_src/Extension\Panels\PanelsAddIn.cs#FeatMgrTab

@@ -12,7 +12,7 @@ using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.UI.PropertyPage.Structures;
 
-//--- Single
+#region Single
 public class SelectionBoxDataModel
 {
     public ISwBody Body { get; set; }
@@ -20,9 +20,9 @@ public class SelectionBoxDataModel
     [SelectionBoxOptions(new Type[] { typeof(IXEdge), typeof(IXNote), typeof(IXCoordinateSystem) })]
     public ISwSelObject Dispatch { get; set; }
 }
-//---
+#endregion
 
-//--- List
+#region List
 public class SelectionBoxListDataModel
 {
     public List<ISwBody> Bodies { get; set; } = new List<ISwBody>();
@@ -30,9 +30,9 @@ public class SelectionBoxListDataModel
     [SelectionBoxOptions(new Type[] { typeof(IXEdge), typeof(IXNote), typeof(IXCoordinateSystem) })]
     public List<ISwSelObject> Dispatches { get; set; } = new List<ISwSelObject>();
 }
-//---
+#endregion
 
-//--- CustomFilter
+#region CustomFilter
 public class SelectionBoxCustomSelectionFilterDataModel
 {
     public class DataGroup
@@ -46,16 +46,16 @@ public class SelectionBoxCustomSelectionFilterDataModel
         public void Filter(IControl selBox, IXSelObject selection, SelectionCustomFilterArguments args)
         {
             args.Filter = (selection as ISwFace).Face.IGetSurface().IsPlane(); //validating the selection and only allowing planar face
-            
+
             if (args.Filter)
             {
                 args.ItemText = "Planar Face";
             }
-            else 
+            else
             {
                 args.Reason = "Only planar faces can be selected";
             }
         }
     }
 }
-//---
+#endregion

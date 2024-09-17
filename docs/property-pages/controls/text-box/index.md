@@ -9,6 +9,6 @@ order: 4
 
 Text box control will be automatically generated for all properties of type *string*.
 
-{% code-snippet { file-name: ~PropertyPage\Controls\TextBox.* } %}
+<<< @/_src/PropertyPage\Controls\TextBox.cs
 
 Additional options can be specified via **TextBoxOptionsAttribute**

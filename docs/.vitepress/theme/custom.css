@@ -1,0 +1,11 @@
+:root {
+    --vp-c-brand-1: #1ca7e1;
+    --vp-c-brand-2: #f7cb20;
+}
+
+.dark .VPHome .text {
+    background: -webkit-linear-gradient(315deg, var(--vp-c-brand-1) 25%, var(--vp-c-brand-2));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}

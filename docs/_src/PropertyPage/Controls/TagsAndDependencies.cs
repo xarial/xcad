@@ -14,7 +14,7 @@ using Xarial.XCad.UI.PropertyPage.Services;
 
 namespace Xarial.XCad.Documentation
 {
-    //--- CascadingVisibility
+    #region CascadingVisibility
     public enum Groups_e
     {
         GroupA,
@@ -79,9 +79,9 @@ namespace Xarial.XCad.Documentation
             source.Visible = (Groups_e)source.Tag == curGrp;
         }
     }
-    //---
+    #endregion
 
-    //--- Enable
+    #region Enable
     [ComVisible(true)]
     public class DataModelEnable : SwPropertyManagerPageHandler
     {
@@ -99,8 +99,8 @@ namespace Xarial.XCad.Documentation
             source.Enabled = (bool)dependencies.First().GetValue();
         }
     }
-    //---
-    
+    #endregion
+
     [ComVisible(true), Guid("D745F780-C031-4A2B-A627-AC8C7C61F421")]
     public class TagsAndDependencies : SwAddInEx
     {
@@ -119,7 +119,7 @@ namespace Xarial.XCad.Documentation
 
         public override void OnConnect()
         {
-            this.CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnButtonClick;
+            this.CommandManager.AddCommandGroup`< Commands_e >`().CommandClick += OnButtonClick;
 
             m_PmpPageCascading = CreatePage<DataModelCascading>();
             m_PmpPageCascading.Closed += OnClosed;

@@ -40,7 +40,7 @@ Macro feature class must be com visible.
 
 It is recommended to explicitly assign guid and prog id for the macro feature.
 
-{% code-snippet { file-name: ~CustomFeature\DefiningMacroFeature.* } %}
+<<< @/_src/CustomFeature/DefiningMacroFeature.cs
 
 ## Icon
 
@@ -54,7 +54,7 @@ Macro feature is a COM object which means it needs to be registered in order for
 
 User can specify the custom message to be displayed in the *What's Wrong* dialog via **MissingDefinitionErrorMessage** attribute. Specified message will be displayed after the predefined *Add-in not found. Please contact*
 
-{% code-snippet { file-name: ~CustomFeature\UnregisteredMacroFeature.* } %}
+<<< @/_src/CustomFeature\UnregisteredMacroFeature.cs
 
 ![Rebuild error message for unregistered macro feature](unregistered-macro-feature.png){ width=650 }
 

@@ -19,7 +19,7 @@ Use the **ISwApplication::IsVersionNewerOrEqual** extension method provided by f
 
 That means if we want to extract custom properties in our add-in and target all SOLIDWORKS versions starting from the SOLIDWORKS 2012, we need to write the code below:
 
-{% code-snippet { file-name: ~MultiTargetAddIn.*, regions: [Major] } %}
+<<< @/_src/MultiTargetAddIn.cs#Major
 
 > Note. Although it is possible to simply use the oldest version of the method which corresponds to the minimum required SOLIDWORKS version as SOLIDWORKS supports backward compatibility, it is not recommended practice as newer version of methods might include critical bug fixes.
 
@@ -29,4 +29,4 @@ For example [IDimensionTolerance::GetMinValue2](http://help.solidworks.com/2019/
 
 > Note, that we cannot simply check if current SOLIDWORKS version is 2015 as the method only works in SP3 and we need to explicitly specify the service pack
 
-{% code-snippet { file-name: ~MultiTargetAddIn.*, regions: [Minor] } %}
+<<< @/_src/MultiTargetAddIn.cs#Minor

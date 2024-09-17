@@ -12,7 +12,7 @@ namespace Xarial.XCad.Documentation
     [ComVisible(true), Guid("55651FB2-CE56-4904-8FF5-3D5D29BAC34D")]
     public class PmpPageOverviewAddIn : SwAddInEx
     {
-        //--- Ignore
+        #region Ignore
         public class DataModelIgnore
         {
             public string Text { get; set; }
@@ -20,28 +20,28 @@ namespace Xarial.XCad.Documentation
             [ExcludeControl]
             public int CalculatedField { get; set; } //control will not be generated for this field
         }
-        //---
+        #endregion Ignore
 
-        //--- Simple
+        #region Simple
         public class DataModelSimple
         {
             public string Text { get; set; }
             public int Size { get; set; } = 48;
             public double Number { get; set; } = 10.5;
         }
-        //---
+        #endregion Simple
 
 
-        //--- PMPageHandler
+        #region PMPageHandler
         [ComVisible(true)]
         public class MyPMPageData : SwPropertyManagerPageHandler
         {
             public DataModelSimple Simple { get; set; }
             public DataModelIgnore Ignore { get; set; }
         }
-        //---
+        #endregion PMPageHandler
 
-        //--- CreateInstance
+        #region CreateInstance
         private ISwPropertyManagerPage<MyPMPageData> m_Page;
         private MyPMPageData m_Data = new MyPMPageData();
 
@@ -53,7 +53,7 @@ namespace Xarial.XCad.Documentation
         public override void OnConnect()
         {
             m_Page = this.CreatePage<MyPMPageData>();
-            this.CommandManager.AddCommandGroup<Commands_e>().CommandClick += ShowPmpPage;
+            this.CommandManager.AddCommandGroup`< Commands_e >`().CommandClick += ShowPmpPage;
         }
 
         private void ShowPmpPage(Commands_e cmd)
@@ -68,6 +68,6 @@ namespace Xarial.XCad.Documentation
             Debug.Print($"Size: {m_Data.Simple.Size}");
             Debug.Print($"Number: {m_Data.Simple.Number}");
         }
-        //---
+        #endregion CreateInstance
     }
 }

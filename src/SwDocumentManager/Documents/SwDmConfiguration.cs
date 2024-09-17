@@ -35,14 +35,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal abstract class SwDmConfiguration : SwDmSelObject, ISwDmConfiguration
     {
-        #region Not Supported
+        // #region Not Supported
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
-        #endregion
+        // #endregion
 
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
-        
+
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
         public virtual ISwDMConfiguration Configuration { get; }
@@ -116,7 +116,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         {
                             return qty;
                         }
-                        else 
+                        else
                         {
                             return 1;
                         }
@@ -142,9 +142,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public BomChildrenSolving_e BomChildrenSolving 
+        public BomChildrenSolving_e BomChildrenSolving
         {
-            get 
+            get
             {
                 if (Document is ISwDmAssembly)
                 {
@@ -174,16 +174,16 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                             throw new NotSupportedException();
                     }
                 }
-                else 
+                else
                 {
                     return BomChildrenSolving_e.Show;
                 }
             }
         }
 
-        public virtual IXConfiguration Parent 
+        public virtual IXConfiguration Parent
         {
-            get 
+            get
             {
                 var parentConf = GetParentConfiguration();
 
@@ -198,7 +198,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        private SwDMConfiguration GetParentConfiguration() 
+        private SwDMConfiguration GetParentConfiguration()
         {
             var parentConfName = Configuration.GetParentConfigurationName();
 
@@ -248,7 +248,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 conf = (ISwDMConfiguration5)Configuration;
             }
-            catch (InvalidConfigurationsException) 
+            catch (InvalidConfigurationsException)
             {
                 throw;
             }
@@ -261,13 +261,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 return conf.GetCustomPropertyValues(prpName, out _, out _);
             }
-            catch 
+            catch
             {
                 return "";
             }
         }
 
-        private string GetPartNumber(ISwDmConfiguration conf) 
+        private string GetPartNumber(ISwDmConfiguration conf)
         {
             switch ((swDmBOMPartNumberSource)((ISwDMConfiguration11)(conf.Configuration)).BOMPartNoSource)
             {
@@ -307,9 +307,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmPartConfiguration : SwDmConfiguration, ISwDmPartConfiguration
     {
-        #region Not Supported
+        // #region Not Supported
         public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-        #endregion
+        // #endregion
 
         internal SwDmPartConfiguration(ISwDMConfiguration conf, SwDmPart part) : base(conf, part)
         {

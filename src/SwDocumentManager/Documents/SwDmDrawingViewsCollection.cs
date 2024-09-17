@@ -19,18 +19,18 @@ using Xarial.XCad.Documents.Delegates;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
-    public interface ISwDmDrawingViewsCollection : IXDrawingViewRepository 
+    public interface ISwDmDrawingViewsCollection : IXDrawingViewRepository
     {
     }
 
     internal class SwDmDrawingViewsCollection : ISwDmDrawingViewsCollection
     {
-        #region Not Supported
+        // #region Not Supported
         public event DrawingViewCreatedDelegate ViewCreated { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
         public void AddRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXDrawingView => throw new NotSupportedException();
-        #endregion
+        // #endregion
 
         public IXDrawingView this[string name] => RepositoryHelper.Get(this, name);
 
@@ -40,7 +40,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly SwDmDrawing m_Drw;
 
-        internal SwDmDrawingViewsCollection(SwDmSheet sheet, SwDmDrawing drw) 
+        internal SwDmDrawingViewsCollection(SwDmSheet sheet, SwDmDrawing drw)
         {
             m_Sheet = sheet;
             m_Drw = drw;

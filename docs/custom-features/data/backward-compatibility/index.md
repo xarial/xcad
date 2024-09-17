@@ -14,12 +14,12 @@ Implement the **ParametersVersionConverter** to convert from the latest version 
 
 Old version of parameters
 
-{% code-snippet { file-name: ~CustomFeature\BackwardCompatibility.*, regions: [OldParams] } %}
+<<< @/_src/CustomFeature\BackwardCompatibility.cs#OldParams
 
 New version of parameters
 
-{% code-snippet { file-name: ~CustomFeature\BackwardCompatibility.*, regions: [NewParams] } %}
+<<< @/_src/CustomFeature\BackwardCompatibility.cs#NewParams
 
 Converter between version 1 and 2 can be implemented in the following way:
 
-{% code-snippet { file-name: ~CustomFeature\BackwardCompatibility.*, regions: [Converter] } %}
+<<< @/_src/CustomFeature\BackwardCompatibility.cs#Converter

@@ -12,4 +12,4 @@ This functionality is only available for Part and Assembly documents
 
 Decorate the control classes with **TitleAttribute** to assign a tab name.
 
-{% code-snippet { file-name: ~Extension\Panels\PanelsAddIn.*, regions: [ModelViewTab] } %}
+<<< @/_src/Extension\Panels\PanelsAddIn.cs#ModelViewTab

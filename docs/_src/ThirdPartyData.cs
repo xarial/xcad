@@ -12,7 +12,7 @@ namespace Xarial.XCad.Documentation
     [ComVisible(true), Guid("64684CEF-131C-4F08-88F7-B3C3BAA7004E")]
     public class ThirdPartyDataAddIn : SwAddInEx
     {
-        //--- Stream
+        #region Stream
         private const string STREAM_NAME = "CodeStackStream";
 
         public class StreamData
@@ -23,7 +23,7 @@ namespace Xarial.XCad.Documentation
 
         private StreamData m_StreamData;
 
-        //--- StreamLoad
+        #region StreamLoad
         private void LoadFromStream(ISwDocument model)
         {
             using (var str = model.TryOpenStream(STREAM_NAME, AccessType_e.Read))
@@ -35,8 +35,8 @@ namespace Xarial.XCad.Documentation
                 }
             }
         }
-        //---
-        //--- StreamSave
+        #endregion StreamLoad
+        #region StreamSave
         private void SaveToStream(ISwDocument model)
         {
             using (var str = model.OpenStream(STREAM_NAME, AccessType_e.Write))
@@ -45,9 +45,9 @@ namespace Xarial.XCad.Documentation
                 xmlSer.Serialize(str, m_StreamData);
             }
         }
-        //---
-        //---
-        //--- Storage
+        #endregion StreamSave
+        #endregion Stream
+        #region Storage
         private const string STORAGE_NAME = "CodeStackStorage";
         private const string STREAM1_NAME = "CodeStackStream1";
         private const string STREAM2_NAME = "CodeStackStream2";
@@ -61,7 +61,7 @@ namespace Xarial.XCad.Documentation
 
         private StorageStreamData m_StorageData;
 
-        //--- StorageLoad
+        #region StorageLoad
         private void LoadFromStorageStore(ISwDocument model)
         {
             using (var storage = model.TryOpenStorage(STORAGE_NAME, AccessType_e.Read))
@@ -96,8 +96,8 @@ namespace Xarial.XCad.Documentation
                 }
             }
         }
-        //---
-        //--- StorageSave
+        #endregion StorageLoad
+        #region StorageSave
         private void SaveToStorageStore(ISwDocument model)
         {
             using (var storage = model.OpenStorage(STORAGE_NAME, AccessType_e.Write))
@@ -119,9 +119,9 @@ namespace Xarial.XCad.Documentation
                 }
             }
         }
-        //---
-        //---
-        
+        #endregion StorageSave
+        #endregion Storage
+
         public override void OnConnect()
         {
             var doc = this.Application.Documents.Active;
@@ -130,8 +130,8 @@ namespace Xarial.XCad.Documentation
             HandleStorage(doc);
         }
 
-        //--- StreamHandler
-        private void HandleStream(ISwDocument doc) 
+        #region StreamHandler
+        private void HandleStream(ISwDocument doc)
         {
             doc.StreamReadAvailable += OnStreamReadAvailable;
             doc.StreamWriteAvailable += OnStreamWriteAvailable;
@@ -146,10 +146,10 @@ namespace Xarial.XCad.Documentation
         {
             LoadFromStream(doc as ISwDocument);
         }
-        //---
+        #endregion StreamHandler
 
-        //--- StorageHandler
-        private void HandleStorage(ISwDocument doc) 
+        #region StorageHandler
+        private void HandleStorage(ISwDocument doc)
         {
             doc.StorageReadAvailable += OnStorageReadAvailable;
             doc.StorageWriteAvailable += OnStorageWriteAvailable;
@@ -164,6 +164,6 @@ namespace Xarial.XCad.Documentation
         {
             LoadFromStorageStore(doc as ISwDocument);
         }
-        //---
+        #endregion StorageHandler
     }
 }

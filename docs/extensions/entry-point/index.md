@@ -6,7 +6,7 @@ order: 2
 ---
 ## OnConnect
 
-{% code-snippet { file-name: ~Extension\EntryPoint.*, regions: [Connect] } %}
+<<< @/_src/Extension\EntryPoint.cs#Connect
 
 This function is called within the ConnectToSw entry point. Override this function to initialize the add-in.
 
@@ -16,7 +16,7 @@ This override should be used to validate license (return false if the validation
 
 ## OnDisconnect
 
-{% code-snippet { file-name: ~Extension\EntryPoint.*, regions: [Disconnect] } %}
+<<< @/_src/Extension\EntryPoint.cs#Disconnect
 
 This function is called within the DisconnectFromSw function. Use the function to release all resources. You do not need to release the com pointers to SOLIDWORKS or command manager as those will be automatically released by xCAD framework.
 
@@ -24,4 +24,4 @@ This function is called within the DisconnectFromSw function. Use the function t
 
 xCAD framework provides the access to the SOLIDWORKS specific add-in data and objects which are preassigned by the framework. This includes pointer to SOLIDWORKS application, add-in id, pointer to command manager.
 
-{% code-snippet { file-name: ~Extension\EntryPoint.*, regions: [SwObjects] } %}
+<<< @/_src/Extension\EntryPoint.cs#SwObjects
