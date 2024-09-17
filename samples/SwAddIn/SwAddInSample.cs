@@ -5,66 +5,55 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using SwAddInExample.Properties;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using SwAddInExample.Properties;
-using SolidWorks.Interop.swconst;
-using System.Numerics;
-using SolidWorks.Interop.sldworks;
-using Xarial.XCad.UI.Commands.Attributes;
-using Xarial.XCad.UI.Commands.Enums;
-using Xarial.XCad.Base.Attributes;
-using Xarial.XCad.UI.PropertyPage;
-using Xarial.XCad.UI.Commands;
-using Xarial.XCad.UI.PropertyPage.Enums;
-using Xarial.XCad.Features;
-using Xarial.XCad.Geometry.Structures;
-using Xarial.XCad.Documents.Structures;
-using Xarial.XCad.Documents;
+using System.Threading;
+using Xarial.XCad;
 using Xarial.XCad.Base;
+using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Documents.Extensions;
+using Xarial.XCad.Documents.Structures;
+using Xarial.XCad.Enums;
+using Xarial.XCad.Features;
+using Xarial.XCad.Features.CustomFeature;
+using Xarial.XCad.Geometry;
+using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Geometry.Wires;
+using Xarial.XCad.Graphics;
+using Xarial.XCad.Reflection;
+using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
-using Xarial.XCad.UI.TaskPane.Attributes;
+using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Graphics;
+using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.SolidWorks.Sketch;
 using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.UI.PropertyPage;
-using Xarial.XCad.UI.Commands.Structures;
-using Xarial.XCad.SolidWorks.Services;
-using Xarial.XCad;
-using Xarial.XCad.SolidWorks.Documents;
-using Xarial.XCad.UI.PropertyPage.Base;
-using Xarial.XCad.UI;
-using System.Collections.Generic;
-using Xarial.XCad.Reflection;
-using Xarial.XCad.UI.PropertyPage.Attributes;
-using Xarial.XCad.Extensions;
-using Xarial.XCad.Enums;
-using Xarial.XCad.Documents.Enums;
-using Xarial.XCad.SolidWorks.Features;
-using System.Diagnostics;
-using Xarial.XCad.Sketch;
-using Xarial.XCad.SolidWorks.Graphics;
-using Xarial.XCad.Graphics;
-using Xarial.XCad.Geometry;
-using Xarial.XCad.Geometry.Wires;
-using Xarial.XToolkit.Wpf.Utils;
-using System.Threading;
-using Xarial.XCad.Features.CustomFeature;
-using System.IO;
-using Xarial.XCad.SolidWorks.Sketch;
-using System.Drawing.Imaging;
-using System.Windows.Forms;
-using Xarial.XCad.Documents.Extensions;
-using System.Windows.Markup;
-using Xarial.XCad.SolidWorks.UI.Commands.Attributes;
 using Xarial.XCad.Toolkit.Extensions;
-using Xarial.XCad.Annotations;
+using Xarial.XCad.UI;
+using Xarial.XCad.UI.Commands;
+using Xarial.XCad.UI.Commands.Attributes;
+using Xarial.XCad.UI.Commands.Enums;
+using Xarial.XCad.UI.Commands.Structures;
 using Xarial.XCad.UI.Enums;
+using Xarial.XCad.UI.PropertyPage;
+using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.UI.TaskPane.Attributes;
 using Xarial.XToolkit;
-using Xarial.XCad.SolidWorks.Geometry.Primitives;
+using Xarial.XToolkit.Wpf.Utils;
 
 namespace SwAddInExample
 {
@@ -356,7 +345,7 @@ namespace SwAddInExample
                     }
                 });
 
-                CommandManager.AddCommandGroup`< Commands_e >`().CommandClick += OnCommandClick;
+                CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
                 CommandManager.AddContextMenu<ContextMenuCommands_e, IXFace>().CommandClick += OnContextMenuCommandClick;
 
                 CommandManager.AddCommandGroup<Commands3_3>().CommandClick += OnCommands3Click;

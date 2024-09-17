@@ -53,7 +53,7 @@ namespace Xarial.XCad.Documentation
         public override void OnConnect()
         {
             m_Page = this.CreatePage<MyPMPageData>();
-            this.CommandManager.AddCommandGroup`< Commands_e >`().CommandClick += ShowPmpPage;
+            this.CommandManager.AddCommandGroup<Commands_e>().CommandClick += ShowPmpPage;
         }
 
         private void ShowPmpPage(Commands_e cmd)

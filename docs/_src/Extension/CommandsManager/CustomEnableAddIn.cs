@@ -20,7 +20,7 @@ namespace Xarial.XCad.Documentation
 
         public override void OnConnect()
         {
-            this.CommandManager.AddCommandGroup`< Commands_e >`().CommandStateResolve += OnButtonEnable;
+            this.CommandManager.AddCommandGroup<Commands_e>().CommandStateResolve += OnButtonEnable;
         }
 
         private void OnButtonEnable(Commands_e cmd, CommandState state)

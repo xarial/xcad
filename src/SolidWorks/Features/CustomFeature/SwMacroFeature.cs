@@ -11,17 +11,20 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.CustomFeature.Attributes;
 using Xarial.XCad.Features.CustomFeature.Enums;
+using Xarial.XCad.Features.CustomFeature.Structures;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Reflection;
@@ -35,10 +38,6 @@ using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Exceptions;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Reflection;
-using System.Runtime.InteropServices;
-using Xarial.XCad.Exceptions;
-using Xarial.XCad.Features.CustomFeature.Structures;
-using System.Globalization;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
@@ -360,9 +359,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         protected override void ValidateDefinitionType()
         {
-            if (!typeof(SwMacroFeatureDefinition`< TParams >`).IsAssignableFrom(DefinitionType))
+            if (!typeof(SwMacroFeatureDefinition<TParams>).IsAssignableFrom(DefinitionType))
             {
-                throw new MacroFeatureDefinitionTypeMismatch(DefinitionType, typeof(SwMacroFeatureDefinition`< TParams >`));
+                throw new MacroFeatureDefinitionTypeMismatch(DefinitionType, typeof(SwMacroFeatureDefinition<TParams>));
             }
         }
 

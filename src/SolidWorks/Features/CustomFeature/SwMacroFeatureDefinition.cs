@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Windows.Controls;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
@@ -49,7 +48,6 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
@@ -606,7 +604,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public override bool OnEditDefinition(ISwApplication app, ISwDocument doc, ISwMacroFeature feature)
-            => OnEditDefinition(app, doc, (ISwMacroFeature`< TParams >`)feature);
+            => OnEditDefinition(app, doc, (ISwMacroFeature<TParams>)feature);
 
         private readonly Lazy<IMathUtility> m_MathUtilsLazy;
 
@@ -665,7 +663,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <inheritdoc/>
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument doc, ISwMacroFeature feature)
         {
-            var paramsFeat = (SwMacroFeature`< TParams >`)feature;
+            var paramsFeat = (SwMacroFeature<TParams>)feature;
             paramsFeat.UseCachedParameters = true;
 
             IXDimension[] dims;
@@ -674,7 +672,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             paramsFeat.ReadParameters(out dims, out dimParamNames,
                 out var _, out var _, out var _);
 
-            AlignDimensionDelegate`< TParams >` alignDimsDel;
+            AlignDimensionDelegate<TParams> alignDimsDel;
             var res = OnRebuild(app, doc, paramsFeat, out alignDimsDel);
 
             if (dims?.Any() == true)
@@ -693,7 +691,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             if (m_HandlePostRebuild)
             {
-                AddDataToRebuildQueue(app, doc, (ISwMacroFeature`< TParams >`)feature, paramsFeat.Parameters);
+                AddDataToRebuildQueue(app, doc, (ISwMacroFeature<TParams>)feature, paramsFeat.Parameters);
             }
 
             return res;
@@ -728,7 +726,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         {
             var paramData = (MacroFeatureParametersRegenerateData)data;
 
-            m_PostRebuild?.Invoke(paramData.Application, paramData.Document, (ISwMacroFeature`< TParams >`)paramData.Feature, paramData.Parameters);
+            m_PostRebuild?.Invoke(paramData.Application, paramData.Document, (ISwMacroFeature<TParams>)paramData.Feature, paramData.Parameters);
         }
     }
 
@@ -739,7 +737,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     {
         IXBody[] IXCustomFeatureDefinition<TParams, TPage>.CreateGeometry(
             IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, out AlignDimensionDelegate<TParams> alignDim)
-            => CreateGeometry((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature`< TParams >`)feat, out alignDim)?.Cast<SwBody>().ToArray();
+            => CreateGeometry((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature<TParams>)feat, out alignDim)?.Cast<SwBody>().ToArray();
 
         private readonly Lazy<SwMacroFeatureEditor<TParams, TPage>> m_Editor;
 
@@ -886,7 +884,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 },
                 (obj, prp) => { });
 
-            return CreatePreviewGeometry((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature`< TParams >`)feat, page,
+            return CreatePreviewGeometry((ISwApplication)app, (ISwDocument)doc, (ISwMacroFeature<TParams>)feat, page,
                 out shouldHidePreviewEdit, out assignPreviewColor)?.Cast<SwTempBody>().ToArray();
         }
 
@@ -897,7 +895,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public override bool OnEditDefinition(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feature)
         {
-            ((SwMacroFeature`< TParams >`)feature).UseCachedParameters = true;
+            ((SwMacroFeature<TParams>)feature).UseCachedParameters = true;
             m_Editor.Value.Edit(doc, feature);
             return true;
         }

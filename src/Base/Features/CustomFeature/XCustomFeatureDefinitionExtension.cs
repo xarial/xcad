@@ -65,25 +65,25 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <param name="dim">Dimension to align</param>
         /// <param name="originPt">Start point of the dimension (fixed point)</param>
         /// <param name="dir">Direction of the dimnesion, i.e. entity to dimension is along this direction</param>
-        public static void AlignLinearDimension`< TParams >`(this IXCustomFeatureDefinition<TParams> featDef, IXDimension dim, Point originPt, Vector dir)
-            where TParams : class, new ()
+        public static void AlignLinearDimension<TParams>(this IXCustomFeatureDefinition<TParams> featDef, IXDimension dim, Point originPt, Vector dir)
+            where TParams : class, new()
         {
             var yVec = new Vector(0, 1, 0);
 
-        Vector extDir;
+            Vector extDir;
 
             if (dir.IsSame(yVec))
             {
                 extDir = new Vector(1, 0, 0);
-    }
+            }
             else
             {
                 extDir = yVec.Cross(dir);
             }
 
-var endPt = CalculateEndPoint(dim, originPt, dir);
+            var endPt = CalculateEndPoint(dim, originPt, dir);
 
-featDef.AlignDimension(dim, new Point[] { originPt, endPt }, dir, extDir);
+            featDef.AlignDimension(dim, new Point[] { originPt, endPt }, dir, extDir);
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ featDef.AlignDimension(dim, new Point[] { originPt, endPt }, dir, extDir);
         /// <param name="centerPt">Point at the center of the radial dimension (fixed point)</param>
         /// <param name="refPt">Reference point of the radial dimension (fixed point)</param>
         /// <param name="rotVec">Vector, normal to the radial dimension extension line</param>
-        public static void AlignAngularDimension`< TParams >`(this IXCustomFeatureDefinition<TParams> featDef,
+        public static void AlignAngularDimension<TParams>(this IXCustomFeatureDefinition<TParams> featDef,
             IXDimension dim, Point centerPt, Point refPt, Vector rotVec)
             where TParams : class, new()
         {
@@ -115,9 +115,9 @@ featDef.AlignDimension(dim, new Point[] { originPt, endPt }, dir, extDir);
         }
 
         private static Point CalculateEndPoint(IXDimension dim, Point startPt, Vector dir)
-{
-    var length = dim.Value;
-    return startPt.Move(dir, length);
-}
+        {
+            var length = dim.Value;
+            return startPt.Move(dir, length);
+        }
     }
 }

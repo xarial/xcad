@@ -40,7 +40,7 @@ namespace __TemplateNamePlaceholderSwMacroFeature__.Sw
         public override void OnConnect()
         {
             //creating command manager based on enum
-            CommandManager.AddCommandGroup`< Commands_e >`().CommandClick += OnCommandClick;
+            CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandClick;
         }
 
         //button click handler will pass the enum of the button being clicked

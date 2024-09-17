@@ -39,7 +39,7 @@ namespace Xarial.XCad.Documentation
 
         public override void OnConnect()
         {
-            this.CommandManager.AddCommandGroup`< Commands_e >`().CommandClick += OnCommandsButtonClick;
+            this.CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandsButtonClick;
         }
 
         private void OnCommandsButtonClick(Commands_e cmd)
@@ -71,7 +71,7 @@ namespace Xarial.XCad.Documentation
         {
             m_Page = this.CreatePage<MyPMPageData>();
             m_Page.Closed += OnPageClosed;
-            this.CommandManager.AddCommandGroup`< Commands_e >`().CommandClick += ShowPmpPage;
+            this.CommandManager.AddCommandGroup<Commands_e>().CommandClick += ShowPmpPage;
         }
 
         private void ShowPmpPage(Commands_e cmd)
@@ -121,7 +121,7 @@ namespace Xarial.XCad.Documentation
 
         public override void OnConnect()
         {
-            this.CommandManager.AddCommandGroup`< Commands_e >`().CommandClick += OnCommandsButtonClick;
+            this.CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnCommandsButtonClick;
         }
 
         private void OnCommandsButtonClick(Commands_e cmd)

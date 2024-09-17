@@ -78,7 +78,7 @@ namespace Xarial.XCad.Documentation
 
         public override void OnConnect()
         {
-            this.CommandManager.AddCommandGroup`< Commands_e >`().CommandClick += OnButtonClick;
+            this.CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnButtonClick;
 
             m_Page = CreatePage<LocalizedPmPage, PMPageHandler>();
         }

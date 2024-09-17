@@ -33,7 +33,7 @@ public class SubMenuAndSpacerAddIn : SwAddInEx
 
     public override void OnConnect()
     {
-        this.CommandManager.AddCommandGroup`< Commands_e >`().CommandClick += OnButtonClick;
+        this.CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnButtonClick;
         this.CommandManager.AddCommandGroup<SubCommands_e>().CommandClick += OnButtonClick;
     }
 

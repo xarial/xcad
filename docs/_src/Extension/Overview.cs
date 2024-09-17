@@ -104,7 +104,7 @@ namespace Xarial.XCad.Documentation
         public override void OnConnect()
         {
             #region CommandGroup2
-            this.CommandManager.AddCommandGroup`< Commands_e >`().CommandClick += OnButtonClick;
+            this.CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnButtonClick;
             #endregion CommandGroup2
             #region DocHandler
             Application.Documents.RegisterHandler<MyDocumentHandler>();
