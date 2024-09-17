@@ -24,8 +24,8 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <param name="featDef">Custom Feature Definition</param>
         /// <param name="doc">Document</param>
         /// <param name="data">Custom Feature data</param>
-        public static void Insert`<TParams>`(this IXCustomFeatureDefinition`<TParams>` featDef, IXDocument doc, TParams data)
-            where TParams : class, new ()
+        public static void Insert<TParams>(this IXCustomFeatureDefinition<TParams> featDef, IXDocument doc, TParams data)
+            where TParams : class, new()
             => featDef.Insert(doc, new TParams());
 
         /// <summary>
@@ -36,26 +36,26 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <param name="dim">Dimension to align</param>
         /// <param name="originPt">Fixed point of the dimension</param>
         /// <param name="normal">Normal of the entity the radial dimension is assigned to</param>
-        public static void AlignRadialDimension`<TParams>`(this IXCustomFeatureDefinition`<TParams>` featDef, IXDimension dim, Point originPt, Vector normal)
-            where TParams : class, new ()
+        public static void AlignRadialDimension<TParams>(this IXCustomFeatureDefinition<TParams> featDef, IXDimension dim, Point originPt, Vector normal)
+            where TParams : class, new()
         {
             var yVec = new Vector(0, 1, 0);
 
-        Vector dir;
+            Vector dir;
 
             if (normal.IsSame(yVec))
             {
                 dir = new Vector(1, 0, 0);
-    }
+            }
             else
             {
                 dir = normal.Cross(yVec);
             }
 
-Vector extDir = normal.Cross(dir);
-var endPt = CalculateEndPoint(dim, originPt, normal);
+            Vector extDir = normal.Cross(dir);
+            var endPt = CalculateEndPoint(dim, originPt, normal);
 
-featDef.AlignDimension(dim, new Point[] { originPt, endPt }, dir, extDir);
+            featDef.AlignDimension(dim, new Point[] { originPt, endPt }, dir, extDir);
         }
 
         /// <summary>
@@ -65,23 +65,23 @@ featDef.AlignDimension(dim, new Point[] { originPt, endPt }, dir, extDir);
         /// <param name="dim">Dimension to align</param>
         /// <param name="originPt">Start point of the dimension (fixed point)</param>
         /// <param name="dir">Direction of the dimnesion, i.e. entity to dimension is along this direction</param>
-        public static void AlignLinearDimension`< TParams >`(this IXCustomFeatureDefinition`<TParams>` featDef, IXDimension dim, Point originPt, Vector dir)
-            where TParams : class, new()
+        public static void AlignLinearDimension`< TParams >`(this IXCustomFeatureDefinition<TParams> featDef, IXDimension dim, Point originPt, Vector dir)
+            where TParams : class, new ()
         {
             var yVec = new Vector(0, 1, 0);
 
-            Vector extDir;
+        Vector extDir;
 
             if (dir.IsSame(yVec))
             {
                 extDir = new Vector(1, 0, 0);
-            }
+    }
             else
             {
                 extDir = yVec.Cross(dir);
             }
 
-            var endPt = CalculateEndPoint(dim, originPt, dir);
+var endPt = CalculateEndPoint(dim, originPt, dir);
 
 featDef.AlignDimension(dim, new Point[] { originPt, endPt }, dir, extDir);
         }
@@ -95,7 +95,7 @@ featDef.AlignDimension(dim, new Point[] { originPt, endPt }, dir, extDir);
         /// <param name="centerPt">Point at the center of the radial dimension (fixed point)</param>
         /// <param name="refPt">Reference point of the radial dimension (fixed point)</param>
         /// <param name="rotVec">Vector, normal to the radial dimension extension line</param>
-        public static void AlignAngularDimension`< TParams >`(this IXCustomFeatureDefinition`<TParams>` featDef,
+        public static void AlignAngularDimension`< TParams >`(this IXCustomFeatureDefinition<TParams> featDef,
             IXDimension dim, Point centerPt, Point refPt, Vector rotVec)
             where TParams : class, new()
         {

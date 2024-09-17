@@ -37,7 +37,7 @@ namespace Xarial.XCad.Features.CustomFeature
     /// Instance of the custom feature with parameters
     /// </summary>
     /// <typeparam name="TParams">Parameters data model</typeparam>
-    public interface IXCustomFeature`<TParams>` : IXCustomFeature
+    public interface IXCustomFeature<TParams> : IXCustomFeature
         where TParams : class
     {
         /// <summary>
@@ -67,13 +67,13 @@ namespace Xarial.XCad.Features.CustomFeature
         /// <param name="entity">Entity</param>
         /// <returns>Total transform</returns>
         /// <remarks>Use this method to transform the coordinates and vectors from the selection entities in the parameters to the custom feature target</remarks>
-        public static TransformMatrix GetEntityToTargetTransformation`<TParams>`(this IXCustomFeature`<TParams>` feat, IXSelObject entity)
+        public static TransformMatrix GetEntityToTargetTransformation<TParams>(this IXCustomFeature<TParams> feat, IXSelObject entity)
             where TParams : class
         {
             var entTransform = feat.GetEntityTransformation(entity);
             var targetTransform = feat.TargetTransformation.Inverse();
 
-            return entTransform* targetTransform;
+            return entTransform * targetTransform;
         }
     }
 }

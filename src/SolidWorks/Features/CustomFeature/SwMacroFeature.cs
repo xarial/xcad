@@ -192,7 +192,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
     }
 
-    public interface ISwMacroFeature`<TParams>` : ISwMacroFeature, IXCustomFeature`<TParams>`
+    public interface ISwMacroFeature<TParams> : ISwMacroFeature, IXCustomFeature<TParams>
         where TParams : class
     {
     }
@@ -209,7 +209,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             => featData.AccessSelections(doc?.Model, comp?.Component);
     }
 
-    internal class SwMacroFeature`<TParams>` : SwMacroFeature, ISwMacroFeature`<TParams>`
+    internal class SwMacroFeature<TParams> : SwMacroFeature, ISwMacroFeature<TParams>
         where TParams : class
     {
         private readonly CustomFeatureParametersParser m_ParamsParser;
