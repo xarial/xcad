@@ -15,6 +15,7 @@ const vitepressSidebarOptions = {
 };
 
 export default defineConfig({    
+    head: [['link', { rel: 'icon', href: '/xcad/favicon.ico' }]],
     title: 'XCad',
     description: 'SOLIDWORKS API development made easy',
     srcDir: "./",
