@@ -7,17 +7,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
-using System.Text;
 using Xarial.XCad.Data;
 
 namespace Xarial.XCad.Toolkit.Data
 {
-    // #region WinAPI
+    #region WinAPI
 
     [Flags]
     internal enum STGM : int
@@ -92,7 +90,7 @@ namespace Xarial.XCad.Toolkit.Data
         void Stat(out System.Runtime.InteropServices.ComTypes.STATSTG pstatstg, uint grfStatFlag);
     }
 
-    // #endregion
+    #endregion WinAPI
 
     /// <summary>
     /// Represents the implementation of Storage in .NET

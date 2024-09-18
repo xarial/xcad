@@ -140,7 +140,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         private PostRebuildMacroFeatureDelegate m_PostRebuild;
 
-        // #region Initiation
+        #region Initiation
 
         private readonly string m_Provider;
         protected readonly IXLogger m_Logger;
@@ -227,9 +227,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        // #endregion Initiation
+        #endregion Initiation
 
-        // #region Overrides
+        #region Overrides
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public object Edit(object app, object modelDoc, object feature)
@@ -376,7 +376,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         private void LogOperation(string operName, ISldWorks app, IModelDoc2 modelDoc, IFeature feature)
             => Logger.Log($"{operName}: {feature?.Name} in {modelDoc?.GetTitle()} of SOLIDWORKS session: {app?.GetProcessID()}", LoggerMessageSeverity_e.Debug);
 
-        // #endregion Overrides
+        #endregion Overrides
 
         bool IXCustomFeatureDefinition.OnEditDefinition(IXApplication app, IXDocument model, IXCustomFeature feature)
             => OnEditDefinition((ISwApplication)app, (ISwDocument)model, (SwMacroFeature)feature);

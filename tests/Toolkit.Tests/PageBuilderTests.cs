@@ -27,7 +27,7 @@ namespace Toolkit.Tests
 {
     public class PageBuilderTests
     {
-        // #region Mocks
+        #region Mocks
 
         public class ControlMock : Control<object>
         {
@@ -145,7 +145,7 @@ namespace Toolkit.Tests
             public string Prp3 { get; set; }
         }
 
-        // #endregion
+        #endregion Mocks
 
         [Test]
         public void CreatePageIdsTest()

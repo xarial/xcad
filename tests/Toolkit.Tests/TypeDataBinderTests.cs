@@ -20,7 +20,7 @@ namespace Toolkit.Tests
 {
     public class TypeDataBinderTests
     {
-        // #region Mocks
+        #region Mocks
 
         public class DataModelMock1
         {
@@ -45,7 +45,7 @@ namespace Toolkit.Tests
             public DataModelMock2 Group2 { get; set; }
         }
 
-        // #endregion
+        #endregion Mocks
 
         [Test]
         public void TestBindSimple()

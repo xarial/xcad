@@ -25,10 +25,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmSheet : SwDmSelObject, ISwDmSheet
     {
-        // #region Not Supported
+        #region Not Supported
         public IXSheet Clone(IXDrawing targetDrawing) => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
-        // #endregion
+        #endregion Not Supported
 
         public string Name
         {

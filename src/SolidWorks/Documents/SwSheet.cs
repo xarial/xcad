@@ -439,7 +439,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class UncommittedPreviewOnlySheet : ISwSelObject, ISwSheet
     {
-        // #region Not Supported
+        #region Not Supported
         public string Name { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
         public IXDrawingViewRepository DrawingViews => throw new UnloadedDocumentPreviewOnlySheetException();
         public void Commit(CancellationToken cancellationToken)
@@ -458,7 +458,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IXSheet Clone(IXDrawing targetDrawing) => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
         public void Delete() => throw new UnloadedDocumentPreviewOnlySheetException();
-        // #endregion
+        #endregion  Not Supported
 
         private readonly ISwApplication m_App;
         private readonly SwDrawing m_Drw;

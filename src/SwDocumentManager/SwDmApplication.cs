@@ -36,7 +36,7 @@ namespace Xarial.XCad.SwDocumentManager
 
     internal class SwDmApplication : ISwDmApplication
     {
-        // #region Not Supported        
+        #region Not Supported        
 
         public event ApplicationStartingDelegate Starting { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
         public event ApplicationIdleDelegate Idle { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
@@ -54,7 +54,7 @@ namespace Xarial.XCad.SwDocumentManager
         public IXObjectTracker CreateObjectTracker(string name) => throw new NotSupportedException();
         public IXApplicationOptions Options => throw new NotSupportedException();
         public IXMaterialsDatabaseRepository MaterialDatabases => throw new NotSupportedException();
-        // #endregion
+        #endregion Not Supported
 
         IXDocumentRepository IXApplication.Documents => Documents;
 

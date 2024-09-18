@@ -45,7 +45,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal abstract class SwDmComponent : SwDmSelObject, ISwDmComponent
     {
-        // #region Not Supported
+        #region Not Supported
         public IXFeatureRepository Features => throw new NotSupportedException();
         public IXBodyRepository Bodies => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
@@ -53,7 +53,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
         public IEditor<IXComponent> Edit() => throw new NotSupportedException();
 
-        // #endregion
+        #endregion Not Supported
 
         IXDocument3D IXComponent.ReferencedDocument { get => ReferencedDocument; set => ReferencedDocument = (ISwDmDocument3D)value; }
         IXConfiguration IXComponent.ReferencedConfiguration { get => ReferencedConfiguration; set => ReferencedConfiguration = (ISwDmConfiguration)value; }
@@ -415,9 +415,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal abstract class SwDmComponentConfiguration : SwDmConfiguration
     {
-        // #region Not Supported
+        #region Not Supported
         public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-        // #endregion
+        #endregion Not Supported
 
         protected readonly SwDmComponent m_Comp;
 
@@ -504,12 +504,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class EmptyComponentCollection : IXComponentRepository
     {
-        // #region Not Supported
+        #region Not Supported
         public event ComponentInsertedDelegate ComponentInserted { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
         public void AddRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXComponent => throw new NotSupportedException();
-        // #endregion
+        #endregion Not Supported
 
         public IXComponent this[string name] => throw new Exception("No components");
 

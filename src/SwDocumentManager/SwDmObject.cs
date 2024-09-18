@@ -25,14 +25,14 @@ namespace Xarial.XCad.SwDocumentManager
 
     internal class SwDmObject : ISwDmObject
     {
-        // #region NotSuppoted
+        #region NotSupported
 
         public virtual bool IsAlive => throw new NotSupportedException();
 
         public virtual void Serialize(Stream stream)
             => throw new NotSupportedException();
 
-        // #endregion
+        #endregion NotSupported
 
         IXApplication IXObject.OwnerApplication => OwnerApplication;
         IXDocument IXObject.OwnerDocument => OwnerDocument;

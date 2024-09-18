@@ -131,7 +131,7 @@ namespace Xarial.XCad.SolidWorks.Data.Helpers
             }
         }
 
-        // #region WinAPI
+        #region WinAPI
 
         private delegate bool EnumWindowProc(IntPtr handle, IntPtr lParam);
 
@@ -151,7 +151,7 @@ namespace Xarial.XCad.SolidWorks.Data.Helpers
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool IsWindow(IntPtr hWnd);
 
-        // #endregion
+        #endregion WinAPI
 
         private readonly SldWorks m_App;
         private readonly ISwDocument m_Doc;

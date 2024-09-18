@@ -25,12 +25,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmDrawingViewsCollection : ISwDmDrawingViewsCollection
     {
-        // #region Not Supported
+        #region Not Supported
         public event DrawingViewCreatedDelegate ViewCreated { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
         public void AddRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXDrawingView => throw new NotSupportedException();
-        // #endregion
+        #endregion Not Supported
 
         public IXDrawingView this[string name] => RepositoryHelper.Get(this, name);
 

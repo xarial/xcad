@@ -23,7 +23,7 @@ namespace SolidWorks.Tests
 {
     public class CommandManagerTest
     {
-        // #region Mocks
+        #region Mocks
 
         public enum CommandsMock_1
         {
@@ -39,7 +39,7 @@ namespace SolidWorks.Tests
             Cmd1,
         }
 
-        // #endregion
+        #endregion Mocks
 
         private SwAddInEx CreateMockCommandGroup(string rev, Dictionary<CommandGroup, List<object[]>> grps)
         {

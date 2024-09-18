@@ -32,7 +32,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmDrawingView : SwDmSelObject, ISwDmDrawingView
     {
-        // #region Not Supported
+        #region Not Supported
         public Point Location { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj)
             => throw new NotSupportedException();
@@ -50,7 +50,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXEntityRepository VisibleEntities => throw new NotSupportedException();
         public ViewPolylineData[] Polylines => throw new NotSupportedException();
         public ViewDisplayMode_e? DisplayMode { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-        // #endregion
+        #endregion Not Supported
 
         public ISwDMView DrawingView { get; }
 

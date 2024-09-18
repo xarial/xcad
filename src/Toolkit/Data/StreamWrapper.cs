@@ -6,10 +6,8 @@
 //*********************************************************************
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices.ComTypes;
-using System.Text;
 
 namespace Xarial.XCad.Toolkit.Data
 {
@@ -93,7 +91,7 @@ namespace Xarial.XCad.Toolkit.Data
             System.Runtime.InteropServices.Marshal.WriteInt64(pcbWritten, cb);
         }
 
-        // #region NotSupported
+        #region NotSupported
 
         public void CopyTo(IStream pstm, long cb, IntPtr pcbRead, IntPtr pcbWritten)
             => throw new NotImplementedException();
@@ -107,6 +105,6 @@ namespace Xarial.XCad.Toolkit.Data
         public void UnlockRegion(long libOffset, long cb, int dwLockType)
             => throw new NotImplementedException();
 
-        // #endregion
+        #endregion NotSupported
     }
 }

@@ -25,13 +25,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmSheetCollection : ISwDmSheetCollection
     {
-        // #region Not Supported
+        #region Not Supported
         public event SheetActivatedDelegate SheetActivated { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
         public event SheetCreatedDelegate SheetCreated { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
         public void AddRange(IEnumerable<IXSheet> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<IXSheet> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXSheet => throw new NotSupportedException();
-        // #endregion
+        #endregion Not Supported
 
         private readonly SwDmDrawing m_Drw;
 

@@ -75,7 +75,7 @@ namespace Xarial.XCad.SolidWorks
     [ComVisible(true)]
     public abstract class SwAddInEx : ISwAddInEx, ISwAddin, IXServiceConsumer, IDisposable
     {
-        // #region Registration
+        #region Registration
 
         private static RegistrationHelper m_RegHelper;
 
@@ -110,7 +110,7 @@ namespace Xarial.XCad.SolidWorks
             return m_RegHelper ?? (m_RegHelper = new RegistrationHelper(new TraceLogger(moduleType.FullName)));
         }
 
-        // #endregion Registration
+        #endregion Registration
 
         public event ExtensionConnectDelegate Connect;
         public event ExtensionDisconnectDelegate Disconnect;

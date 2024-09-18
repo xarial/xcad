@@ -35,9 +35,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal abstract class SwDmConfiguration : SwDmSelObject, ISwDmConfiguration
     {
-        // #region Not Supported
+        #region Not Supported
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
-        // #endregion
+        #endregion Not Supported
 
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";
 
@@ -307,9 +307,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmPartConfiguration : SwDmConfiguration, ISwDmPartConfiguration
     {
-        // #region Not Supported
+        #region Not Supported
         public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-        // #endregion
+        #endregion  Not Supported
 
         internal SwDmPartConfiguration(ISwDMConfiguration conf, SwDmPart part) : base(conf, part)
         {

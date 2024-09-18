@@ -29,7 +29,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal abstract class SwDmConfigurationCollection : ISwDmConfigurationCollection
     {
-        // #region Not Supported
+        #region Not Supported
         public event ConfigurationActivatedDelegate ConfigurationActivated
         {
             add => throw new NotSupportedException();
@@ -38,7 +38,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public void AddRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public IXConfiguration PreCreate() => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXConfiguration => throw new NotSupportedException();
-        // #endregion
+        #endregion Not Supported
 
         IXConfiguration IXRepository<IXConfiguration>.this[string name] => this[name];
 

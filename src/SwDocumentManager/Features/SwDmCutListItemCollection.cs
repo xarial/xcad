@@ -23,7 +23,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
 {
     internal class SwDmCutListItemCollection : IXCutListItemRepository
     {
-        // #region Not Supported
+        #region Not Supported
 
         public event CutListRebuildDelegate CutListRebuild
         {
@@ -31,7 +31,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
             remove => throw new NotSupportedException();
         }
         public T PreCreate<T>() where T : IXCutListItem => throw new NotSupportedException();
-        // #endregion
+        #endregion Not Supported
 
         private readonly ISwDmPartConfiguration m_Conf;
         private readonly SwDmPart m_Part;

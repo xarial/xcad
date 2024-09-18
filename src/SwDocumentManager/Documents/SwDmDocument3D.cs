@@ -23,7 +23,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal abstract class SwDmDocument3D : SwDmDocument, ISwDmDocument3D
     {
-        // #region Not Supported
+        #region Not Supported
 
         public new IXModelView3DRepository ModelViews => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
@@ -31,7 +31,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXDocumentEvaluation Evaluation => throw new NotSupportedException();
         public IXDocumentGraphics Graphics => throw new NotSupportedException();
 
-        // #endregion
+        #endregion Not Supported
 
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
 

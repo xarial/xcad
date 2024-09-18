@@ -119,7 +119,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             return docType;
         }
 
-        // #region Not Supported
+        #region Not Supported
 
         public string Template { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IXFeatureRepository Features => throw new NotImplementedException();
@@ -137,7 +137,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXModelViewRepository ModelViews => throw new NotSupportedException();
         public IXAnnotationRepository Annotations => throw new NotSupportedException();
 
-        // #endregion
+        #endregion Not Supported
 
         IXVersion IXDocument.Version => Version;
         IXPropertyRepository IPropertiesOwner.Properties => Properties;

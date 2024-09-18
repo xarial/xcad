@@ -22,14 +22,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmAssembly : SwDmDocument3D, ISwDmAssembly
     {
-        // #region Not Supported
+        #region Not Supported
         public event ComponentInsertedDelegate ComponentInserted { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
         public event ComponentDeletingDelegate ComponentDeleting { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
         public event ComponentDeletedDelegate ComponentDeleted { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
 
         IXAssemblyEvaluation IXAssembly.Evaluation => throw new NotSupportedException();
         IXComponent IXAssembly.EditingComponent => throw new NotSupportedException();
-        // #endregion
+        #endregion  Not Supported
 
         private readonly Lazy<SwDmAssemblyConfigurationCollection> m_LazyConfigurations;
 

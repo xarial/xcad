@@ -6,12 +6,8 @@
 //*********************************************************************
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Xarial.XCad.Toolkit.Utils
 {
@@ -32,7 +28,7 @@ namespace Xarial.XCad.Toolkit.Utils
         /// <inheritdoc/>
         public IntPtr BitmapHandle { get; }
 
-        // #region Windows API
+        #region Windows API
 
         [ComImport]
         [Guid("bcc18b79-ba16-442f-80c4-8a59c30c463b")]
@@ -70,7 +66,7 @@ namespace Xarial.XCad.Toolkit.Utils
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool DeleteObject([In] IntPtr hObject);
 
-        // #endregion
+        #endregion Windows API
 
         public ShellThumbnail(string filePath, int width = 1024, int height = 1024)
         {

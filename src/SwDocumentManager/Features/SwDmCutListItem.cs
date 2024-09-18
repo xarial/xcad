@@ -36,7 +36,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDmCutListItem : SwDmSelObject, ISwDmCutListItem
     {
-        // #region Not Supported
+        #region Not Supported
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
         public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IEnumerable<IXFace> Faces => throw new NotSupportedException();
@@ -48,7 +48,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
         public IXEntityRepository AdjacentEntities => throw new NotSupportedException();
         public XCad.Geometry.Structures.Point FindClosestPoint(XCad.Geometry.Structures.Point point) => throw new NotSupportedException();
         public bool IsUserFeature => throw new NotSupportedException();
-        // #endregion
+        #endregion Not Supported
 
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
 

@@ -30,11 +30,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmComponentCollection : ISwDmComponentCollection
     {
-        // #region Not Supported
+        #region Not Supported
         public void AddRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXComponent => throw new NotSupportedException();
-        // #endregion
+        #endregion Not Supported
 
         private readonly ISwDmConfiguration m_Conf;
         private readonly SwDmAssembly m_ParentAssm;

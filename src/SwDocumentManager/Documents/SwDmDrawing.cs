@@ -22,13 +22,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmDrawing : SwDmDocument, ISwDmDrawing
     {
-        // #region Not Supported
+        #region Not Supported
 
         IXDrawingOptions IXDrawing.Options => throw new NotSupportedException();
         IXDrawingSaveOperation IXDrawing.PreCreateSaveAsOperation(string filePath) => throw new NotSupportedException();
         public IXLayerRepository Layers => throw new NotSupportedException();
 
-        // #endregion
+        #endregion Not Supported
 
         IXSheetRepository IXDrawing.Sheets => Sheets;
 

@@ -94,10 +94,10 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     internal class SwApplication : ISwApplication, IXServiceConsumer
     {
-        // #region WinApi
+        #region WinApi
         [DllImport("user32.dll")]
         static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-        // #endregion
+        #endregion WinApi
 
         IXDocumentRepository IXApplication.Documents => Documents;
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);

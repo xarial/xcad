@@ -30,7 +30,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmDocumentCollection : ISwDmDocumentCollection
     {
-        // #region NotSupported
+        #region NotSupported
 
         public event DocumentEventDelegate DocumentActivated
         {
@@ -56,7 +56,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             remove => throw new NotSupportedException();
         }
 
-        // #endregion
+        #endregion NotSupported
 
         IXDocument IXRepository<IXDocument>.this[string name] => this[name];
 
