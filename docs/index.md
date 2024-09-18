@@ -49,7 +49,7 @@ Framework provides utilities for implementation software design principles such 
 
 ## Architecture
 
-![xCAD.NET architecture diagram](diagram.svg){ width=800 }
+![xCAD.NET architecture diagram](diagram.svg){ width=800, style="margin: 0 auto" }
 
 Framework enables the abstraction layers over the CAD API allowing CAD agnostic development.
 

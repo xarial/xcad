@@ -25,7 +25,7 @@ export default defineConfig({
         provider: 'local'
         },
         nav:[
-            { text: 'Contact', link: 'support@xcad.net' },
+            { text: 'Contact', link: 'mailto:support@xcad.net' },
             { text: 'Guide', link: 'https://github.com/xarial/xcad-examples' },
             { text:'Changelog', link:'/changelog/'}
         ],
