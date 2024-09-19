@@ -1,15 +1,12 @@
 import { defineConfig } from 'vitepress'
 import { generateSidebar } from 'vitepress-sidebar';
-import { cleanNavItems } from './clean-nav-items';
+
 const vitepressSidebarOptions = {
     // debugPrint: true,
     documentRootPath: "/docs",
-    // resolvePath: "/docs",
-    // includeRootIndexFile:true,
+    useFolderLinkFromIndexFile: true,
     hyphenToSpace: true,
     capitalizeFirst: true,
-    includeFolderIndexFile : true,
-    // includeEmptyFolder: true,
     collapsed: true,
     excludeFolders:["_assets","_includes","_layouts","_legal","_src", "changelog"],
 };
@@ -40,7 +37,7 @@ export default defineConfig({
            {icon:{ svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path xmlns="http://www.w3.org/2000/svg" d="M19.199 24C19.199 13.467 10.533 4.8 0 4.8V0c13.165 0 24 10.835 24 24h-4.801zM3.291 17.415c1.814 0 3.293 1.479 3.293 3.295 0 1.813-1.485 3.29-3.301 3.29C1.47 24 0 22.526 0 20.71s1.475-3.294 3.291-3.295zM15.909 24h-4.665c0-6.169-5.075-11.245-11.244-11.245V8.09c8.727 0 15.909 7.184 15.909 15.91z"/></svg>' }, link:'https://xcad.xarial.com/feed.xml'},
            {icon:{ svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path xmlns="http://www.w3.org/2000/svg" d="M2.117 3.185C.957 3.185.024 4.243.024 5.557v12.886c0 1.314.933 2.372 2.093 2.372h19.766c1.16 0 2.093-1.058 2.093-2.372V5.557c0-1.314-.933-2.372-2.093-2.372zm18.757 1.587a.811.811 0 0 1 .554 1.407l-7.842 7.46a2.495 2.495 0 0 1-3.53 0l-.002-.002-.004-.002-7.49-7.402A.811.811 0 1 1 3.701 5.08l7.497 7.41.004.002c.279.281.97.27 1.232.006l.008-.008 7.868-7.485a.811.811 0 0 1 .563-.231zm-3.644 7.726a.811.811 0 0 1 .58.253l4.847 4.963a.811.811 0 1 1-1.16 1.133l-4.847-4.963a.811.811 0 0 1 .58-1.386zm-10.176.035a.811.811 0 0 1 .604 1.385l-4.79 4.897A.811.811 0 1 1 1.71 17.68l4.79-4.897a.811.811 0 0 1 .555-.251z"/></svg>' }, link:'info@xarial.com'}
         ],
-        sidebar: cleanNavItems(generateSidebar(vitepressSidebarOptions)),
+        sidebar: generateSidebar(vitepressSidebarOptions),
         footer: {
             message: `<a style="margin-left: 10px;margin-right: 10px;" href="/terms-of-use/">Terms Of Use</a>
             <a style="margin-left: 10px;margin-right: 10px;" href="/privacy-policy/">Privacy</a>
