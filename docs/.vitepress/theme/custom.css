@@ -9,3 +9,15 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+
+.sub-links a {
+    font-weight: 500;
+    color: var(--vp-c-brand-1);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.25s, opacity 0.25s;
+}
+
+.sub-links a:hover {
+    color: var(--vp-c-brand-2);
+}

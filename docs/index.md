@@ -23,8 +23,7 @@ hero:
       link: https://github.com/xarial/xcad
     - theme: alt
       text: MIT
-      link: license
- 
+      link: license 
   image:
     src: /logo.svg
     alt: xCAD.NET
@@ -42,7 +41,32 @@ features:
     title: Custom Feature
     details: Building parametric native features.
     link: custom-features
-
+  - icon: 🤝
+    title: Hight level interface abstractions
+    details: |
+      Use this to develop CAD agnostic applications. All interface names start with *IX*, e.g. <br> <br> 
+      IXApplication,<br> 
+      IXDocument,<br> 
+      IXFace
+    link: https://www.nuget.org/packages/Xarial.XCad
+  - icon: 🤝
+    title: Custom implementation of CAD interfaces.
+    details: |
+      Contain functionality specific to this CAD system. <br>
+      <div class="sub-links"> 
+        ISwApplication => <a href="https://www.nuget.org/packages/Xarial.XCad.SolidWorks/" > IXApplication </a> <br> 
+        ISwDocument => <a href="https://www.nuget.org/packages/Xarial.XCad.SwDocumentManager/"> IXDocument </a> <br> 
+        IAiApplication => <a href="https://www.nuget.org/packages/Xarial.XCad.Inventor/">  IAiApplication  </a>
+      </div>
+  - icon: 🛠️
+    title: Access to native APIs
+    details: |
+      All the xCAD wrapper classes provide access to native (underlying) APIs. <br> <br> 
+      <div class="sub-links"> 
+        ISwApplication.Sw =>  <a href="http://help.solidworks.com/2012/english/api/sldworksapi/solidworks.interop.sldworks~solidworks.interop.sldworks.isldworks.html" >ISldWorks</a> <br> 
+        ISwDocument.Model => <a href="http://help.solidworks.com/2012/english/api/sldworksapi/solidworks.interop.sldworks~solidworks.interop.sldworks.imodeldoc2.html" >IModelDoc2</a> <br> 
+        ISwEntity.Entity => <a href="http://help.solidworks.com/2012/english/api/sldworksapi/solidworks.interop.sldworks~solidworks.interop.sldworks.ientity.html" >IEntity</a> 
+      </div>
 ---
 
 Framework provides utilities for implementation software design principles such as [S.O.L.I.D](https://en.wikipedia.org/wiki/SOLID), [type safety](https://en.wikipedia.org/wiki/Type_safety), **single point of maintenance** for developing maintainable and scalable solutions for SOLIDWORKS and other CAD systems.
@@ -50,9 +74,3 @@ Framework provides utilities for implementation software design principles such 
 ## Architecture
 
 ![xCAD.NET architecture diagram](diagram.svg){ width=800, style="margin: 0 auto" }
-
-Framework enables the abstraction layers over the CAD API allowing CAD agnostic development.
-
-* Interfaces defined in the [Xarial.XCad](https://www.nuget.org/packages/Xarial.XCad/) provide highest level of abstraction and completely hide the references to any CAD system, neither reference any interops or namespaces. Use this to develop CAD agnostic applications. All interface names start with *IX*, e.g. IXApplication, IXDocument, IXFace
-* Interfaces defined in [Xarial.XCad.SolidWorks](https://www.nuget.org/packages/Xarial.XCad.SolidWorks/), [Xarial.XCad.SwDocumentManager](https://www.nuget.org/packages/Xarial.XCad.SwDocumentManager/), [Xarial.XCad.Inventor](https://www.nuget.org/packages/Xarial.XCad.Inventor/) or other CAD systems (future). This is an implementation of the base interfaces. This library contains references to specific CAD system and might contain functionality specific to this CAD system. For example *ISwApplication* is an implementation of *IXApplication* and *ISwDocument* is an implementation of *IXDocument* in SOLIDWORKS, while *IAiApplication* and *IAiDocument* are corresponding implementations in Autodesk Inventor. Naming convention follows the short name of the CAD system at the start of the name.
-* Access to native APIs. All the xCAD wrapper classes provide access to native (underlying) APIs. For example **ISwApplication.Sw** would return the pointer to [ISldWorks](http://help.solidworks.com/2012/english/api/sldworksapi/solidworks.interop.sldworks~solidworks.interop.sldworks.isldworks.html), **ISwDocument.Model** returns the [IModelDoc2](http://help.solidworks.com/2012/english/api/sldworksapi/solidworks.interop.sldworks~solidworks.interop.sldworks.imodeldoc2.html) and **ISwEntity.Entity** points to [IEntity](http://help.solidworks.com/2012/english/api/sldworksapi/solidworks.interop.sldworks~solidworks.interop.sldworks.ientity.html)
