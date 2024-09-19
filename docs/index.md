@@ -53,20 +53,16 @@ features:
     title: Custom implementation of CAD interfaces.
     details: |
       Contain functionality specific to this CAD system. <br>
-      <div class="sub-links"> 
-        ISwApplication => <a href="https://www.nuget.org/packages/Xarial.XCad.SolidWorks/" > IXApplication </a> <br> 
-        ISwDocument => <a href="https://www.nuget.org/packages/Xarial.XCad.SwDocumentManager/"> IXDocument </a> <br> 
-        IAiApplication => <a href="https://www.nuget.org/packages/Xarial.XCad.Inventor/">  IAiApplication  </a>
-      </div>
+        ISwApplication => IXApplication <br>
+        ISwDocument =>  IXDocument <br>
+        IAiApplication =>  IAiApplication
   - icon: 🛠️
     title: Access to native APIs
     details: |
       All the xCAD wrapper classes provide access to native (underlying) APIs. <br> <br> 
-      <div class="sub-links"> 
-        ISwApplication.Sw =>  <a href="http://help.solidworks.com/2012/english/api/sldworksapi/solidworks.interop.sldworks~solidworks.interop.sldworks.isldworks.html" >ISldWorks</a> <br> 
-        ISwDocument.Model => <a href="http://help.solidworks.com/2012/english/api/sldworksapi/solidworks.interop.sldworks~solidworks.interop.sldworks.imodeldoc2.html" >IModelDoc2</a> <br> 
-        ISwEntity.Entity => <a href="http://help.solidworks.com/2012/english/api/sldworksapi/solidworks.interop.sldworks~solidworks.interop.sldworks.ientity.html" >IEntity</a> 
-      </div>
+        ISwApplication.Sw => ISldWorks <br>
+        ISwDocument.Model => IModelDoc2<br> 
+        ISwEntity.Entity => IEntity
 ---
 
 Framework provides utilities for implementation software design principles such as [S.O.L.I.D](https://en.wikipedia.org/wiki/SOLID), [type safety](https://en.wikipedia.org/wiki/Type_safety), **single point of maintenance** for developing maintainable and scalable solutions for SOLIDWORKS and other CAD systems.
