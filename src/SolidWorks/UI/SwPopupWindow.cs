@@ -217,7 +217,7 @@ namespace Xarial.XCad.SolidWorks.UI
 
         public override void Close()
         {
-            if (m_IsDisposed)
+            if (!m_IsDisposed)
             {
                 m_IsDisposed = true;
                 m_Form.Close();

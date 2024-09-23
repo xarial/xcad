@@ -43,7 +43,15 @@ namespace Xarial.XCad.Inventor.Documents
 
             if (translator != null)
             {
-                return new AiDrawingTranslatorSaveOperation(this, translator, filePath);
+                switch (translator.ClientId)
+                {
+                    case "{C24E3AC2-122E-11D5-8E91-0010B541CD80}":
+                    case "{C24E3AC4-122E-11D5-8E91-0010B541CD80}":
+                        return new AiDxfDwgSaveOperation(this, translator, filePath);
+
+                    default:
+                        return new AiDrawingTranslatorSaveOperation(this, translator, filePath);
+                }
             }
             else
             {

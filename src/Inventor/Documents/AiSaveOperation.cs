@@ -129,7 +129,7 @@ namespace Xarial.XCad.Inventor.Documents
 
     internal class AiDrawingSaveOperation : AiSaveOperation, IXDrawingSaveOperation
     {
-        public AiDrawingSaveOperation(AiDocument doc, string filePath) : base(doc, filePath)
+        public AiDrawingSaveOperation(AiDrawing drw, string filePath) : base(drw, filePath)
         {
         }
 
@@ -138,7 +138,7 @@ namespace Xarial.XCad.Inventor.Documents
 
     internal class AiDrawingTranslatorSaveOperation : AiTranslatorSaveOperation, IXDrawingSaveOperation
     {
-        public AiDrawingTranslatorSaveOperation(AiDocument doc, TranslatorAddIn translator, string filePath) : base(doc, translator, filePath)
+        public AiDrawingTranslatorSaveOperation(AiDrawing drw, TranslatorAddIn translator, string filePath) : base(drw, translator, filePath)
         {
         }
 
@@ -190,6 +190,22 @@ namespace Xarial.XCad.Inventor.Documents
             }
 
             opts.Value["ApplicationProtocolType"] = protocolType;
+        }
+    }
+
+    internal class AiDxfDwgSaveOperation : AiDrawingTranslatorSaveOperation, IXDxfDwgSaveOperation
+    {
+        public AiDxfDwgSaveOperation(AiDrawing drw, TranslatorAddIn translator, string filePath) : base(drw, translator, filePath)
+        {
+        }
+
+        public string LayersMapFilePath { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool ExportHiddentLayers { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public SplineExportOptions_e SplineExportOptions { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        protected override void SetSaveOptions(TranslatorAddIn translator, NameValueMap opts)
+        {
+            opts.Value["Export_Acad_IniFile"] = System.IO.Path.Combine(System.IO.Path.GetTempPath(), Guid.NewGuid().ToString() + ".ini");
         }
     }
 }
