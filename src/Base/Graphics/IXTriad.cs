@@ -40,9 +40,24 @@ namespace Xarial.XCad.Graphics
         AxisZ = 8,
 
         /// <summary>
+        /// Rotatioin ring around X axis
+        /// </summary>
+        RingX = 16,
+
+        /// <summary>
+        /// Rotatioin ring around Y axis
+        /// </summary>
+        RingY = 32,
+
+        /// <summary>
+        /// Rotatioin ring around Z axis
+        /// </summary>
+        RingZ = 64,
+
+        /// <summary>
         /// Shows all elements of triad
         /// </summary>
-        All = Origin | AxisX | AxisY | AxisZ,
+        All = Origin | AxisX | AxisY | AxisZ | RingX | RingY | RingZ,
     }
 
     /// <summary>
@@ -51,6 +66,13 @@ namespace Xarial.XCad.Graphics
     /// <param name="sender">Triad</param>
     /// <param name="element">Element being selected</param>
     public delegate void TriadSelectedDelegate(IXTriad sender, TriadElements_e element);
+
+    /// <summary>
+    /// Delegate of <see cref="IXTriad.Manipulated"/>
+    /// </summary>
+    /// <param name="triad">Triad</param>
+    /// <param name="transform">Transformation of the triad</param>
+    public delegate void TriadManipulatedDelegate(IXTriad triad, TransformMatrix transform);
 
     /// <summary>
     /// Represents the triad manipulator
@@ -63,6 +85,11 @@ namespace Xarial.XCad.Graphics
         event TriadSelectedDelegate Selected;
 
         /// <summary>
+        /// Raised when the triad is manipulated
+        /// </summary>
+        event TriadManipulatedDelegate Manipulated;
+
+        /// <summary>
         /// Elements of this triad
         /// </summary>
         TriadElements_e Elements { get; set; }
@@ -71,6 +98,11 @@ namespace Xarial.XCad.Graphics
         /// Transformation of this triad
         /// </summary>
         TransformMatrix Transform { get; set; }
+
+        /// <summary>
+        /// Entities attached to this triad
+        /// </summary>
+        IXSelObject[] Entities { get; set; }
 
         /// <summary>
         /// Controls the visibility of this triad

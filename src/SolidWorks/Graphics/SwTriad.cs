@@ -25,8 +25,14 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.Graphics
 {
+    /// <summary>
+    /// SOLIDWORKS-specific triad manipulator
+    /// </summary>
     public interface ISwTriad : IXTriad, ISwObject
     {
+        /// <summary>
+        /// Pointer to the triad manipulator
+        /// </summary>
         ITriadManipulator Triad { get; }
     }
     
@@ -76,6 +82,12 @@ namespace Xarial.XCad.SolidWorks.Graphics
     internal class SwTriad : SwObject, ISwTriad
     {
         public event TriadSelectedDelegate Selected;
+
+        public event TriadManipulatedDelegate Manipulated 
+        {
+            add => throw new NotImplementedException();
+            remove => throw new NotImplementedException();
+        }
 
         private readonly SwDocument3D m_Doc;
 
@@ -130,6 +142,18 @@ namespace Xarial.XCad.SolidWorks.Graphics
                     elem = TriadElements_e.AxisZ;
                     break;
 
+                case (swTriadManipulatorControlPoints_e)7:
+                    elem = TriadElements_e.RingZ;
+                    break;
+
+                case (swTriadManipulatorControlPoints_e)8:
+                    elem = TriadElements_e.RingX;
+                    break;
+
+                case (swTriadManipulatorControlPoints_e)9:
+                    elem = TriadElements_e.RingY;
+                    break;
+
                 default:
                     throw new NotSupportedException();
             }
@@ -173,6 +197,21 @@ namespace Xarial.XCad.SolidWorks.Graphics
                         if (!doNotShow.HasFlag(swTriadManipulatorDoNotShow_e.swTriadManipulatorDoNotShowZAxis))
                         {
                             res |= TriadElements_e.AxisZ;
+                        }
+
+                        if (!doNotShow.HasFlag(swTriadManipulatorDoNotShow_e.swTriadManipulatorDoNotShowYZRING))
+                        {
+                            res |= TriadElements_e.RingX;
+                        }
+
+                        if (!doNotShow.HasFlag(swTriadManipulatorDoNotShow_e.swTriadManipulatorDoNotShowZXRING))
+                        {
+                            res |= TriadElements_e.RingY;
+                        }
+
+                        if (!doNotShow.HasFlag(swTriadManipulatorDoNotShow_e.swTriadManipulatorDoNotShowXYRING))
+                        {
+                            res |= TriadElements_e.RingZ;
                         }
 
                         return res;
@@ -229,6 +268,12 @@ namespace Xarial.XCad.SolidWorks.Graphics
                     }
                 }
             }
+        }
+
+        public IXSelObject[] Entities 
+        {
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
         }
 
         public bool Visible
@@ -308,11 +353,8 @@ namespace Xarial.XCad.SolidWorks.Graphics
             var triad = (ITriadManipulator)m_Manipulator.GetSpecificManipulator();
 
             var doNotShow = swTriadManipulatorDoNotShow_e.swTriadManipulatorDoNotShowXYPlane
-                | swTriadManipulatorDoNotShow_e.swTriadManipulatorDoNotShowXYRING
                 | swTriadManipulatorDoNotShow_e.swTriadManipulatorDoNotShowYZPlane
-                | swTriadManipulatorDoNotShow_e.swTriadManipulatorDoNotShowYZRING
-                | swTriadManipulatorDoNotShow_e.swTriadManipulatorDoNotShowZXPlane
-                | swTriadManipulatorDoNotShow_e.swTriadManipulatorDoNotShowZXRING;
+                | swTriadManipulatorDoNotShow_e.swTriadManipulatorDoNotShowZXPlane;
 
             if (!Elements.HasFlag(TriadElements_e.Origin)) 
             {
@@ -332,6 +374,21 @@ namespace Xarial.XCad.SolidWorks.Graphics
             if (!Elements.HasFlag(TriadElements_e.AxisZ))
             {
                 doNotShow |= swTriadManipulatorDoNotShow_e.swTriadManipulatorDoNotShowZAxis;
+            }
+
+            if (!Elements.HasFlag(TriadElements_e.RingX))
+            {
+                doNotShow |= swTriadManipulatorDoNotShow_e.swTriadManipulatorDoNotShowYZPlane;
+            }
+
+            if (!Elements.HasFlag(TriadElements_e.RingY))
+            {
+                doNotShow |= swTriadManipulatorDoNotShow_e.swTriadManipulatorDoNotShowZXRING;
+            }
+
+            if (!Elements.HasFlag(TriadElements_e.RingZ))
+            {
+                doNotShow |= swTriadManipulatorDoNotShow_e.swTriadManipulatorDoNotShowXYRING;
             }
 
             triad.DoNotShow = (int)doNotShow;
