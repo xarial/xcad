@@ -46,6 +46,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal abstract class SwDmComponent : SwDmSelObject, ISwDmComponent
     {
         #region Not Supported
+        public event ComponentMovedDelegate Moved
+        {
+            add => throw new NotSupportedException();
+            remove => throw new NotSupportedException();
+        }
         public IXFeatureRepository Features => throw new NotSupportedException();
         public IXBodyRepository Bodies => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
@@ -273,7 +278,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         private ISwDmDocument3D m_CachedDocument;
-        
+
         public IXComponentRepository Children => m_ChildrenLazy.Value;
 
         protected TDocument GetSpecificReferencedDocument<TDocument>()

@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
@@ -24,6 +25,11 @@ namespace Xarial.XCad.Documents
     /// </summary>
     public interface IXComponent : IXSelObject, IXObjectContainer, IXTransaction, IHasColor, IDimensionable, IHasName
     {
+        /// <summary>
+        /// Fired when component is moved in the assemblu
+        /// </summary>
+        event ComponentMovedDelegate Moved;
+
         /// <summary>
         /// Full name of the component including the hierarchical path
         /// </summary>

@@ -47,9 +47,16 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
+    /// <summary>
+    /// SOLIDWORKS-specific document
+    /// </summary>
     public interface ISwDocument : ISwObject, IXDocument, IDisposable
     {
+        /// <summary>
+        /// Poiner to the underlying model document
+        /// </summary>
         IModelDoc2 Model { get; }
+
         new ISwFeatureManager Features { get; }
         new ISwSelectionCollection Selections { get; }
         new ISwDimensionsCollection Dimensions { get; }

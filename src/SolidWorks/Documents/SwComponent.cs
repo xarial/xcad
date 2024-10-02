@@ -21,6 +21,7 @@ using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Data;
 using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
@@ -30,6 +31,7 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Data;
+using Xarial.XCad.SolidWorks.Documents.EventHandlers;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Features;
@@ -144,6 +146,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
         IXDimensionRepository IDimensionable.Dimensions => Dimensions;
 
+        public event ComponentMovedDelegate Moved
+        {
+            add => m_ComponentMovedEventsHandler.Attach(value);
+            remove => m_ComponentMovedEventsHandler.Detach(value);
+        }
+
         public IComponent2 Component => m_Creator.Element;
 
         internal SwAssembly RootAssembly { get; }
@@ -167,6 +175,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly Lazy<bool> m_Is3DInterconnectLazy;
 
+        private readonly ComponentMovedEventsHandler m_ComponentMovedEventsHandler;
+
         internal SwComponent(IComponent2 comp, SwAssembly rootAssembly, SwApplication app) : base(comp, rootAssembly, app)
         {
             RootAssembly = rootAssembly;
@@ -174,6 +184,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             Children = new SwChildComponentsCollection(rootAssembly, this);
             m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(this, rootAssembly, app, new Context(this)));
             m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(Features, new Context(this)));
+
+            m_ComponentMovedEventsHandler = new ComponentMovedEventsHandler(this, rootAssembly, app);
 
             m_MathUtils = app.Sw.IGetMathUtility();
 
