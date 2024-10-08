@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using Xarial.XCad;
 using Xarial.XCad.Base;
+using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Exceptions;
@@ -73,7 +74,7 @@ namespace SolidWorks.Tests.Integration
             IConfiguration conf1;
             IConfiguration conf2;
 
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART)) 
+            using (var doc = NewDocument(swDocumentTypes_e.swDocPART)) 
             {
                 var part = m_App.Documents.Active as ISwDocument3D;
                 var newConf = part.Configurations.PreCreate();
@@ -85,6 +86,113 @@ namespace SolidWorks.Tests.Integration
             }
 
             Assert.AreEqual(conf1, conf2);
+        }
+
+        [Test]
+        public void CreateConfigurationCahedDimensionsTest()
+        {
+            double v1;
+            double v2;
+            double v3;
+
+            double v1_1;
+            double v2_1;
+            double v3_1;
+
+            double v1_2;
+            double v2_2;
+            double v3_2;
+
+            using (var doc = OpenDataDocument("Part2.sldprt"))
+            {
+                var part = m_App.Documents.Active as ISwDocument3D;
+                var newConf = part.Configurations.PreCreate();
+
+                newConf.Dimensions["D1@Sketch1"].Value = 0.123;
+
+                foreach (var dim in newConf.Dimensions) 
+                {
+                    if (string.Equals(dim.Name, "D2@Sketch1")) 
+                    {
+                        dim.Value = 0.234;
+                    }
+                }
+
+                newConf.Name = "New Conf1";
+                newConf.Commit();
+
+                part.Model.EditRebuild3();
+
+                v1 = (((IDimension)part.Model.Parameter("D1@Sketch1")).GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, "New Conf1") as double[])[0];
+                v2 = (((IDimension)part.Model.Parameter("D2@Sketch1")).GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, "New Conf1") as double[])[0];
+                v3 = (((IDimension)part.Model.Parameter("D1@Sketch2")).GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, "New Conf1") as double[])[0];
+
+                v1_1 = (((IDimension)part.Model.Parameter("D1@Sketch1")).GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, "Default") as double[])[0];
+                v2_1 = (((IDimension)part.Model.Parameter("D2@Sketch1")).GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, "Default") as double[])[0];
+                v3_1 = (((IDimension)part.Model.Parameter("D1@Sketch2")).GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, "Default") as double[])[0];
+
+                v1_2 = (((IDimension)part.Model.Parameter("D1@Sketch1")).GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, "Conf1") as double[])[0];
+                v2_2 = (((IDimension)part.Model.Parameter("D2@Sketch1")).GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, "Conf1") as double[])[0];
+                v3_2 = (((IDimension)part.Model.Parameter("D1@Sketch2")).GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, "Conf1") as double[])[0];
+            }
+
+            Assert.That(v1, Is.EqualTo(0.123).Within(0.00001).Percent);
+            Assert.That(v2, Is.EqualTo(0.234).Within(0.00001).Percent);
+            Assert.That(v3, Is.EqualTo(0.04).Within(0.00001).Percent);
+
+            Assert.That(v1_1, Is.EqualTo(0.06).Within(0.00001).Percent);
+            Assert.That(v2_1, Is.EqualTo(0.08).Within(0.00001).Percent);
+            Assert.That(v3_1, Is.EqualTo(0.04).Within(0.00001).Percent);
+
+            Assert.That(v1_2, Is.EqualTo(0.065).Within(0.00001).Percent);
+            Assert.That(v2_2, Is.EqualTo(0.08).Within(0.00001).Percent);
+            Assert.That(v3_2, Is.EqualTo(0.045).Within(0.00001).Percent);
+        }
+
+        [Test]
+        public void CreateConfigurationCahedPropertiesTest()
+        {
+            var prps = new Dictionary<string, string>();
+
+            using (var doc = OpenDataDocument("Part2.sldprt"))
+            {
+                var part = m_App.Documents.Active as ISwDocument3D;
+                var newConf = part.Configurations.PreCreate();
+
+                var prp1 = newConf.Properties.GetOrPreCreate("Prp1");
+                var prp2 = newConf.Properties.PreCreate();
+                prp2.Name = "Prp2";
+                var prp3 = newConf.Properties.GetOrPreCreate("Prp3");
+                var prp4 = newConf.Properties.GetOrPreCreate("Prp4");
+
+                prp1.Value = "A";
+                prp2.Value = "B";
+                prp3.Value = "C";
+                prp4.Value = "D";
+
+                newConf.Properties.AddRange(new IXProperty[] { prp1, prp2, prp3, prp4 });
+                
+                newConf.Name = "New Conf1";
+                newConf.Commit();
+
+                object prpNames = null;
+                object prpTypes = null;
+                object prpVals = null;
+                object prpRes = null;
+                object prpLink = null;
+                part.Model.Extension.CustomPropertyManager["New Conf1"].GetAll3(ref prpNames, ref prpTypes, ref prpVals, ref prpRes, ref prpLink);
+
+                for (int i = 0; i < ((string[])prpNames).Length; i++) 
+                {
+                    prps.Add(((string[])prpNames)[i], ((string[])prpVals)[i]);
+                }
+            }
+
+            Assert.AreEqual(4, prps.Count);
+            Assert.AreEqual("A", prps["Prp1"]);
+            Assert.AreEqual("B", prps["Prp2"]);
+            Assert.AreEqual("C", prps["Prp3"]);
+            Assert.AreEqual("D", prps["Prp4"]);
         }
 
         [Test]

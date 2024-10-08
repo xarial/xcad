@@ -11,10 +11,12 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Annotations.Delegates;
 using Xarial.XCad.Documents;
 using Xarial.XCad.SolidWorks.Annotations.EventHandlers;
+using Xarial.XCad.SolidWorks.Annotations.Exceptions;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Utils;
 
@@ -53,18 +55,14 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         private IDimension m_Dimension;
 
+        private double? m_CachedValue;
+
         private SwDimensionChangeEventsHandler m_ValueChangedHandler;
 
         public event DimensionValueChangedDelegate ValueChanged
         {
-            add
-            {
-                m_ValueChangedHandler.Attach(value);
-            }
-            remove
-            {
-                m_ValueChangedHandler.Detach(value);
-            }
+            add => m_ValueChangedHandler.Attach(value);
+            remove => m_ValueChangedHandler.Detach(value);
         }
 
         public IDimension Dimension => m_Dimension ?? (m_Dimension = DisplayDimension?.GetDimension2(0));
@@ -113,88 +111,142 @@ namespace Xarial.XCad.SolidWorks.Annotations
             m_Context = context;
         }
 
-        private void ValidateContext(Context context) => ParseContext(context, out _);
+        internal void CommitCachedValue() 
+        {
+            if (m_CachedValue.HasValue) 
+            {
+                SetValue(m_CachedValue.Value);
+            }
+        }
+
+        private void ValidateContext(Context context)
+        {
+            //should not throw an exception
+            GetConfigurationNameFromContext(context);
+        }
 
         protected double GetValue()
         {
-            var val = double.NaN;
-
-            ProcessDimension((opts, confs) =>
+            if (m_Context?.Owner.IsCommitted != false)
             {
-                if (opts == swInConfigurationOpts_e.swAllConfiguration) 
+                if (!IsInContextDimension() && !(m_Context.Owner is IXDrawing))
                 {
-                    opts = swInConfigurationOpts_e.swSpecifyConfiguration;
+                    string[] confs;
+                    swInConfigurationOpts_e opts;
+
+                    var confName = GetConfigurationNameFromContext(m_Context);
+
+                    if (!string.IsNullOrEmpty(confName))
+                    {
+                        opts = swInConfigurationOpts_e.swSpecifyConfiguration;
+                        confs = new string[] { confName };
+                    }
+                    else
+                    {
+                        opts = swInConfigurationOpts_e.swThisConfiguration;
+                        confs = null;
+                    }
+
+                    return ((double[])Dimension.GetSystemValue3((int)opts, confs))[0];
                 }
+                else 
+                {
+                    //NOTE: dimensions in the drawings or in the context of the assembly (e.g. selected from the component)
+                    //cannot get the value of the current component's configuration and its owner is returned in the reference document's context
+                    //however obsolete method returns the correct value of the current context
+                    return Dimension.SystemValue;
+                }
+            }
+            else 
+            {
+                if (m_CachedValue.HasValue)
+                {
+                    return m_CachedValue.Value;
+                }
+                else 
+                {
+                    return double.NaN;
+                }
+            }
+        }
 
-                val = ((double[])Dimension.GetSystemValue3((int)opts, confs))[0];
-            });
+        private bool IsInContextDimension() 
+        {
+            if (m_Context?.Owner is ISwAssembly) 
+            {
+                var annOwner = Annotation.Owner;
 
-            return val;
+                if (annOwner is IPartDoc || annOwner is IAssemblyDoc) 
+                {
+                    return OwnerApplication.Sw.IsSame(((ISwDocument)m_Context.Owner).Model, annOwner) != (int)swObjectEquality.swObjectSame;
+                }
+            }
+
+            return false;
         }
 
         protected void SetValue(double val)
         {
-            ProcessDimension((opts, confs) =>
+            if (m_Context?.Owner.IsCommitted != false)
             {
-                if (opts == swInConfigurationOpts_e.swAllConfiguration) 
+                if (Dimension.DrivenState != (int)swDimensionDrivenState_e.swDimensionDriven)
                 {
-                    confs = null;
-                }
+                    string[] confs;
+                    swSetValueInConfiguration_e opts;
 
-                Dimension.SetSystemValue3(val, (int)opts, confs);
-            });
-        }
+                    var confName = GetConfigurationNameFromContext(m_Context);
 
-        private void ProcessDimension(Action<swInConfigurationOpts_e, string[]> action) 
-        {
-            swInConfigurationOpts_e opts;
-            string[] confs;
-
-            if (m_Context != null)
-            {
-                opts = ParseContext(m_Context, out string confName);
-
-                confs = new string[] { confName };
-            }
-            else
-            {
-                opts = swInConfigurationOpts_e.swThisConfiguration;
-                confs = null;
-            }
-
-            action.Invoke(opts, confs);
-        }
-
-        private swInConfigurationOpts_e ParseContext(Context context, out string confName)
-        {
-            if (context == null) 
-            {
-                throw new NullReferenceException("Context is not specified");
-            }
-
-            switch (context.Owner)
-            {
-                case ISwDocument doc:
-                    if (doc is ISwDocument3D)
+                    if (!string.IsNullOrEmpty(confName))
                     {
-                        confName = ((ISwDocument3D)doc).Configurations.Active.Name;
+                        opts = swSetValueInConfiguration_e.swSetValue_InSpecificConfigurations;
+                        confs = new string[] { confName };
                     }
                     else
                     {
-                        confName = "";
+                        opts = swSetValueInConfiguration_e.swSetValue_UseCurrentSetting;
+                        confs = null;
                     }
-                    return swInConfigurationOpts_e.swAllConfiguration;
 
-                case ISwComponent comp:
-                    confName = comp.ReferencedConfiguration.Name;
-                    return swInConfigurationOpts_e.swAllConfiguration;
+                    var res = (swSetValueReturnStatus_e)Dimension.SetSystemValue3(val, (int)opts, confs);
 
-                case ISwConfiguration conf:
-                    confName = conf.Name;
-                    return swInConfigurationOpts_e.swSpecifyConfiguration;
+                    if (res != swSetValueReturnStatus_e.swSetValue_Successful)
+                    {
+                        throw new Exception($"Failed to change the dimension value: {res}");
+                    }
+                }
+                else 
+                {
+                    throw new NotEditableDrivenDimensionException();
+                }
+            }
+            else 
+            {
+                m_CachedValue = val;
+            }
+        }
 
-                default:
-                    throw new Exception("Invalid context of the dimension");
+        private string GetConfigurationNameFromContext(Context context)
+        {
+            if (context != null)
+            {
+                switch (context.Owner)
+                {
+                    case ISwDocument _:
+                        return "";
+
+                    case ISwComponent comp:
+                        return comp.ReferencedConfiguration.Name;
+
+                    case ISwConfiguration conf:
+                        return conf.Name;
+
+                    default:
+                        throw new Exception("Invalid context of the dimension");
+                }
+            }
+            else
+            {
+                throw new NullReferenceException("Context is not specified");
             }
         }
 
@@ -264,8 +316,8 @@ namespace Xarial.XCad.SolidWorks.Annotations
         }
 
         /// <summary>
-        /// Macro feature dimensions are managing thei rvalues in the different way. The dimension will always be attached to the correct configuration
-        /// Attempt to read the dimension value from the specific configuration with GetSystemValue3 method may result in 0 value for the multi-part configuration
+        /// Macro feature dimensions are managing their values in the different way. The dimension will always be attached to the correct configuration
+        /// Attempt to read the dimension value from the specific configuration with GetSystemValue3 method may result in 0 value for the multi-configuration part
         /// </summary>
         public override double Value
         {

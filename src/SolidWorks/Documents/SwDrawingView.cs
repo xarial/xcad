@@ -1491,7 +1491,20 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 var centerCoord = (double[])centerMathPt.ArrayData;
 
-                var circle = skMgr.CreateCircleByRadius(centerCoord[0], centerCoord[1], centerCoord[2], detCircleDef.Diameter / 2);
+                SketchSegment circle;
+
+                var addToDb = skMgr.AddToDB;
+
+                try
+                {
+                    skMgr.AddToDB = true;
+
+                    circle = skMgr.CreateCircleByRadius(centerCoord[0], centerCoord[1], centerCoord[2], detCircleDef.Diameter / 2);
+                }
+                finally
+                {
+                    skMgr.AddToDB = addToDb;
+                }
 
                 using (var selGrp = new SelectionGroup(m_Drawing, false))
                 {

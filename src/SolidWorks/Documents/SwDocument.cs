@@ -431,7 +431,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly Lazy<SwFeatureManager> m_FeaturesLazy;
         private readonly Lazy<ISwSelectionCollection> m_SelectionsLazy;
         private readonly Lazy<ISwDimensionsCollection> m_DimensionsLazy;
-        private readonly Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
+        private readonly Lazy<SwCustomPropertiesCollection> m_PropertiesLazy;
         private readonly Lazy<SwAnnotationCollection> m_AnnotationsLazy;
 
         public IXDocumentDependencies Dependencies { get; }
@@ -492,8 +492,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             m_FeaturesLazy = new Lazy<SwFeatureManager>(() => new SwDocumentFeatureManager(this, app, new Context(this)));
             m_SelectionsLazy = new Lazy<ISwSelectionCollection>(() => new SwSelectionCollection(this, app));
-            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(this.Features, new Context(this)));
-            m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(() => new SwFileCustomPropertiesCollection(this, app));
+            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(m_FeaturesLazy.Value, new Context(this)));
+            m_PropertiesLazy = new Lazy<SwCustomPropertiesCollection>(() => new SwFileCustomPropertiesCollection(this, app));
 
             m_AnnotationsLazy = new Lazy<SwAnnotationCollection>(CreateAnnotations);
 
@@ -593,6 +593,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             if (m_FeaturesLazy.IsValueCreated) 
             {
                 m_FeaturesLazy.Value.CommitCache(cancellationToken);
+            }
+
+            if (m_PropertiesLazy.IsValueCreated) 
+            {
+                m_PropertiesLazy.Value.CommitCache(cancellationToken);
             }
         }
 

@@ -28,6 +28,7 @@ using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Exceptions;
 using Xarial.XCad.Toolkit.Graphics;
 using Xarial.XCad.UI;
 
@@ -114,8 +115,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         public virtual ISwCustomPropertiesCollection Properties => m_PropertiesLazy.Value;
         public ISwDimensionsCollection Dimensions => m_DimensionsLazy.Value;
 
-        private readonly Lazy<ISwCustomPropertiesCollection> m_PropertiesLazy;
-        private readonly Lazy<ISwDimensionsCollection> m_DimensionsLazy;
+        private readonly Lazy<SwCustomPropertiesCollection> m_PropertiesLazy;
+        private readonly Lazy<SwDimensionsCollection> m_DimensionsLazy;
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
@@ -125,12 +126,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             m_Doc = doc;
 
-            m_Creator = new ElementCreator<IConfiguration>(Create, conf, created);
+            m_Creator = new ElementCreator<IConfiguration>(Create, OnCreated, conf, created);
 
-            m_PropertiesLazy = new Lazy<ISwCustomPropertiesCollection>(
-                () => new SwConfigurationCustomPropertiesCollection(Name, m_Doc, OwnerApplication));
+            m_PropertiesLazy = new Lazy<SwCustomPropertiesCollection>(
+                () => new SwConfigurationCustomPropertiesCollection(this, m_Doc, OwnerApplication));
 
-            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(CreateDimensions);
+            m_DimensionsLazy = new Lazy<SwDimensionsCollection>(CreateDimensions);
         }
 
         public override object Dispatch => Configuration;
@@ -205,28 +206,97 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get
             {
-                if (m_Doc is ISwAssembly)
+                if (IsCommitted)
                 {
-                    var bomDispOpt = Configuration.ChildComponentDisplayInBOM;
-
-                    switch ((swChildComponentInBOMOption_e)bomDispOpt)
+                    if (m_Doc is ISwAssembly)
                     {
-                        case swChildComponentInBOMOption_e.swChildComponent_Show:
-                            return BomChildrenSolving_e.Show;
+                        var bomDispOpt = Configuration.ChildComponentDisplayInBOM;
 
-                        case swChildComponentInBOMOption_e.swChildComponent_Hide:
-                            return BomChildrenSolving_e.Hide;
+                        switch ((swChildComponentInBOMOption_e)bomDispOpt)
+                        {
+                            case swChildComponentInBOMOption_e.swChildComponent_Show:
+                                return BomChildrenSolving_e.Show;
 
-                        case swChildComponentInBOMOption_e.swChildComponent_Promote:
-                            return BomChildrenSolving_e.Promote;
+                            case swChildComponentInBOMOption_e.swChildComponent_Hide:
+                                return BomChildrenSolving_e.Hide;
 
-                        default:
-                            throw new NotSupportedException($"Not supported BOM display option: {bomDispOpt}");
+                            case swChildComponentInBOMOption_e.swChildComponent_Promote:
+                                return BomChildrenSolving_e.Promote;
+
+                            default:
+                                throw new NotSupportedException($"Not supported BOM display option: {bomDispOpt}");
+                        }
+                    }
+                    else
+                    {
+                        return BomChildrenSolving_e.Show;
                     }
                 }
-                else
+                else 
                 {
-                    return BomChildrenSolving_e.Show;
+                    return m_Creator.CachedProperties.Get<BomChildrenSolving_e>();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    SetBomChildrenSolving(Configuration, value);
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        public ConfigurationOptions_e Options 
+        {
+            get 
+            {
+                if (IsCommitted)
+                {
+                    ConfigurationOptions_e opts = 0;
+
+                    if (Configuration.SuppressNewComponentModels)
+                    {
+                        opts |= ConfigurationOptions_e.SuppressNewComponents;
+                    }
+
+                    if (Configuration.SuppressNewFeatures)
+                    {
+                        opts |= ConfigurationOptions_e.SuppressNewFeatures;
+                    }
+
+                    if (Configuration.UseDescriptionInBOM)
+                    {
+                        opts |= ConfigurationOptions_e.UseConfigurationDescriptionInBom;
+                    }
+
+                    if (Configuration.UseAlternateNameInBOM)
+                    {
+                        opts |= ConfigurationOptions_e.UseUserDefinedNameInBom;
+                    }
+
+                    return opts;
+                }
+                else 
+                {
+                    return m_Creator.CachedProperties.Get<ConfigurationOptions_e>();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    Configuration.SuppressNewComponentModels = value.HasFlag(ConfigurationOptions_e.SuppressNewComponents);
+                    Configuration.SuppressNewFeatures = value.HasFlag(ConfigurationOptions_e.SuppressNewFeatures);
+                    Configuration.UseDescriptionInBOM = value.HasFlag(ConfigurationOptions_e.UseConfigurationDescriptionInBom);
+                    Configuration.UseAlternateNameInBOM = value.HasFlag(ConfigurationOptions_e.UseUserDefinedNameInBom);
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -235,15 +305,33 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get 
             {
-                var conf = Configuration.GetParent();
-
-                if (conf != null)
+                if (IsCommitted)
                 {
-                    return OwnerDocument.CreateObjectFromDispatch<ISwConfiguration>(conf);
+                    var conf = Configuration.GetParent();
+
+                    if (conf != null)
+                    {
+                        return OwnerDocument.CreateObjectFromDispatch<ISwConfiguration>(conf);
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
                 else 
                 {
-                    return null;
+                    return m_Creator.CachedProperties.Get<IXConfiguration>();
+                }
+            }
+            set 
+            {
+                if (IsCommitted)
+                {
+                    throw new CommittedElementPropertyChangeNotSupported();
+                }
+                else 
+                {
+                    m_Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -276,6 +364,31 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 throw new Exception($"Failed to delete configuration '{Name}'");
             }
+        }
+
+        private void SetBomChildrenSolving(IConfiguration conf, BomChildrenSolving_e value)
+        {
+            swChildComponentInBOMOption_e bomDispOpt;
+
+            switch (value)
+            {
+                case BomChildrenSolving_e.Show:
+                    bomDispOpt = swChildComponentInBOMOption_e.swChildComponent_Show;
+                    break;
+
+                case BomChildrenSolving_e.Hide:
+                    bomDispOpt = swChildComponentInBOMOption_e.swChildComponent_Hide;
+                    break;
+
+                case BomChildrenSolving_e.Promote:
+                    bomDispOpt = swChildComponentInBOMOption_e.swChildComponent_Promote;
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+
+            conf.ChildComponentDisplayInBOM = (int)bomDispOpt;
         }
 
         private string GetPropertyValue(ICustomPropertyManager prpMgr, string prpName) 
@@ -315,9 +428,22 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        private void OnCreated(IConfiguration conf, CancellationToken cancellationToken)
+        {
+            if (m_DimensionsLazy.IsValueCreated) 
+            {
+                m_DimensionsLazy.Value.CommitCache(cancellationToken);
+            }
+
+            if (m_PropertiesLazy.IsValueCreated) 
+            {
+                m_PropertiesLazy.Value.CommitCache(cancellationToken);
+            }
+        }
+
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
-        protected virtual ISwDimensionsCollection CreateDimensions()
+        protected virtual SwDimensionsCollection CreateDimensions()
             => new SwFeatureManagerDimensionsCollection(new SwDocumentFeatureManager(m_Doc, m_Doc.OwnerApplication, new Context(this)), new Context(this));
 
         private IConfiguration Create(CancellationToken cancellationToken) 
@@ -329,17 +455,53 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (!string.IsNullOrEmpty(name))
             {
+                var opts = Options;
+
+                var bomOpts = BomChildrenSolving;
+
+                var confOpts = swConfigurationOptions2_e.swConfigOption_DontActivate;
+
+                if (bomOpts == BomChildrenSolving_e.Promote)
+                {
+                    confOpts |= swConfigurationOptions2_e.swConfigOption_DoDisolveInBOM;
+                }
+
+                if (opts.HasFlag(ConfigurationOptions_e.SuppressNewComponents))
+                {
+                    confOpts |= swConfigurationOptions2_e.swConfigOption_MinFeatureManager;
+                }
+
+                if (opts.HasFlag(ConfigurationOptions_e.SuppressNewFeatures))
+                {
+                    confOpts |= swConfigurationOptions2_e.swConfigOption_SuppressByDefault;
+                }
+
+                if (opts.HasFlag(ConfigurationOptions_e.UseConfigurationDescriptionInBom))
+                {
+                    confOpts |= swConfigurationOptions2_e.swConfigOption_UseDescriptionInBOM;
+                }
+
+                if (opts.HasFlag(ConfigurationOptions_e.UseUserDefinedNameInBom))
+                {
+                    confOpts |= swConfigurationOptions2_e.swConfigOption_UseAlternateName;
+                }
+
                 if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
                 {
-                    conf = m_Doc.Model.ConfigurationManager.AddConfiguration2(name, "", "", (int)swConfigurationOptions2_e.swConfigOption_DontActivate, "", desc, false);
+                    conf = m_Doc.Model.ConfigurationManager.AddConfiguration2(name, "", "", (int)confOpts, Parent?.Name, desc, false);
                 }
                 else
                 {
-                    conf = m_Doc.Model.ConfigurationManager.AddConfiguration(name, "", "", (int)swConfigurationOptions2_e.swConfigOption_DontActivate, "", desc);
+                    conf = m_Doc.Model.ConfigurationManager.AddConfiguration(name, "", "", (int)confOpts, Parent?.Name, desc);
                 }
 
                 if (conf != null)
                 {
+                    if (bomOpts != BomChildrenSolving_e.Promote) 
+                    {
+                        SetBomChildrenSolving(conf, bomOpts);
+                    }
+
                     return conf;
                 }
                 else 
@@ -412,7 +574,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        protected override ISwDimensionsCollection CreateDimensions()
+        protected override SwDimensionsCollection CreateDimensions()
             => new SwFeatureManagerDimensionsCollection(
                 new SwComponentFeatureManager(m_Comp, m_Comp.RootAssembly, OwnerApplication, new Context(this)), new Context(this));
     }

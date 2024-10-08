@@ -43,12 +43,17 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Parent configuration or null if this is a top level configuration
         /// </summary>
-        IXConfiguration Parent { get; }
+        IXConfiguration Parent { get; set; }
 
         /// <summary>
         /// Options for displaying this configuration in BOM
         /// </summary>
-        BomChildrenSolving_e BomChildrenSolving { get; }
+        BomChildrenSolving_e BomChildrenSolving { get; set; }
+
+        /// <summary>
+        /// Configuration options
+        /// </summary>
+        ConfigurationOptions_e Options { get; set; }
 
         /// <summary>
         /// Preview image of this configuration

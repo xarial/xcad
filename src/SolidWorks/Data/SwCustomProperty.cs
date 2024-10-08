@@ -24,6 +24,9 @@ using Xarial.XCad.Toolkit.Services;
 
 namespace Xarial.XCad.SolidWorks.Data
 {
+    /// <summary>
+    /// SOLIDWORKS-specific custom property
+    /// </summary>
     public interface ISwCustomProperty : IXProperty
     {
     }
@@ -114,8 +117,8 @@ namespace Xarial.XCad.SolidWorks.Data
 
         private EventsHandler<PropertyValueChangedDelegate> m_CustomPropertyChangeEventsHandler;
 
-        protected virtual ICustomPropertyManager PrpMgr { get; }
-        
+        protected ICustomPropertyManager PrpMgr => m_PrpMgrFact.Invoke();
+
         public bool IsCommitted 
         {
             get;
@@ -125,10 +128,12 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected readonly ISwApplication m_App;
 
-        internal SwCustomProperty(CustomPropertyManager prpMgr, string name, bool isCommited, ISwApplication app)
+        private readonly Func<ICustomPropertyManager> m_PrpMgrFact;
+
+        internal SwCustomProperty(Func<ICustomPropertyManager> prpMgrFact, string name, bool isCommited, ISwApplication app)
         {
+            m_PrpMgrFact = prpMgrFact;
             UseCached = true;
-            PrpMgr = prpMgr;
             m_Name = name;
             IsCommitted = isCommited;
             m_App = app;
@@ -285,12 +290,12 @@ namespace Xarial.XCad.SolidWorks.Data
 
     internal class SwConfigurationCustomProperty : SwCustomProperty
     {
-        private readonly IConfiguration m_Conf;
+        private readonly SwConfiguration m_Conf;
         
-        internal SwConfigurationCustomProperty(CustomPropertyManager prpMgr, string name, bool isCommited, SwDocument doc, string confName, ISwApplication app)
-            : base(prpMgr, name, isCommited, app)
+        internal SwConfigurationCustomProperty(Func<ICustomPropertyManager> prpMgrFact, string name, bool isCommited, SwConfiguration conf, ISwApplication app)
+            : base(prpMgrFact, name, isCommited, app)
         {
-            m_Conf = (IConfiguration)doc.Model.GetConfigurationByName(confName);
+            m_Conf = conf;
         }
 
         protected override void AddProperty(ICustomPropertyManager prpMgr, string name, object value)
@@ -299,7 +304,7 @@ namespace Xarial.XCad.SolidWorks.Data
 
             if (m_App.Version.Major == SwVersion_e.Sw2021 && !m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2021, 4, 1)) //regression bug in SW 2021 where property cannot be added to unloaded configuration
             {
-                if (!m_Conf.IsLoaded())
+                if (!m_Conf.Configuration.IsLoaded())
                 {
                     if (!((string[])prpMgr.GetNames() ?? new string[0]).Contains(name, StringComparer.CurrentCultureIgnoreCase))
                     {

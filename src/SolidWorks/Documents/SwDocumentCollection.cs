@@ -46,7 +46,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (m_DocumentLoaded == null)
                 {
-                    m_SwApp.DocumentLoadNotify2 += OnDocumentLoadNotify2;
+                    ((SldWorks)m_App.Sw).DocumentLoadNotify2 += OnDocumentLoadNotify2;
                 }
 
                 m_DocumentLoaded += value;
@@ -57,7 +57,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (m_DocumentLoaded == null)
                 {
-                    m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
+                    ((SldWorks)m_App.Sw).DocumentLoadNotify2 -= OnDocumentLoadNotify2;
                 }
             }
         }
@@ -68,7 +68,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (m_DocumentActivated == null) 
                 {
-                    m_SwApp.ActiveModelDocChangeNotify += OnActiveModelDocChangeNotify;
+                    ((SldWorks)m_App.Sw).ActiveModelDocChangeNotify += OnActiveModelDocChangeNotify;
                 }
 
                 m_DocumentActivated += value;
@@ -79,7 +79,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (m_DocumentActivated == null)
                 {
-                    m_SwApp.ActiveModelDocChangeNotify -= OnActiveModelDocChangeNotify;
+                    ((SldWorks)m_App.Sw).ActiveModelDocChangeNotify -= OnActiveModelDocChangeNotify;
                 }
             }
         }
@@ -90,7 +90,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (m_NewDocumentCreated == null)
                 {
-                    m_SwApp.FileNewNotify2 += OnFileNewNotify;
+                    ((SldWorks)m_App.Sw).FileNewNotify2 += OnFileNewNotify;
                 }
 
                 m_NewDocumentCreated += value;
@@ -101,7 +101,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (m_NewDocumentCreated == null)
                 {
-                    m_SwApp.FileNewNotify2 -= OnFileNewNotify;
+                    ((SldWorks)m_App.Sw).FileNewNotify2 -= OnFileNewNotify;
                 }
             }
         }
@@ -112,7 +112,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (m_DocumentOpened == null)
                 {
-                    m_SwApp.FileOpenPostNotify += OnFileOpenPostNotify;
+                    ((SldWorks)m_App.Sw).FileOpenPostNotify += OnFileOpenPostNotify;
                 }
 
                 m_DocumentOpened += value;
@@ -123,7 +123,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (m_DocumentOpened == null)
                 {
-                    m_SwApp.FileOpenPostNotify -= OnFileOpenPostNotify;
+                    ((SldWorks)m_App.Sw).FileOpenPostNotify -= OnFileOpenPostNotify;
                 }
             }
         }
@@ -135,7 +135,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
         
         private readonly SwApplication m_App;
-        private readonly SldWorks m_SwApp;
         private readonly IXLogger m_Logger;
         private readonly DocumentsHandler m_DocsHandler;
 
@@ -154,7 +153,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get
             {
-                var activeDoc = m_SwApp.IActiveDoc2;
+                var activeDoc = m_App.Sw.IActiveDoc2;
 
                 if (activeDoc != null)
                 {
@@ -168,7 +167,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             set 
             {
                 int errors = -1;
-                var doc = m_SwApp.ActivateDoc3(value.Title, true, (int)swRebuildOnActivation_e.swDontRebuildActiveDoc,
+                var doc = m_App.Sw.ActivateDoc3(value.Title, true, (int)swRebuildOnActivation_e.swDontRebuildActiveDoc,
                     ref errors);
 
                 if (doc == null) 
@@ -178,7 +177,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public int Count => m_SwApp.GetDocumentCount();
+        public int Count => m_App.Sw.GetDocumentCount();
 
         public IXDocument this[string name] => m_RepoHelper.Get(name);
 
@@ -187,7 +186,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwDocumentCollection(SwApplication app, IXLogger logger)
         {
             m_App = app;
-            m_SwApp = (SldWorks)m_App.Sw;
             m_Logger = logger;
 
             m_RepoHelper = new RepositoryHelper<IXDocument>(this,
@@ -202,7 +200,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 
         private int OnActiveModelDocChangeNotify()
         {
-            var activeDoc = m_SwApp.IActiveDoc2;
+            var activeDoc = m_App.Sw.IActiveDoc2;
 
             try
             {
@@ -220,7 +218,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IEnumerator<IXDocument> GetEnumerator()
         {
-            var openDocs = m_SwApp.GetDocuments() as object[];
+            var openDocs = m_App.Sw.GetDocuments() as object[];
 
             if (openDocs != null)
             {
@@ -343,11 +341,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public bool TryGet(string name, out IXDocument ent)
         {
-            IModelDoc2 model = m_SwApp.GetOpenDocument(name);
+            var model = m_App.Sw.GetOpenDocument(name);
 
             if (model == null)
             {
-                model = m_SwApp.GetOpenDocumentByName(name) as IModelDoc2;
+                model = (ModelDoc2)m_App.Sw.GetOpenDocumentByName(name);
             }
 
             if (model != null)
@@ -426,10 +424,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void Dispose()
         {
-            m_SwApp.DocumentLoadNotify2 -= OnDocumentLoadNotify2;
-            m_SwApp.ActiveModelDocChangeNotify -= OnActiveModelDocChangeNotify;
-            m_SwApp.FileNewNotify2 -= OnFileNewNotify;
-            m_SwApp.FileOpenPostNotify -= OnFileOpenPostNotify;
+            ((SldWorks)m_App.Sw).DocumentLoadNotify2 -= OnDocumentLoadNotify2;
+            ((SldWorks)m_App.Sw).ActiveModelDocChangeNotify -= OnActiveModelDocChangeNotify;
+            ((SldWorks)m_App.Sw).FileNewNotify2 -= OnFileNewNotify;
+            ((SldWorks)m_App.Sw).FileOpenPostNotify -= OnFileOpenPostNotify;
 
             m_DocsHandler.Dispose();
         }

@@ -219,7 +219,6 @@ namespace SolidWorks.Tests.Integration
             Assert.IsFalse(doc1IsCommitted);
         }
 
-        //NOTE: SW 2024, 'Lights, Cameras and Themes' feature is renamed to 'Lights and Cameras' (index 11)
         [Test]
         public void IterateFeaturesTest()
         {
@@ -239,6 +238,12 @@ namespace SolidWorks.Tests.Integration
                 "Notes", "Notes1___EndTag___", "Surface Bodies", "Solid Bodies", "Lights, Cameras and Scene", "Ambient",
                 "Directional1", "Directional2", "Directional3", "Markups", "Equations", "Material <not specified>", "Front Plane",
                 "Top Plane", "Right Plane", "Origin", "Sketch1", "Boss-Extrude1" };
+
+            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2024))
+            {
+                //NOTE: SW 2024, 'Lights, Cameras and Themes' feature is renamed to 'Lights and Cameras' (index 11)
+                expected[11] = "Lights and Cameras";
+            }
 
             CollectionAssert.AreEqual(expected, featNames);
         }
@@ -541,6 +546,7 @@ namespace SolidWorks.Tests.Integration
             }
         }
 
+        //NOTE: test migth fail when run automatically, ru nin debug mode step-by-step for the test to pass
         [Test]
         public void TransformTest()
         {
@@ -860,6 +866,7 @@ namespace SolidWorks.Tests.Integration
         }
 
         //NOTE: in SW 2022 SP0 Part1-1 cannot be selected by some reasons, while API returns true for selection
+        //it migth be required to run the test in debug mode to pass
         [Test]
         public void DeleteComponentEventTest()
         {

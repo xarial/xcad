@@ -52,7 +52,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             : base(atts.Id, atts.Tag, metadata)
         {
             m_App = app;
-            m_Handler = GetHandler(parentGroup);
+            m_Handler = parentGroup.GetHandler();
             m_IconConv = iconConv;
             ValueType = atts.ContextType;
 
@@ -134,19 +134,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         public override void Focus()
         {
             //TODO: implement focusing via IPropertyManagerPage2::SetFocus
-        }
-
-        private SwPropertyManagerPageHandler GetHandler(IGroup group)
-        {
-            switch (group)
-            {
-                case PropertyManagerPagePage page:
-                    return page.Handler;
-                case PropertyManagerPageGroupBase grp:
-                    return grp.Handler;
-                default:
-                    throw new NotSupportedException();
-            }
         }
 
         protected virtual BitmapLabelType_e? GetDefaultBitmapLabel(IAttributeSet atts) => null;

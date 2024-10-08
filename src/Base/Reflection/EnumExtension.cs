@@ -10,6 +10,9 @@ using System.Linq;
 
 namespace Xarial.XCad.Reflection
 {
+    /// <summary>
+    /// Additional methods of <see cref="Enum"/>
+    /// </summary>
     public static class EnumExtension
     {
         /// <summary>

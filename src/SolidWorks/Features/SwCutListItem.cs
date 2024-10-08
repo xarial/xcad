@@ -223,7 +223,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
         internal SwCutListCustomPropertiesCollection(SwCutListItem cutListItem,
             ISwDocument3D parentDoc, ISwConfiguration parentConf, ISwApplication app) 
-            : base((SwDocument)parentDoc, app)
+            : base(cutListItem, app)
         {
             m_CutListItem = cutListItem;
 
@@ -250,9 +250,9 @@ namespace Xarial.XCad.SolidWorks.Features
         protected override EventsHandler<PropertyValueChangedDelegate> CreateEventsHandler(SwCustomProperty prp)
             => new CutListCustomPropertyChangeEventsHandler();
 
-        protected override SwCustomProperty CreatePropertyInstance(CustomPropertyManager prpMgr, string name, bool isCreated)
+        protected override SwCustomProperty CreatePropertyInstance(string name, bool isCreated)
         {
-            var prp = new SwCutListCustomProperty(prpMgr, name, m_ParentDoc, m_ParentConf, isCreated, m_App);
+            var prp = new SwCutListCustomProperty(() => PrpMgr, name, m_ParentDoc, m_ParentConf, isCreated, m_App);
             InitProperty(prp);
             return prp;
         }
@@ -273,9 +273,9 @@ namespace Xarial.XCad.SolidWorks.Features
         private readonly ISwDocument3D m_RefDoc;
         private readonly ISwConfiguration m_RefConf;
 
-        internal SwCutListCustomProperty(CustomPropertyManager prpMgr, string name,
+        internal SwCutListCustomProperty(Func<CustomPropertyManager> prpMgrFact, string name,
             ISwDocument3D refDoc, ISwConfiguration refConf, bool isCommited, ISwApplication app) 
-            : base(prpMgr, name, isCommited, app)
+            : base(prpMgrFact, name, isCommited, app)
         {
             m_RefDoc = refDoc;
             m_RefConf = refConf;

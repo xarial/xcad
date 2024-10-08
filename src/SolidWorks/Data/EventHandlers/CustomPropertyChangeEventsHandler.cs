@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.SolidWorks.Data.Helpers;
+using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Services;
 
@@ -19,20 +20,20 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
 {
     internal class CustomPropertyChangeEventsHandler : EventsHandler<PropertyValueChangedDelegate>
     {
-        private readonly IModelDoc2 m_Model;
+        private readonly SwDocument m_Doc;
         private readonly SwCustomProperty m_Prp;
-        private readonly string m_ConfName;
+        private readonly SwConfiguration m_Conf;
 
-        internal CustomPropertyChangeEventsHandler(IModelDoc2 model, SwCustomProperty prp, string confName) 
+        internal CustomPropertyChangeEventsHandler(SwDocument model, SwCustomProperty prp, SwConfiguration conf) 
         {
-            m_Model = model;
+            m_Doc = model;
             m_Prp = prp;
-            m_ConfName = confName;
+            m_Conf = conf;
         }
 
         protected override void SubscribeEvents()
         {
-            switch (m_Model)
+            switch (m_Doc.Model)
             {
                 case PartDoc part:
                     part.ChangeCustomPropertyNotify += OnChangeCustomPropertyNotify;
@@ -50,7 +51,7 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
 
         protected override void UnsubscribeEvents()
         {
-            switch (m_Model)
+            switch (m_Doc.Model)
             {
                 case PartDoc part:
                     part.ChangeCustomPropertyNotify -= OnChangeCustomPropertyNotify;
@@ -76,7 +77,7 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
         protected void Filter(string prpName, string confName, string newValue)
         {
             if (string.Equals(prpName, m_Prp.Name, StringComparison.CurrentCultureIgnoreCase)
-                            && string.Equals(confName, m_ConfName, StringComparison.CurrentCultureIgnoreCase))
+                            && string.Equals(confName ?? "", m_Conf?.Name ?? "", StringComparison.CurrentCultureIgnoreCase))
             {
                 Delegate?.Invoke(m_Prp, newValue);
             }
@@ -88,8 +89,8 @@ namespace Xarial.XCad.SolidWorks.Data.EventHandlers
         private CustomPropertiesEventsHelper m_EventsHelper;
 
         internal CustomPropertyChangeEventsHandlerFromSw2017(
-            CustomPropertiesEventsHelper eventsHelper, IModelDoc2 model, SwCustomProperty prp, string confName) 
-            : base(model, prp, confName)
+            CustomPropertiesEventsHelper eventsHelper, SwDocument doc, SwCustomProperty prp, SwConfiguration conf) 
+            : base(doc, prp, conf)
         {
             m_EventsHelper = eventsHelper;
         }

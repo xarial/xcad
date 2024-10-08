@@ -232,26 +232,35 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             Model = model;
             m_Logger.Log("Opening page", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
-            m_App.Sw.IActiveDoc2.ClearSelection2(true);
+            var activeDoc = m_App.Sw.IActiveDoc2;
 
-            m_ContextProvider.NotifyContextChanged(model);
-
-            Handler.InvokeOpening();
-
-            //NOTE: controls must be updated before the page is displayed
-            foreach (var binding in m_Page.Binding.Bindings ?? Enumerable.Empty<IBinding>())
+            if (activeDoc != null)
             {
-                binding.UpdateControl();
+                activeDoc.ClearSelection2(true);
+
+                m_ContextProvider.NotifyContextChanged(model);
+
+                Handler.InvokeOpening();
+
+                //NOTE: controls must be updated before the page is displayed
+                foreach (var binding in m_Page.Binding.Bindings ?? Enumerable.Empty<IBinding>())
+                {
+                    binding.UpdateControl();
+                }
+
+                m_Page.Show();
+
+                m_IsShown = true;
+
+                //updating control states
+                m_Page.Binding.Dependency.UpdateAll();
+
+                Handler.InvokeOpened();
             }
-
-            m_Page.Show();
-
-            m_IsShown = true;
-
-            //updating control states
-            m_Page.Binding.Dependency.UpdateAll();
-
-            Handler.InvokeOpened();
+            else 
+            {
+                throw new NotSupportedException("Property Manager Page can only be show in the visible document");
+            }
         }
 
         private PageCloseReasons_e ConvertReason(swPropertyManagerPageCloseReasons_e reason)

@@ -140,6 +140,7 @@ namespace Xarial.XCad.SolidWorks
         /// </summary>
         protected int AddInId { get; private set; }
 
+        /// <inheritdoc/>
         public IXLogger Logger { get; private set; }
 
         private readonly List<IDisposable> m_Disposables;

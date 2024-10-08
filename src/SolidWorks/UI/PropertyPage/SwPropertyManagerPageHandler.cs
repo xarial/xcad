@@ -41,6 +41,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         internal event Action<int, int> ListBoxChanged;
         internal event Action<int> OptionChecked;
         internal event Action<int> ButtonPressed;
+        internal event Action<int> TabClicked;
         internal event SubmitSelectionDelegate SubmitSelection;
         internal event Action HelpRequested;
         internal event Action WhatsNewRequested;
@@ -341,6 +342,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [EditorBrowsable(EditorBrowsableState.Never)]
         public bool OnTabClicked(int Id)
         {
+            TabClicked?.Invoke(Id);
             return true;
         }
 

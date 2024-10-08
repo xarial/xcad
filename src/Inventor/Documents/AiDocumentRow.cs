@@ -52,9 +52,11 @@ namespace Xarial.XCad.Inventor.Documents
 
         public string PartNumber => throw new NotSupportedException();
 
-        public IXConfiguration Parent => throw new NotSupportedException();
+        public IXConfiguration Parent { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
-        public BomChildrenSolving_e BomChildrenSolving => throw new NotSupportedException();
+        public BomChildrenSolving_e BomChildrenSolving { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+
+        public ConfigurationOptions_e Options { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
         public IXImage Preview => throw new NotSupportedException();
 

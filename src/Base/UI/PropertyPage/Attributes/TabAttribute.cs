@@ -21,7 +21,14 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
     public class TabAttribute : Attribute, ISpecificConstructorAttribute
     {
+        /// <inheritdoc/>
         public Type ConstructorType { get; }
+
+        /// <summary>
+        /// Name of the function within the tab class which handles the tab click
+        /// </summary>
+        /// <remarks>This can be either private or public void function with no parameters</remarks>
+        public string ClickHandlerFunctionName { get; }
 
         /// <summary>
         /// Sets the current property as tab container
@@ -29,6 +36,15 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public TabAttribute()
         {
             ConstructorType = typeof(ITabConstructor);
+        }
+
+        /// <summary>
+        /// Sets the current property as tab container and assigns the click handler
+        /// </summary>
+        /// <param name="clickHandlerFuncName">Name of hte click handler function</param>
+        public TabAttribute(string clickHandlerFuncName) : this()
+        {
+            ClickHandlerFunctionName = clickHandlerFuncName;
         }
     }
 }

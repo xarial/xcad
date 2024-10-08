@@ -160,7 +160,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly IFilePathResolver m_FilePathResolver;
 
-        private readonly Lazy<ISwFeatureManager> m_FeaturesLazy;
+        private readonly Lazy<SwFeatureManager> m_FeaturesLazy;
         private readonly Lazy<ISwDimensionsCollection> m_DimensionsLazy;
 
         public override object Dispatch => Component;
@@ -182,8 +182,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             RootAssembly = rootAssembly;
             m_Creator = new ElementCreator<IComponent2>(CreateComponent, comp, comp != null);
             Children = new SwChildComponentsCollection(rootAssembly, this);
-            m_FeaturesLazy = new Lazy<ISwFeatureManager>(() => new SwComponentFeatureManager(this, rootAssembly, app, new Context(this)));
-            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(Features, new Context(this)));
+            m_FeaturesLazy = new Lazy<SwFeatureManager>(() => new SwComponentFeatureManager(this, rootAssembly, app, new Context(this)));
+            m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(m_FeaturesLazy.Value, new Context(this)));
 
             m_ComponentMovedEventsHandler = new ComponentMovedEventsHandler(this, rootAssembly, app);
 

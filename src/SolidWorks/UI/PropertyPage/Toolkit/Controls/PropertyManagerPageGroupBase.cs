@@ -26,18 +26,34 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         protected PropertyManagerPageGroupBase(IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata)
             : base(atts.Id, atts.Tag, metadata)
         {
+            Handler = parentGroup.GetHandler();
+
             switch (parentGroup)
             {
                 case PropertyManagerPagePage page:
-                    Handler = page.Handler;
                     ParentPage = page;
                     break;
 
                 case PropertyManagerPageGroupBase grp:
-                    Handler = grp.Handler;
                     ParentPage = grp.ParentPage;
                     break;
 
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+    }
+
+    internal static class PropertyManagaerPageGroupBaseExtension 
+    {
+        internal static SwPropertyManagerPageHandler GetHandler(this IGroup group)
+        {
+            switch (group)
+            {
+                case PropertyManagerPagePage page:
+                    return page.Handler;
+                case PropertyManagerPageGroupBase grp:
+                    return grp.Handler;
                 default:
                     throw new NotSupportedException();
             }
@@ -53,11 +69,15 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected readonly TSwControlGroup m_SpecificGroup;
 
+        protected readonly SwPropertyManagerPageHandler m_Handler;
+
         protected PropertyManagerPageGroupBase(SwApplication app, IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, IIconsCreator iconsConv, ref int numberOfUsedIds) 
             : base(parentGroup, atts, metadata)
         {
             m_App = app;
             m_IconsConv = iconsConv;
+
+            m_Handler = parentGroup.GetHandler();
 
             InitData(atts, metadata);
             m_SpecificGroup = Create(parentGroup, atts, metadata);

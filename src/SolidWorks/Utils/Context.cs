@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Base;
 
 namespace Xarial.XCad.SolidWorks.Utils
 {
@@ -22,9 +23,9 @@ namespace Xarial.XCad.SolidWorks.Utils
         /// Owner of this object
         /// </summary>
         /// <remarks>This is typically either <see cref="XCad.Documents.IXDocument"/>, <see cref="XCad.Documents.IXConfiguration"/> or <see cref="XCad.Documents.IXComponent"/></remarks>
-        internal ISwObject Owner { get; }
+        internal IXTransaction Owner { get; }
 
-        internal Context(ISwObject owner) 
+        internal Context(IXTransaction owner) 
         {
             Owner = owner;
         }

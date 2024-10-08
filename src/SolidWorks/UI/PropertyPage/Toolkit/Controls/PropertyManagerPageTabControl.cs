@@ -10,10 +10,12 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Reflection;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
@@ -59,9 +61,47 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private IImageCollection m_TabIcon;
 
+        private object m_Data;
+        private MethodInfo m_ClickHandlerFunction;
+
+        private readonly string m_ClickHandlerFunctionName;
+
         public PropertyManagerPageTabControl(SwApplication app, IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, IIconsCreator iconsConv, ref int numberOfUsedIds) 
             : base(app, parentGroup, atts, metadata, iconsConv, ref numberOfUsedIds)
         {
+            m_ClickHandlerFunctionName = atts.Get<TabAttribute>().ClickHandlerFunctionName;
+
+            if (!string.IsNullOrEmpty(m_ClickHandlerFunctionName))
+            {
+                m_Handler.TabClicked += OnTabClicked;
+            }
+        }
+
+        private void OnTabClicked(int id)
+        {
+            if (Id == id) 
+            {
+                if (!string.IsNullOrEmpty(m_ClickHandlerFunctionName)) 
+                {
+                    m_ClickHandlerFunction.Invoke(m_Data, null);
+                }
+            }
+        }
+
+        protected override void SetSpecificValue(object value)
+        {
+            m_Data = value;
+
+            if (!string.IsNullOrEmpty(m_ClickHandlerFunctionName))
+            {
+                m_ClickHandlerFunction = m_Data.GetType().GetMethod(m_ClickHandlerFunctionName,
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, Type.EmptyTypes, null);
+
+                if (m_ClickHandlerFunction == null)
+                {
+                    throw new Exception($"Click handler method '{m_ClickHandlerFunctionName}' is not found");
+                }
+            }
         }
 
         protected override IPropertyManagerPageTab Create(IGroup host, IAttributeSet atts, IMetadata[] metadata)

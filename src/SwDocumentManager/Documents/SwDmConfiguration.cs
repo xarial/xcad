@@ -37,6 +37,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     {
         #region Not Supported
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
+        public ConfigurationOptions_e Options { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         #endregion
 
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";
@@ -179,6 +180,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     return BomChildrenSolving_e.Show;
                 }
             }
+            set => throw new NotSupportedException();
         }
 
         public virtual IXConfiguration Parent 
@@ -196,6 +198,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     return null;
                 }
             }
+            set => throw new NotSupportedException();
         }
 
         public string Description 
