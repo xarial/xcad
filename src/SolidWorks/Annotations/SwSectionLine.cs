@@ -21,8 +21,14 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
+    /// <summary>
+    /// SOLIDWORKS-specific section line
+    /// </summary>
     public interface ISwSectionLine : IXSectionLine, ISwAnnotation
     {
+        /// <summary>
+        /// Pointer to section
+        /// </summary>
         IDrSection Section { get; }
     }
 
@@ -30,7 +36,8 @@ namespace Xarial.XCad.SolidWorks.Annotations
     {
         private readonly IDrSection m_Section;
 
-        internal SwSectionLine(IDrSection section, SwDocument doc, SwApplication app) : base(null, doc, app)
+        internal SwSectionLine(IDrSection section, SwDocument doc, SwApplication app) 
+            : base(section != null ? new NotSupportedAnnotation(section) : default(IAnnotation), doc, app)
         {
             m_Section = section;
         }
@@ -38,8 +45,6 @@ namespace Xarial.XCad.SolidWorks.Annotations
         public override bool IsCommitted => m_Section != null;
 
         public override object Dispatch => Section;
-
-        public override IAnnotation Annotation => throw new NotSupportedException();
 
         public override IXLayer Layer
         {

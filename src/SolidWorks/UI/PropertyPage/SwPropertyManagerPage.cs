@@ -292,11 +292,38 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                     //reopen page if system closed and page is restorable
                     //when system closes page (e.g. not the user clicks, but some other command may hide page) either swPropertyManagerPageClose_UnknownReason reason is provided or OnClose event is not raised
                     Show(Model);
+
+                    RestorePageState();
                 }
                 else 
                 {
                     Closed?.Invoke(ConvertReason(reason));
                 }
+            }
+        }
+
+        private void RestorePageState()
+        {
+            foreach (var binding in m_Page.Binding.Bindings)
+            {
+                switch (binding.Control)
+                {
+                    case PropertyManagerPageGroupControl grp:
+                        grp.Group.Expanded = m_Page.GroupExpandStates[grp.Id];
+                        break;
+
+                    case PropertyManagerPageTabControl tab:
+                        if (tab.Id == m_Page.ActiveTabId)
+                        {
+                            tab.Tab.Activate();
+                        }
+                        break;
+                }
+            }
+
+            if (m_Page.FocusedControlId.HasValue)
+            {
+                m_Page.Page.SetFocus(m_Page.FocusedControlId.Value);
             }
         }
 

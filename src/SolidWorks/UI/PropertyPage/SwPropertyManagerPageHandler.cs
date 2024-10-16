@@ -33,6 +33,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         internal event Action Opening;
         internal event Action Opened;
 
+        internal event Action<int, bool> GroupExpand;
+        internal event Action<int> GainedFocus;
         internal event Action<int, string> TextChanged;
         internal event Action<int, double> NumberChanged;
         internal event Action<int, bool> CheckChanged;
@@ -192,9 +194,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void OnGainedFocus(int Id)
-        {
-        }
+        public void OnGainedFocus(int Id) 
+            => GainedFocus?.Invoke(Id);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -204,8 +205,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnGroupExpand(int Id, bool Expanded)
-        {
-        }
+            => GroupExpand?.Invoke(Id, Expanded);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]

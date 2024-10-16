@@ -80,20 +80,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             m_IsCheckable = opts.HasFlag(swAddGroupBoxOptions_e.swGroupBoxOptions_Checkbox);
             m_Collapse = !opts.HasFlag(swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded);
 
-            switch (host) 
-            {
-                case PropertyManagerPagePage page:
-                    return (IPropertyManagerPageGroup)page.Page.AddGroupBox(atts.Id, atts.Name, (int)opts);
-
-                case PropertyManagerPageTabControl tab:
-                    return (IPropertyManagerPageGroup)tab.Tab.AddGroupBox(atts.Id, atts.Name, (int)opts);
-
-                case PropertyManagerPageGroupControl group:
-                    //NOTE: nested groups are not supported in SOLIDWORKS, creating the group in page instead
-                    return (IPropertyManagerPageGroup)group.ParentPage.Page.AddGroupBox(atts.Id, atts.Name, (int)opts);
-                default:
-                    throw new NotSupportedException();
-            }
+            return ParentPage.AddGroupBox(host, atts.Id, atts.Name, opts);
         }
 
         private void OnPageOpened()

@@ -336,6 +336,19 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public TSelObject ConvertObject<TSelObject>(TSelObject obj)
+            where TSelObject : class, IXSelObject
+        {
+            switch (obj) 
+            {
+                case SwDimension dim:
+                    return dim.Clone(new Context(this)) as TSelObject;
+
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
         internal override void Select(bool append, ISelectData selData)
         {
             if (!Configuration.Select2(append, (SelectData)selData)) 

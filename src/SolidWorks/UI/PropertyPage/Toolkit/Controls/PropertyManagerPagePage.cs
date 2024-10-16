@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Collections.Generic;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
@@ -41,6 +42,10 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             set => throw new NotSupportedException();
         }
 
+        internal int? ActiveTabId { get; private set; }
+        internal IReadOnlyDictionary<int, bool> GroupExpandStates => m_GroupExpandStates;
+        internal int? FocusedControlId { get; private set; }
+
         private string m_HelpLink;
         private string m_WhatsNewLink;
 
@@ -48,11 +53,19 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private IImageCollection m_PageIcon;
 
+        private readonly Dictionary<int, bool> m_GroupExpandStates;
+
         internal PropertyManagerPagePage(SwApplication app, IAttributeSet atts, IIconsCreator iconsConv, SwPropertyManagerPageHandler handler) 
         {
             m_App = app;
 
+            m_GroupExpandStates = new Dictionary<int, bool>();
+
             Handler = handler;
+
+            Handler.TabClicked += OnTabClicked;
+            Handler.GroupExpand += OnGroupExpand;
+            Handler.GainedFocus += OnGainedFocus;
 
             int err = -1;
 
@@ -201,6 +214,16 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
+        private void OnGainedFocus(int ctrlId)
+        {
+            FocusedControlId = ctrlId;
+        }
+
+        private void OnGroupExpand(int ctrlId, bool expanded)
+        {
+            m_GroupExpandStates[ctrlId] = expanded;
+        }
+
         internal void Show()
         {
             const int OPTS_DEFAULT = 0;
@@ -228,6 +251,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         private void OnHelpRequested()
             => this.TryOpenLink(m_HelpLink, m_App);
 
+        private void OnTabClicked(int tabId)
+            => ActiveTabId = tabId;
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -239,6 +265,37 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
                 m_PageIcon?.Dispose();
             }
+        }
+
+        internal IPropertyManagerPageGroup AddGroupBox(IGroup host, int id, string name, swAddGroupBoxOptions_e opts)
+        {
+            m_GroupExpandStates[id] = opts.HasFlag(swAddGroupBoxOptions_e.swGroupBoxOptions_Expanded);
+
+            switch (host)
+            {
+                case PropertyManagerPagePage page:
+                    return (IPropertyManagerPageGroup)page.Page.AddGroupBox(id, name, (int)opts);
+
+                case PropertyManagerPageTabControl tab:
+                    return (IPropertyManagerPageGroup)tab.Tab.AddGroupBox(id, name, (int)opts);
+
+                case PropertyManagerPageGroupControl group:
+                    //NOTE: nested groups are not supported in SOLIDWORKS, creating the group in page instead
+                    return (IPropertyManagerPageGroup)group.ParentPage.Page.AddGroupBox(id, name, (int)opts);
+
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        internal IPropertyManagerPageTab AddTab(int id, string name, string iconPath, int opts)
+        {
+            if (!ActiveTabId.HasValue)
+            {
+                ActiveTabId = id;
+            }
+
+            return Page.AddTab(id, name, iconPath, opts);
         }
     }
 }

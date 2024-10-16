@@ -68,6 +68,9 @@ namespace Xarial.XCad.Inventor.Documents
 
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
 
+        public TSelObject ConvertObject<TSelObject>(TSelObject obj)
+            where TSelObject : class, IXSelObject => throw new NotSupportedException();
+
         public void Commit(CancellationToken cancellationToken)
         {
             throw new NotSupportedException();

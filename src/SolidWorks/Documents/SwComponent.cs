@@ -878,7 +878,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly RepositoryHelper<IXFeature> m_RepoHelper;
 
         public SwComponentFeatureManager(SwComponent comp, SwAssembly assm, SwApplication app, Context context) 
-            : base(assm, app, context)
+            : base((SwDocument)comp.ReferencedDocument, app, context)
         {
             m_Assm = assm;
             Component = comp;

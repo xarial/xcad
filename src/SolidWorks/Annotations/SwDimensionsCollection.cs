@@ -17,6 +17,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Features;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Features.Extensions;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Utils;
@@ -212,20 +213,13 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         internal override bool TryGetActualDimension(string name, out SwDimension dim)
         {
-            var dimNameParts = name.Split('@');
+            var dimParam = (IDimension)m_FeatMgr.Document.Model.Parameter(name);
 
-            if (dimNameParts.Length != 2)
+            if (dimParam != null)
             {
-                throw new Exception("Invalid dimension name. Name must be specified in the following format: DimName@FeatureName");
-            }
-
-            var dimName = dimNameParts[0];
-            var featName = dimNameParts[1];
-
-            if (m_FeatMgr.TryGet(featName, out IXFeature feat))
-            {
-                //NOTE: not using IModelDoc2::Parameter because it returns IDimension and theer is no conversion to IDisplayDimension
-                return ((SwFeatureDimensionsCollection)feat.Dimensions).TryGetActualDimension($"{dimName}@{featName}", out dim);
+                dim = m_FeatMgr.Document.CreateObjectFromDispatch<SwDimension>(dimParam);
+                dim.SetContext(m_Context);
+                return true;
             }
             else
             {
@@ -274,59 +268,39 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         internal override bool TryGetActualDimension(string name, out SwDimension dim)
         {
-            var dimNameParts = name.Split('@');
-
-            var dimName = dimNameParts[0];
-            var featName = "";
-
-            if (dimNameParts.Length == 2)
+            if (name.Contains("@")) 
             {
-                featName = dimNameParts[1];
+                var nameParts = name.Split('@');
 
-                if (!string.Equals(featName, m_Feat.Name, StringComparison.CurrentCultureIgnoreCase))
+                name = nameParts[0];
+
+                if (!string.Equals(m_Feat.Name, nameParts[1], StringComparison.CurrentCultureIgnoreCase)) 
                 {
-                    throw new Exception("Specified dimension does not belong to this feature");
+                    throw new Exception("Dimension does not belong to the feature");
                 }
             }
 
-            dim = IterateActualDimensions().FirstOrDefault(
-                d => string.Equals(d.Name, $"{dimName}@{featName}",
-                StringComparison.CurrentCultureIgnoreCase));
+            var dimParam = (IDimension)m_Feat.Feature.Parameter(name);
 
-            if (dim != null)
+            if (dimParam != null)
             {
+                dim = m_Doc.CreateObjectFromDispatch<SwDimension>(dimParam);
+                dim.SetContext(m_Context);
                 return true;
             }
             else
             {
+                dim = null;
                 return false;
             }
         }
 
         internal override IEnumerable<SwDimension> IterateActualDimensions()
-            => IterateDisplayDimensions().Select(d =>
+            => m_Feat.Feature.IterateDisplayDimensions().Select(d =>
             {
                 var dim = m_Doc.CreateObjectFromDispatch<SwDimension>(d);
                 dim.SetContext(m_Context);
                 return dim;
             });
-
-        private IEnumerable<IDisplayDimension> IterateDisplayDimensions() 
-        {
-            var dispDim = (IDisplayDimension)m_Feat.Feature.GetFirstDisplayDimension();
-
-            while (dispDim != null)
-            {
-                //NOTE: parent feature, such as extrude will also return all dimensions from child features, such as sketch
-                var featName = dispDim.GetDimension2(0).FullName.Split('@')[1];
-
-                if (string.Equals(featName, m_Feat.Name, StringComparison.CurrentCultureIgnoreCase))
-                {
-                    yield return dispDim;
-                }
-
-                dispDim = (IDisplayDimension)m_Feat.Feature.GetNextDisplayDimension(dispDim);
-            }
-        }
     }
 }

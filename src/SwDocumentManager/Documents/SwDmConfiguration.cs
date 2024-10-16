@@ -36,6 +36,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal abstract class SwDmConfiguration : SwDmSelObject, ISwDmConfiguration
     {
         #region Not Supported
+        public TSelObject ConvertObject<TSelObject>(TSelObject obj)
+            where TSelObject : class, IXSelObject => throw new NotSupportedException();
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
         public ConfigurationOptions_e Options { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         #endregion

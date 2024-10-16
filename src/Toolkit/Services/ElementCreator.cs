@@ -111,33 +111,84 @@ namespace Xarial.XCad.Services
         Task<TElem> CreateAsync(CancellationToken cancellationToken);
     }
 
+    /// <summary>
+    /// Base class for the sync and asycn element creators
+    /// </summary>
+    /// <typeparam name="TElem">Type of element</typeparam>
     public abstract class ElementCreatorBase<TElem> : IElementCreatorBase<TElem>
     {
+        /// <inheritdoc/>
         public bool IsCreated { get; protected set; }
 
-        protected TElem m_Element;
+        /// <summary>
+        /// Internal instance of the actual element
+        /// </summary>
+        private TElem ElementInstance 
+        {
+            get 
+            {
+                if (m_IsLazyElemInstance)
+                {
+                    return m_LazyElemInstance.Value;
+                }
+                else 
+                {
+                    return m_ElemInstance;
+                }
+            }
+        }
 
+        /// <summary>
+        /// Post element created Callback function (optional)
+        /// </summary>
         protected readonly Action<TElem, CancellationToken> m_PostCreator;
 
+        /// <inheritdoc/>
         public CachedProperties CachedProperties { get; }
 
-        public ElementCreatorBase(Action<TElem, CancellationToken> postCreator, TElem elem, bool created = false)
+        private bool m_IsLazyElemInstance;
+        private TElem m_ElemInstance;
+        private Lazy<TElem> m_LazyElemInstance;
+
+        public ElementCreatorBase(Action<TElem, CancellationToken> postCreator, TElem elem, bool created = false) : this(postCreator)
+        {
+            IsCreated = created;
+            m_ElemInstance = elem;
+
+            m_IsLazyElemInstance = false;
+        }
+
+        /// <summary>
+        /// Constructor for the lazy instance of the element
+        /// </summary>
+        /// <param name="lazyElem">Lazy element instance</param>
+        /// <remarks>This constructor is for the created element</remarks>
+        public ElementCreatorBase(Lazy<TElem> lazyElem, Action<TElem, CancellationToken> postCreator) : this(postCreator)
+        {
+            if (lazyElem == null) 
+            {
+                throw new ArgumentNullException(nameof(lazyElem));
+            }
+
+            m_LazyElemInstance = lazyElem;
+            m_IsLazyElemInstance = true;
+            IsCreated = true;
+        }
+
+        private ElementCreatorBase(Action<TElem, CancellationToken> postCreator) 
         {
             m_PostCreator = postCreator;
-
-            IsCreated = created;
-            m_Element = elem;
-
             CachedProperties = new CachedProperties();
         }
 
+        /// <inheritdoc/>
         public TElem Element
         {
             get
             {
                 if (IsCreated)
                 {
-                    return m_Element;
+                    return ElementInstance;
                 }
                 else
                 {
@@ -146,6 +197,7 @@ namespace Xarial.XCad.Services
             }
         }
 
+        /// <inheritdoc/>
         public void Init(TElem elem, CancellationToken cancellationToken)
         {
             if (!IsCreated)
@@ -165,36 +217,49 @@ namespace Xarial.XCad.Services
             }
         }
 
+        /// <inheritdoc/>
         public void Set(TElem elem)
         {
-            m_Element = elem;
-            IsCreated = m_Element != null;
+            m_ElemInstance = elem;
+            m_LazyElemInstance = null;
+            IsCreated = ElementInstance != null;
+            m_IsLazyElemInstance = false;
         }
     }
 
+    /// <summary>
+    /// Implementation of synchronous element creator
+    /// </summary>
+    /// <typeparam name="TElem">Type of element</typeparam>
     public class ElementCreator<TElem> : ElementCreatorBase<TElem>, IElementCreator<TElem>
     {
-        private readonly Func<CancellationToken, TElem> m_Creator;
+        private readonly Func<CancellationToken, TElem> m_Factory;
         
-        public ElementCreator(Func<CancellationToken, TElem> creator, TElem elem, bool created = false)
-            : this(creator, null, elem, created)
+        public ElementCreator(Func<CancellationToken, TElem> fact, TElem elem, bool created = false)
+            : this(fact, null, elem, created)
         {
         }
 
-        public ElementCreator(Func<CancellationToken, TElem> creator, Action<TElem, CancellationToken> postCreator, TElem elem, bool created = false) 
+        public ElementCreator(Func<CancellationToken, TElem> fact, Action<TElem, CancellationToken> postCreator, TElem elem, bool created = false) 
             : base(postCreator, elem, created)
         {
-            m_Creator = creator;
+            m_Factory = fact;
         }
 
+        public ElementCreator(Func<CancellationToken, TElem> fact, Lazy<TElem> lazyElem) : base(lazyElem, null)
+        {
+            m_Factory = fact;
+        }
+
+        /// <inheritdoc/>
         public TElem Create(CancellationToken cancellationToken)
         {
             if (!IsCreated)
             {
-                m_Element = m_Creator.Invoke(cancellationToken);
-                IsCreated = true;
-                m_PostCreator?.Invoke(m_Element, cancellationToken);
-                return m_Element;
+                var inst = m_Factory.Invoke(cancellationToken);
+                Set(inst);
+                m_PostCreator?.Invoke(inst, cancellationToken);
+                return inst;
             }
             else
             {
@@ -203,6 +268,10 @@ namespace Xarial.XCad.Services
         }
     }
 
+    /// <summary>
+    /// Implementation of asynchronous element creator
+    /// </summary>
+    /// <typeparam name="TElem">Type of element</typeparam>
     public class AsyncElementCreator<TElem> : ElementCreatorBase<TElem>, IAsyncElementCreator<TElem>
     {
         private readonly Func<CancellationToken, Task<TElem>> m_AsyncCreator;
@@ -222,10 +291,10 @@ namespace Xarial.XCad.Services
         {
             if (!IsCreated)
             {
-                m_Element = await m_AsyncCreator.Invoke(cancellationToken);
-                IsCreated = true;
-                m_PostCreator?.Invoke(m_Element, cancellationToken);
-                return m_Element;
+                var inst = await m_AsyncCreator.Invoke(cancellationToken);
+                Set(inst);
+                m_PostCreator?.Invoke(inst, cancellationToken);
+                return inst;
             }
             else
             {

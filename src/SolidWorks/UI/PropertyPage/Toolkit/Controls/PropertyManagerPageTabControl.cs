@@ -23,6 +23,9 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
+    /// <summary>
+    /// Represents the tab in property manager page
+    /// </summary>
     public interface IPropertyManagerPageTabEx
     {
         /// <summary>
@@ -142,7 +145,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 TryConvertIconTo8bit(m_TabIcon.FilePaths[0]);
             }
 
-            return hostPage.Page.AddTab(atts.Id, atts.Name, iconPath, OPTIONS_NOT_USED);
+            return hostPage.AddTab(atts.Id, atts.Name, iconPath, OPTIONS_NOT_USED);
         }
 
         private void TryConvertIconTo8bit(string path)

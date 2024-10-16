@@ -23,6 +23,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
 using Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit;
+using Xarial.XCad.SolidWorks.Features.Extensions;
 using Xarial.XCad.SolidWorks.Sketch;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.CustomFeature;
@@ -250,7 +251,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 {
                     if (feat.GetTypeName2() != "HistoryFolder")
                     {
-                        foreach (var subFeat in FeatureEnumerator.IterateSubFeatures(feat, true).Reverse())
+                        foreach (var subFeat in feat.IterateSubFeatures(true).Reverse())
                         {
                             if (!processedFeats.Contains(subFeat))
                             {
@@ -328,7 +329,7 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         internal static bool TryGetSolidBodyFeature(this SwFeatureManager featMgr, out IFeature solidBodyFeat)
         {
-            foreach (var feat in FeatureEnumerator.IterateFeatures(featMgr.GetFirstFeature(), false))
+            foreach (var feat in featMgr.GetFirstFeature().IterateFeatures(false))
             {
                 if (feat.GetTypeName2() == "SolidBodyFolder")
                 {
@@ -350,7 +351,7 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             if (TryGetSolidBodyFeature(featMgr, out var solidBodyFeat))
             {
-                foreach (var subFeat in FeatureEnumerator.IterateSubFeatures(solidBodyFeat, true))
+                foreach (var subFeat in solidBodyFeat.IterateSubFeatures(true))
                 {
                     if (subFeat.GetTypeName2() == "CutListFolder")
                     {

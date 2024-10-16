@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using SolidWorks.Interop.sldworks;
 using Xarial.XCad.SolidWorks.Annotations;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
@@ -16,7 +17,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit
     /// </summary>
     internal class SwDimensionPlaceholder : SwDimension
     {
-        internal SwDimensionPlaceholder() : base(null, null, null)
+        internal SwDimensionPlaceholder() : base(default(IDisplayDimension), null, null)
         {            
         }
 

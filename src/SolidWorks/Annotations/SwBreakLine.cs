@@ -21,8 +21,14 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
+    /// <summary>
+    /// SOLIDWORKS-specific break line
+    /// </summary>
     public interface ISwBreakLine : IXBreakLine, ISwAnnotation
     {
+        /// <summary>
+        /// Pointer to break line
+        /// </summary>
         IBreakLine BreakLine { get; }
     }
 
@@ -30,7 +36,8 @@ namespace Xarial.XCad.SolidWorks.Annotations
     {
         private readonly IBreakLine m_BreakLine;
 
-        internal SwBreakLine(IBreakLine breakLine, SwDocument doc, SwApplication app) : base(null, doc, app)
+        internal SwBreakLine(IBreakLine breakLine, SwDocument doc, SwApplication app) 
+            : base(breakLine != null ? new NotSupportedAnnotation(breakLine) : default(IAnnotation), doc, app)
         {
             m_BreakLine = breakLine;
         }
@@ -38,8 +45,6 @@ namespace Xarial.XCad.SolidWorks.Annotations
         public override bool IsCommitted => m_BreakLine != null;
 
         public override object Dispatch => BreakLine;
-
-        public override IAnnotation Annotation => throw new NotSupportedException();
 
         public override IXLayer Layer
         {

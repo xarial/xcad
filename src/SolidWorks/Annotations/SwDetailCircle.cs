@@ -21,8 +21,14 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
+    /// <summary>
+    /// SOLIDWORKS-specific detail circle
+    /// </summary>
     public interface ISwDetailCircle : IXDetailCircle, ISwAnnotation
     {
+        /// <summary>
+        /// Pointer to detail circle
+        /// </summary>
         IDetailCircle Circle { get; }
     }
 
@@ -30,7 +36,8 @@ namespace Xarial.XCad.SolidWorks.Annotations
     {
         private readonly IDetailCircle m_Circle;
 
-        internal SwDetailCircle(IDetailCircle circle, SwDocument doc, SwApplication app) : base(null, doc, app)
+        internal SwDetailCircle(IDetailCircle circle, SwDocument doc, SwApplication app) 
+            : base(circle != null ? new NotSupportedAnnotation(circle) : default(IAnnotation), doc, app)
         {
             m_Circle = circle;
         }
@@ -38,8 +45,6 @@ namespace Xarial.XCad.SolidWorks.Annotations
         public override bool IsCommitted => m_Circle != null;
 
         public override object Dispatch => Circle;
-
-        public override IAnnotation Annotation => throw new NotSupportedException();
 
         public override IXLayer Layer
         {

@@ -44,6 +44,8 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         public virtual IAnnotation Annotation => m_Creator.Element;
 
+        public override object Dispatch => Annotation;
+
         public override bool IsCommitted => m_Creator.IsCreated;
 
         protected readonly ElementCreator<IAnnotation> m_Creator;
@@ -51,6 +53,11 @@ namespace Xarial.XCad.SolidWorks.Annotations
         protected SwAnnotation(IAnnotation ann, SwDocument doc, SwApplication app) : base(ann, doc, app) 
         {
             m_Creator = new ElementCreator<IAnnotation>(CreateAnnotation, ann, ann != null);
+        }
+
+        protected SwAnnotation(Lazy<IAnnotation> lazyAnn, SwDocument doc, SwApplication app) : base(null, doc, app)
+        {
+            m_Creator = new ElementCreator<IAnnotation>(CreateAnnotation, lazyAnn);
         }
 
         public Point Position

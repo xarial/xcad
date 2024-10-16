@@ -18,6 +18,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.SolidWorks.Annotations.EventHandlers;
 using Xarial.XCad.SolidWorks.Annotations.Exceptions;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Features.Extensions;
 using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Annotations
@@ -53,7 +54,20 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
         }
 
-        private IDimension m_Dimension;
+        internal static SwDimension New(IDimension dim, SwDocument doc, SwApplication app)
+        {
+            if (doc is IXDrawing)
+            {
+                return SwDrawingDimension.New(dim, (SwDrawing)doc, app);
+            }
+            else
+            {
+                return new SwDimension(dim, doc, app);
+            }
+        }
+
+        protected IDimension m_Dimension;
+        protected IDisplayDimension m_DisplayDimension;
 
         private double? m_CachedValue;
 
@@ -66,7 +80,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
         }
 
         public IDimension Dimension => m_Dimension ?? (m_Dimension = DisplayDimension?.GetDimension2(0));
-        public IDisplayDimension DisplayDimension { get; private set; }
+        public IDisplayDimension DisplayDimension => m_DisplayDimension ?? (m_DisplayDimension = (IDisplayDimension)Annotation?.GetSpecificAnnotation());
 
         public string Name 
         {
@@ -90,18 +104,50 @@ namespace Xarial.XCad.SolidWorks.Annotations
         protected Context m_Context;
 
         protected SwDimension(IDisplayDimension dispDim, SwDocument doc, SwApplication app)
-            : base(dispDim.IGetAnnotation(), doc, app)
+            : base(dispDim?.IGetAnnotation(), doc, app)
         {
             if (doc == null) 
             {
                 throw new ArgumentNullException(nameof(doc));
             }
 
+            m_DisplayDimension = dispDim;
+
             m_Context = new Context(doc);
             
-            DisplayDimension = dispDim;
+            m_ValueChangedHandler = new SwDimensionChangeEventsHandler(this, doc);
+        }
+
+        protected SwDimension(IDimension dim, SwDocument doc, SwApplication app)
+            : base(new Lazy<IAnnotation>(() => GetAnnotation(dim)), doc, app)
+        {
+            if (doc == null)
+            {
+                throw new ArgumentNullException(nameof(doc));
+            }
+
+            m_Dimension = dim;
+
+            m_Context = new Context(doc);
 
             m_ValueChangedHandler = new SwDimensionChangeEventsHandler(this, doc);
+        }
+
+        private static IAnnotation GetAnnotation(IDimension dim)
+        {
+            var ownerFeat = dim.GetFeatureOwner();
+
+            var dimName = dim.FullName;
+
+            foreach (var dispDim in ownerFeat.IterateDisplayDimensions()) 
+            {
+                if (string.Equals(dispDim.IGetDimension().FullName, dimName, StringComparison.InvariantCultureIgnoreCase)) 
+                {
+                    return dispDim.IGetAnnotation();
+                }
+            }
+
+            throw new Exception("Annotation for the dimension is not found");
         }
 
         internal void SetContext(Context context)
@@ -117,6 +163,27 @@ namespace Xarial.XCad.SolidWorks.Annotations
             {
                 SetValue(m_CachedValue.Value);
             }
+        }
+
+        internal virtual SwDimension Clone(Context context)
+        {
+            SwDimension dim;
+
+            if (m_DisplayDimension != null)
+            {
+                dim = new SwDimension(m_DisplayDimension, OwnerDocument, OwnerApplication);
+            }
+            else if (m_Dimension != null)
+            {
+                dim = new SwDimension(m_Dimension, OwnerDocument, OwnerApplication);
+            }
+            else 
+            {
+                dim = new SwDimension(default(IDisplayDimension), OwnerDocument, OwnerApplication);
+            }
+
+            dim.SetContext(context);
+            return dim;
         }
 
         private void ValidateContext(Context context)
@@ -263,10 +330,10 @@ namespace Xarial.XCad.SolidWorks.Annotations
                 m_Dimension = null;
             }
 
-            if (DisplayDimension != null && Marshal.IsComObject(DisplayDimension))
+            if (m_DisplayDimension != null && Marshal.IsComObject(m_DisplayDimension))
             {
-                Marshal.ReleaseComObject(DisplayDimension);
-                DisplayDimension = null;
+                Marshal.ReleaseComObject(m_DisplayDimension);
+                m_DisplayDimension = null;
             }
 
             GC.Collect();
@@ -292,6 +359,9 @@ namespace Xarial.XCad.SolidWorks.Annotations
         internal static SwDrawingDimension New(IDisplayDimension dispDim, SwDrawing drw, SwApplication app)
             => new SwDrawingDimension(dispDim, drw, app);
 
+        internal static SwDrawingDimension New(IDimension dim, SwDrawing drw, SwApplication app)
+            => new SwDrawingDimension(dim, drw, app);
+
         public IXObject Owner
         {
             get => m_DrwAnnWrapper.Owner;
@@ -303,6 +373,32 @@ namespace Xarial.XCad.SolidWorks.Annotations
         private SwDrawingDimension(IDisplayDimension dispDim, SwDrawing drw, SwApplication app) : base(dispDim, drw, app)
         {
             m_DrwAnnWrapper = new SwDrawingAnnotationWrapper(this);
+        }
+
+        private SwDrawingDimension(IDimension dim, SwDrawing drw, SwApplication app) : base(dim, drw, app)
+        {
+            m_DrwAnnWrapper = new SwDrawingAnnotationWrapper(this);
+        }
+
+        internal override SwDimension Clone(Context context)
+        {
+            SwDrawingDimension dim;
+
+            if (m_Dimension != null)
+            {
+                dim = new SwDrawingDimension(m_Dimension, (SwDrawing)OwnerDocument, OwnerApplication);
+            }
+            else if (m_DisplayDimension != null)
+            {
+                dim = new SwDrawingDimension(m_DisplayDimension, (SwDrawing)OwnerDocument, OwnerApplication);
+            }
+            else
+            {
+                dim = new SwDrawingDimension(default(IDisplayDimension), (SwDrawing)OwnerDocument, OwnerApplication);
+            }
+
+            dim.SetContext(context);
+            return dim;
         }
     }
 

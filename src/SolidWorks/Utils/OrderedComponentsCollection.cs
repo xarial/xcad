@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Features.Extensions;
 
 namespace Xarial.XCad.SolidWorks.Utils
 {
@@ -118,7 +119,7 @@ namespace Xarial.XCad.SolidWorks.Utils
 
         private IEnumerable<IFeature> IterateFeatureComponents(IFeature firstFeat)
         {
-            foreach (var feat in FeatureEnumerator.IterateFeatures(firstFeat, true))
+            foreach (var feat in firstFeat.IterateFeatures(true))
             {
                 var typeName = feat.GetTypeName2();
 

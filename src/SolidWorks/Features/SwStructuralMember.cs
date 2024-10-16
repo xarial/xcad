@@ -23,6 +23,7 @@ using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Enums;
+using Xarial.XCad.SolidWorks.Features.Extensions;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Sketch;
 using Xarial.XCad.Toolkit.Utils;
@@ -578,7 +579,7 @@ namespace Xarial.XCad.SolidWorks.Features
         {
             get 
             {
-                var profileSketch = FeatureEnumerator.IterateSubFeatures(Feature, false)
+                var profileSketch = Feature.IterateSubFeatures(false)
                     .FirstOrDefault(f => f.GetTypeName2() == SwSketch2D.TypeName);
 
                 if (profileSketch != null)

@@ -16,6 +16,14 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
 {
     internal class NewSelectionEventHandler : SwModelEventsHandler<NewSelectionDelegate>
     {
+        /// <summary>
+        /// Some objects are null (e.g. selection is raised but the dispatch is null (e.g. axis on the sketch triad)
+        /// Creating null dispatch object
+        /// </summary>
+        private class NullObject 
+        {
+        }
+
         private IModelDoc2 Model => m_Doc.Model;
         private ISelectionMgr SelMgr => Model.ISelectionManager;
 
@@ -60,6 +68,12 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
             if (selIndex > 0)
             {
                 var lastSelObj = SelMgr.GetSelectedObject6(selIndex, -1);
+
+                if (lastSelObj == null) 
+                {
+                    lastSelObj = new NullObject();
+                }
+
                 var obj = m_Doc.CreateObjectFromDispatch<ISwSelObject>(lastSelObj);
                 Delegate?.Invoke(m_Doc, obj);
             }

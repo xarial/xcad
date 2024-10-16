@@ -222,6 +222,9 @@ namespace Xarial.XCad.SolidWorks
                 case IDisplayDimension dispDim:
                     return SwDimension.New(dispDim, doc, app);
 
+                case IDimension dim:
+                    return SwDimension.New(dim, doc, app);
+
                 case INote note:
                     return SwNote.New(note, doc, app);
 
