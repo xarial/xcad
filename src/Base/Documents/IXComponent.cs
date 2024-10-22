@@ -26,6 +26,11 @@ namespace Xarial.XCad.Documents
     public interface IXComponent : IXSelObject, IXObjectContainer, IXTransaction, IHasColor, IDimensionable, IHasName
     {
         /// <summary>
+        /// Id of this component
+        /// </summary>
+        IXIdentifier Id { get; }
+
+        /// <summary>
         /// Fired when component is moved in the assemblu
         /// </summary>
         event ComponentMovedDelegate Moved;

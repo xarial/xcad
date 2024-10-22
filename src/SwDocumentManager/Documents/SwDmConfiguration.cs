@@ -22,6 +22,7 @@ using Xarial.XCad.Reflection;
 using Xarial.XCad.SwDocumentManager.Data;
 using Xarial.XCad.SwDocumentManager.Exceptions;
 using Xarial.XCad.SwDocumentManager.Features;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
@@ -49,6 +50,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
         public virtual ISwDMConfiguration Configuration { get; }
+
+        public IXIdentifier Id => new XIdentifier(((ISwDMConfiguration12)Configuration).GetID());
 
         public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
 

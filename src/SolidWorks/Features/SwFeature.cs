@@ -22,6 +22,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
 using System.Linq;
+using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
@@ -190,6 +191,8 @@ namespace Xarial.XCad.SolidWorks.Features
                 return feat;
             }
         }
+
+        public IXIdentifier Id => new XIdentifier(Feature.GetID());
 
         public override object Dispatch => Feature;
 

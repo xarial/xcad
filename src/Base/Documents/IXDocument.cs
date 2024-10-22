@@ -25,6 +25,11 @@ namespace Xarial.XCad.Documents
     public interface IXDocument : IXObject, IXTransaction, IPropertiesOwner, IDimensionable, IDisposable
     {
         /// <summary>
+        /// Id of this document
+        /// </summary>
+        IXIdentifier Id { get; }
+
+        /// <summary>
         /// Current version of the document
         /// </summary>
         IXVersion Version { get; }

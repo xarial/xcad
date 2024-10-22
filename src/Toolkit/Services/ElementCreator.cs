@@ -246,7 +246,7 @@ namespace Xarial.XCad.Services
             m_Factory = fact;
         }
 
-        public ElementCreator(Func<CancellationToken, TElem> fact, Lazy<TElem> lazyElem) : base(lazyElem, null)
+        public ElementCreator(Lazy<TElem> lazyElem, Func<CancellationToken, TElem> fact) : base(lazyElem, null)
         {
             m_Factory = fact;
         }

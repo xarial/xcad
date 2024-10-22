@@ -48,6 +48,11 @@ namespace Xarial.XCad.Geometry.Evaluation
     public interface IXCollisionDetection : IEvaluation
     {
         /// <summary>
+        /// Indicates that the surface contact should be considered as a collision
+        /// </summary>
+        bool IncludeCoincidentContact { get; set; }
+
+        /// <summary>
         /// Collision results
         /// </summary>
         IXCollisionResult[] Results { get; }

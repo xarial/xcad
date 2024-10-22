@@ -9,6 +9,7 @@ using Inventor;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -47,6 +48,8 @@ namespace Xarial.XCad.Inventor.Documents
         protected AiDocumentRow(object disp, AiDocument3D doc) : base(disp, doc, doc.OwnerApplication)
         {
         }
+
+        public IXIdentifier Id => throw new NotSupportedException();
 
         public double Quantity => throw new NotSupportedException();
 

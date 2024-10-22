@@ -21,6 +21,11 @@ namespace Xarial.XCad.Documents
     public interface IXConfiguration : IXSelObject, IXTransaction, IPropertiesOwner, IDimensionable, IXObjectContainer
     {
         /// <summary>
+        /// Id of this configuration
+        /// </summary>
+        IXIdentifier Id { get; }
+
+        /// <summary>
         /// BOM quantity value
         /// </summary>
         double Quantity { get; }

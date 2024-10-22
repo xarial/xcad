@@ -57,7 +57,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         protected SwAnnotation(Lazy<IAnnotation> lazyAnn, SwDocument doc, SwApplication app) : base(null, doc, app)
         {
-            m_Creator = new ElementCreator<IAnnotation>(CreateAnnotation, lazyAnn);
+            m_Creator = new ElementCreator<IAnnotation>(lazyAnn, CreateAnnotation);
         }
 
         public Point Position

@@ -29,6 +29,7 @@ using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Sketch;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Graphics;
 using Xarial.XCad.UI;
 
@@ -47,6 +48,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SwDrawing m_Drawing;
 
         public ISheet Sheet => m_Creator.Element;
+
+        public IXIdentifier Id => new XIdentifier(Sheet.GetID());
 
         public string Name
         {
@@ -701,6 +704,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         ISwDocument ISwObject.OwnerDocument => m_Drw;
 
         #region Not Supported
+        public IXIdentifier Id => throw new UnloadedDocumentPreviewOnlySheetException();
         public string Name { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
         public IXDrawingViewRepository DrawingViews => throw new UnloadedDocumentPreviewOnlySheetException();
         public void Commit(CancellationToken cancellationToken)

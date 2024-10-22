@@ -41,6 +41,7 @@ using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Data;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI;
@@ -83,16 +84,16 @@ namespace Xarial.XCad.SolidWorks.Documents
             private readonly ISldWorks m_App;
             private readonly bool? m_Is3DInterconnectEnabled;
 
-            internal Interconnect3DDisabler(ISldWorks app) 
+            internal Interconnect3DDisabler(ISldWorks app)
             {
                 m_App = app;
 
-                if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2020)) 
+                if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2020))
                 {
                     var enable3DInterconnect = m_App.GetUserPreferenceToggle(
                         (int)swUserPreferenceToggle_e.swMultiCAD_Enable3DInterconnect);
 
-                    if (enable3DInterconnect) 
+                    if (enable3DInterconnect)
                     {
                         m_Is3DInterconnectEnabled = enable3DInterconnect;
 
@@ -104,7 +105,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             public void Dispose()
             {
-                if (m_Is3DInterconnectEnabled.HasValue) 
+                if (m_Is3DInterconnectEnabled.HasValue)
                 {
                     m_App.SetUserPreferenceToggle(
                             (int)swUserPreferenceToggle_e.swMultiCAD_Enable3DInterconnect, m_Is3DInterconnectEnabled.Value);
@@ -115,7 +116,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected static Dictionary<string, swDocumentTypes_e> m_NativeFileExts { get; }
         private bool? m_IsClosed;
 
-        static SwDocument() 
+        static SwDocument()
         {
             m_NativeFileExts = new Dictionary<string, swDocumentTypes_e>(StringComparer.CurrentCultureIgnoreCase)
             {
@@ -134,14 +135,14 @@ namespace Xarial.XCad.SolidWorks.Documents
         private Action<SwDocument> m_HiddenDel;
         private DocumentCloseDelegate m_ClosingDel;
 
-        public event DocumentEventDelegate Destroyed 
+        public event DocumentEventDelegate Destroyed
         {
-            add 
+            add
             {
                 m_DestroyedDel += value;
                 AttachDestroyEventsIfNeeded();
             }
-            remove 
+            remove
             {
                 m_DestroyedDel -= value;
                 DetachDestroyEventsIfNeeded();
@@ -176,7 +177,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public event DocumentEventDelegate Rebuilt 
+        public event DocumentEventDelegate Rebuilt
         {
             add => m_DocumentRebuildEventHandler.Attach(value);
             remove => m_DocumentRebuildEventHandler.Detach(value);
@@ -194,7 +195,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             remove => m_DocumentSavedEventHandler.Detach(value);
         }
 
-        public event DataStoreAvailableDelegate StreamReadAvailable 
+        public event DataStoreAvailableDelegate StreamReadAvailable
         {
             add => m_StreamReadAvailableHandler.Attach(value);
             remove => m_StreamReadAvailableHandler.Detach(value);
@@ -239,6 +240,16 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly DocumentSavedEventHandler m_DocumentSavedEventHandler;
 
         public IModelDoc2 Model => m_Creator.Element;
+
+        public IXIdentifier Id
+        {
+            get
+            {
+                var creationDate = DateTime.Parse(Model.SummaryInfo[(int)swSummInfoField_e.swSumInfoCreateDate2]).ToUniversalTime();
+                var id = new DateTimeOffset(creationDate).ToUnixTimeSeconds();
+                return new XIdentifier(id);
+            }
+        }
 
         public string Path
         {

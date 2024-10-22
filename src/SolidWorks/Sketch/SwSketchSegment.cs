@@ -22,6 +22,7 @@ using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry.Curves;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
@@ -43,6 +44,8 @@ namespace Xarial.XCad.SolidWorks.Sketch
         protected readonly ISketchManager m_SketchMgr;
 
         public ISketchSegment Segment => m_Creator.Element;
+
+        public override IXIdentifier Id => new XIdentifier((int[])Segment.GetID());
 
         public override bool IsCommitted => m_Creator.IsCreated;
 

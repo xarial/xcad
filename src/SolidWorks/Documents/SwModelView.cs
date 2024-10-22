@@ -197,6 +197,29 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXCustomGraphicsContext CustomGraphicsContext => m_CustomGraphicsContextLazy.Value;
 
+        public bool Transparent 
+        {
+            get 
+            {
+                //NOTE: IModelDocExtension::GetTopLevelTransparency is not available, returning the cached value intead
+                return m_CachedIsTransparent;
+            }
+            set 
+            {
+                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018))
+                {
+                    Owner.Extension.SetTopLevelTransparency(value);
+                    m_CachedIsTransparent = value;
+                }
+                else 
+                {
+                    throw new NotSupportedException("Supported in SOLIDWORKS 2018 or newer");
+                }
+            }
+        }
+
+        private bool m_CachedIsTransparent;
+
         private readonly Lazy<IXCustomGraphicsContext> m_CustomGraphicsContextLazy;
 
         internal SwModelView(IModelView view, SwDocument doc, SwApplication app) : base(view, doc, app)

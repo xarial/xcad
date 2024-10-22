@@ -37,6 +37,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
     internal class SwDmCutListItem : SwDmSelObject, ISwDmCutListItem
     {
         #region Not Supported
+        public IXIdentifier Id => throw new NotSupportedException();
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
         public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IEnumerable<IXFace> Faces => throw new NotSupportedException();

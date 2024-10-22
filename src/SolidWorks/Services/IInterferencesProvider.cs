@@ -39,8 +39,9 @@ namespace Xarial.XCad.SolidWorks.Services
         /// <param name="assm">Assembly</param>
         /// <param name="comps">Components or null to get all interferences</param>
         /// <param name="visibleOnly">Get visible only components</param>
+        /// <param name="treatCoincidenceAsInterference">True to treat conicidence as an interference</param>
         /// <returns>Interferences</returns>
-        IInterferences GetInterferences(ISwAssembly assm, IXComponent[] comps, bool visibleOnly);
+        IInterferences GetInterferences(ISwAssembly assm, IXComponent[] comps, bool visibleOnly, bool treatCoincidenceAsInterference);
     }
 
     internal class InterferencesProvider : IInterferencesProvider 
@@ -54,7 +55,7 @@ namespace Xarial.XCad.SolidWorks.Services
             private readonly IInterferenceDetectionMgr m_InterfDetectMgr;
             private readonly IEnumerable<IInterference> m_Interferences;
 
-            internal Interferences(ISwAssembly assm, IXComponent[] comps, bool visibleOnly)
+            internal Interferences(ISwAssembly assm, IXComponent[] comps, bool visibleOnly, bool treatCoincidenceAsInterference)
             {
                 m_UiFreeze = new UiFreeze(assm);
                 m_InterfDetectMgr = assm.Assembly.InterferenceDetectionManager;
@@ -68,7 +69,7 @@ namespace Xarial.XCad.SolidWorks.Services
                     m_SelGrp.AddRange(swComps);
                 }
 
-                m_InterfDetectMgr.TreatCoincidenceAsInterference = true;
+                m_InterfDetectMgr.TreatCoincidenceAsInterference = treatCoincidenceAsInterference;
                 m_InterfDetectMgr.UseTransform = false;
                 m_InterfDetectMgr.IncludeMultibodyPartInterferences = true;
                 m_InterfDetectMgr.MakeInterferingPartsTransparent = false;
@@ -118,7 +119,7 @@ namespace Xarial.XCad.SolidWorks.Services
             m_IsInit = false;
         }
 
-        public IInterferences GetInterferences(ISwAssembly assm, IXComponent[] comps, bool visibleOnly)
+        public IInterferences GetInterferences(ISwAssembly assm, IXComponent[] comps, bool visibleOnly, bool treatCoincidenceAsInterference)
         {
             //NOTE: when IInterferenceDetectionManager is invoked first time in the sesssion all the contact interferences (e.g. sheet body volume) are not returned
             //to fix invoking first time with dummy data
@@ -133,7 +134,7 @@ namespace Xarial.XCad.SolidWorks.Services
                             return !state.HasFlag(ComponentState_e.Suppressed) && !state.HasFlag(ComponentState_e.SuppressedIdMismatch);
                         }).Take(2).ToArray();
 
-                    using (new Interferences(assm, testComps, visibleOnly))
+                    using (new Interferences(assm, testComps, visibleOnly, treatCoincidenceAsInterference))
                     {
                     }
                 }
@@ -145,7 +146,7 @@ namespace Xarial.XCad.SolidWorks.Services
                 m_IsInit = true;
             }
 
-            return new Interferences(assm, comps, visibleOnly);
+            return new Interferences(assm, comps, visibleOnly, treatCoincidenceAsInterference);
         }
     }
 }

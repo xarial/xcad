@@ -15,6 +15,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Features;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
@@ -40,6 +41,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         public IXDrawingViewRepository DrawingViews => m_DrawingViewsLazy.Value;
+
+        public IXIdentifier Id => new XIdentifier(((ISwDMSheet3)Sheet).GetID());
 
         public Scale Scale 
         {

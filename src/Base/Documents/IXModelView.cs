@@ -51,6 +51,11 @@ namespace Xarial.XCad.Documents
     public interface IXModelView : IXTransaction
     {
         /// <summary>
+        /// Manages the transparency of the model view
+        /// </summary>
+        bool Transparent { get; set; }
+
+        /// <summary>
         /// Display mode of the view
         /// </summary>
         ViewDisplayMode_e DisplayMode { get; set; }

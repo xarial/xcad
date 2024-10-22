@@ -290,7 +290,15 @@ namespace Xarial.XCad.SolidWorks.Annotations
                 {
                     var confName = m_BomTable.ReferencedConfiguration?.Name;
 
-                    var comps = (object[])m_BomTable.BomTableAnnotation.GetComponents2(VisibleIndex + m_Rows.RowIndexOffset, confName);
+                    var rowIndex = VisibleIndex + m_Rows.RowIndexOffset;
+
+                    var comps = (object[])m_BomTable.BomTableAnnotation.GetComponents2(rowIndex, confName);
+
+                    if (comps == null) 
+                    {
+                        //NOTE: in some cases IBomTableAnnotation::GetComponents2 returns null, while compnent is available, while obsolete API returns valid results
+                        comps = (object[])m_BomTable.BomTableAnnotation.GetComponents(rowIndex);
+                    }
 
                     if (comps != null)
                     {

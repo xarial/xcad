@@ -31,7 +31,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public ISketchBlockInstance SketchBlockInstance { get; }
         public IXSketchBlockDefinition Definition => OwnerDocument.CreateObjectFromDispatch<ISwSketchBlockDefinition>(SketchBlockInstance.Definition);
         public IXSketchBase OwnerSketch => OwnerDocument.CreateObjectFromDispatch<ISwSketchBase>(SketchBlockInstance.GetSketch());
-        
+
         public IXSketchBlockInstance OwnerBlock 
         {
             get 

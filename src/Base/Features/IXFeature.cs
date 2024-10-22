@@ -38,6 +38,11 @@ namespace Xarial.XCad.Features
     public interface IXFeature : IXSelObject, IXEntity, IHasColor, IDimensionable, IXTransaction, IHasName
     {
         /// <summary>
+        /// Id of this feature
+        /// </summary>
+        IXIdentifier Id { get; }
+
+        /// <summary>
         /// Identifies if this feature is standard (soldered) or a user created
         /// </summary>
         bool IsUserFeature { get; }

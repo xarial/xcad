@@ -17,6 +17,11 @@ namespace Xarial.XCad.Sketch
     public interface IXSketchEntity : IXSelObject, IHasColor, IXTransaction, IHasName, IXWireEntity, IHasLayer
     {
         /// <summary>
+        /// Id of this sketch entity
+        /// </summary>
+        IXIdentifier Id { get; }
+
+        /// <summary>
         /// Owner sketch of this sketch entity
         /// </summary>
         IXSketchBase OwnerSketch { get; }

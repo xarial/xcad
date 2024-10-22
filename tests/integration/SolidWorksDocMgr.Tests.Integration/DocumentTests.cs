@@ -800,5 +800,75 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.IsTrue(r7);
             Assert.IsTrue(r8);
         }
+
+        [Test]
+        public void IdTest() 
+        {
+            var part1IdExp = new byte[]
+            {
+                200, 234, 22, 103, 0, 0, 0, 0
+            };
+
+            var part2IdExp = new byte[]
+            {
+                63, 235, 22, 103, 0, 0, 0, 0
+            };
+
+            byte[] id1;
+            byte[] id2;
+            byte[] id3;
+            byte[] id4;
+            byte[] id5;
+            byte[] id6;
+
+            using (var doc = OpenDataDocument(@"Id\IdPart1.SLDPRT"))
+            {
+                var part = (IXDocument3D)m_App.Documents.Active;
+
+                id1 = part.Id.Thumbprint;
+            }
+
+            using (var doc = OpenDataDocument(@"Id\IdPart1Copy.SLDPRT"))
+            {
+                var part = (IXDocument3D)m_App.Documents.Active;
+
+                id2 = part.Id.Thumbprint;
+            }
+
+            using (var doc = OpenDataDocument(@"Id\IdPart1CopyModified.SLDPRT"))
+            {
+                var part = (IXDocument3D)m_App.Documents.Active;
+
+                id3 = part.Id.Thumbprint;
+            }
+
+            using (var doc = OpenDataDocument(@"Id\IdPart1SaveAs.SLDPRT"))
+            {
+                var part = (IXDocument3D)m_App.Documents.Active;
+
+                id4 = part.Id.Thumbprint;
+            }
+
+            using (var doc = OpenDataDocument(@"Id\IdPart2.SLDPRT"))
+            {
+                var part = (IXDocument3D)m_App.Documents.Active;
+
+                id5 = part.Id.Thumbprint;
+            }
+
+            using (var doc = OpenDataDocument(@"Id\IdPart2Copy.SLDPRT"))
+            {
+                var part = (IXDocument3D)m_App.Documents.Active;
+
+                id6 = part.Id.Thumbprint;
+            }
+
+            CollectionAssert.AreEqual(part1IdExp, id1);
+            CollectionAssert.AreEqual(part1IdExp, id2);
+            CollectionAssert.AreEqual(part1IdExp, id3);
+            CollectionAssert.AreEqual(part1IdExp, id4);
+            CollectionAssert.AreEqual(part2IdExp, id5);
+            CollectionAssert.AreEqual(part2IdExp, id6);
+        }
     }
 }

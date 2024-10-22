@@ -27,6 +27,7 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SwDocumentManager.Data;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Data;
 using Xarial.XCad.UI;
 
@@ -142,6 +143,24 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         IXPropertyRepository IPropertiesOwner.Properties => Properties;
 
         public ISwDMDocument Document => m_Creator.Element;
+
+        public IXIdentifier Id 
+        {
+            get 
+            {
+                if (OwnerApplication.IsVersionNewerOrEqual(SwDmVersion_e.Sw2015))
+                {
+                    var id = Convert.ToInt64(((ISwDMDocument19)Document).CreationDate2);
+                    return new XIdentifier(id);
+                }
+                else 
+                {
+                    var creationDate = DateTime.Parse(Document.CreationDate).ToUniversalTime();
+                    var id = new DateTimeOffset(creationDate).ToUnixTimeSeconds();
+                    return new XIdentifier(id);
+                }
+            }
+        }
 
         public ISwDmVersion Version => SwDmApplicationFactory.CreateVersion((SwDmVersion_e)Document.GetVersion());
 

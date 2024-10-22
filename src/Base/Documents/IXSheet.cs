@@ -40,6 +40,11 @@ namespace Xarial.XCad.Documents
     public interface IXSheet : IXSelObject, IXTransaction
     {
         /// <summary>
+        /// Id of this sheet
+        /// </summary>
+        IXIdentifier Id { get; }
+
+        /// <summary>
         /// Name of the sheet
         /// </summary>
         string Name { get; set; }

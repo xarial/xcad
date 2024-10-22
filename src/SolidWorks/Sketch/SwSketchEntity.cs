@@ -30,6 +30,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal abstract class SwSketchEntity : SwSelObject, ISwSketchEntity
     {
+        public abstract IXIdentifier Id { get; }
         public new abstract bool IsCommitted { get; }
         public abstract Color? Color { get; set; }
 

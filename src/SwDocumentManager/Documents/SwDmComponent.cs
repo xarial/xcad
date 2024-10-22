@@ -29,6 +29,7 @@ using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
 using Xarial.XCad.SwDocumentManager.Features;
 using Xarial.XCad.SwDocumentManager.Services;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Utils;
 using static Xarial.XCad.SwDocumentManager.Documents.SwDmDocument;
 
@@ -65,6 +66,21 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         IXComponent IXComponent.Parent => Parent;
 
         public ISwDMComponent Component { get; }
+
+        public IXIdentifier Id
+        {
+            get
+            {
+                if (OwnerApplication.IsVersionNewerOrEqual(SwDmVersion_e.Sw2014))
+                {
+                    return new XIdentifier(((ISwDMComponent9)Component).GetID());
+                }
+                else 
+                {
+                    throw new NotSupportedException("Component ID is only support in SOLIDWORKS 2014 or newer");
+                }
+            }
+        }
 
         internal SwDmAssembly ParentAssembly { get; }
 

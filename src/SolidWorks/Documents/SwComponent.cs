@@ -152,6 +152,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             remove => m_ComponentMovedEventsHandler.Detach(value);
         }
 
+        public IXIdentifier Id => new XIdentifier(Component.GetID());
+
         public IComponent2 Component => m_Creator.Element;
 
         internal SwAssembly RootAssembly { get; }

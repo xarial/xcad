@@ -27,11 +27,18 @@ using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Inventor.Utils;
 using Xarial.XCad.Services;
+using Xarial.XCad.Toolkit;
 
 namespace Xarial.XCad.Inventor.Documents
 {
+    /// <summary>
+    /// Autodesk Inventor-specific document
+    /// </summary>
     public interface IAiDocument : IXDocument 
     {
+        /// <summary>
+        /// Pointer to a document
+        /// </summary>
         Document Document { get; }
     }
 
@@ -50,6 +57,8 @@ namespace Xarial.XCad.Inventor.Documents
         public event DocumentEventDelegate Destroyed;
 
         public Document Document => m_Creator.Element;
+
+        public IXIdentifier Id => new XIdentifier(Document.InternalName);
 
         public IXVersion Version => throw new NotImplementedException();
 

@@ -29,6 +29,7 @@ using Xarial.XCad.SolidWorks.Utils;
 using System.Runtime.InteropServices;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Toolkit;
+using Microsoft.VisualBasic;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 {
@@ -52,13 +53,19 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
         private readonly SwApplication m_App;
 
+        private readonly IModeler m_Modeler;
+
         internal SwCollisionDetection(SwDocument3D doc, SwApplication app)
         {
             m_Doc = doc;
 
             m_App = app;
 
+            m_Modeler = app.Sw.IGetModeler();
+
             m_Creator = new ElementCreator<IXCollisionResult[]>(CalculateCollision, null, false);
+
+            m_Creator.CachedProperties.Set(true, nameof(IncludeCoincidentContact));
         }
 
         public IXCollisionResult[] Results => m_Creator.Element;
@@ -72,6 +79,22 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
         }
 
         public bool VisibleOnly
+        {
+            get => m_Creator.CachedProperties.Get<bool>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommittedElementPropertyChangeNotSupported();
+                }
+            }
+        }
+
+        public bool IncludeCoincidentContact
         {
             get => m_Creator.CachedProperties.Get<bool>();
             set
@@ -126,17 +149,38 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
                     var firstBody = CreateCollisionBody(bodies[i]);
                     var secondBody = CreateCollisionBody(bodies[j]);
 
-                    try
-                    {
-                        var intersection = firstBody.Common(secondBody);
+                    swCheckInterferenceOption_e opts;
 
-                        if (intersection?.Any() == true) 
-                        {
-                            results.Add(new SwCollisionResult(new IXBody[] { bodies[i], bodies[j] }, intersection));
-                        }
-                    }
-                    catch 
+                    if (IncludeCoincidentContact)
                     {
+                        opts = swCheckInterferenceOption_e.swBodyInterference_IncludeCoincidentFaces;
+                    }
+                    else 
+                    {
+                        opts = swCheckInterferenceOption_e.swBodyInterference_OptionDefault;
+                    }
+
+                    object firstBodyFaces = null;
+                    object secondBodyFaces = null;
+                    object intersectBodies = null;//actual bodies colliding, not the intersecting volume
+
+                    if (m_Modeler.CheckInterference3(new IBody2[] { firstBody.Body }, new IBody2[] { secondBody.Body }, 
+                        (int)opts, ref firstBodyFaces, ref secondBodyFaces, ref intersectBodies)) 
+                    {
+                        results.Add(new SwCollisionResult(new IXBody[] { bodies[i], bodies[j] }, new Lazy<IXMemoryBody[]>(() => 
+                        {
+                            try
+                            {
+                                var intersection = firstBody.Common(secondBody);
+
+                                return intersection;
+                            }
+                            catch
+                            {
+                                //IBody2::Operation2 does not return the common for the coincidence intersection
+                                return Array.Empty<IXMemoryBody>();
+                            }
+                        })));
                     }
                 }
             }
@@ -161,7 +205,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             }
         }
 
-        protected virtual IXMemoryBody CreateCollisionBody(IXBody body) => body.Copy();
+        protected virtual ISwTempBody CreateCollisionBody(IXBody body) => (ISwTempBody)body.Copy();
 
         public void Dispose()
         {
@@ -171,12 +215,34 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
     internal class SwCollisionResult : IXCollisionResult
     {
         public virtual IXBody[] CollidedBodies { get; }
-        public IXMemoryBody[] CollisionVolume { get; }
+        public IXMemoryBody[] CollisionVolume 
+        {
+            get 
+            {
+                if (m_CollisionVolumeLazy != null)
+                {
+                    return m_CollisionVolumeLazy.Value;
+                }
+                else 
+                {
+                    return m_CollisionVolume;
+                }
+            }
+        }
 
+        private readonly IXMemoryBody[] m_CollisionVolume;
+        private readonly Lazy<IXMemoryBody[]> m_CollisionVolumeLazy;
+        
         internal SwCollisionResult(IXBody[] collidedBodies, IXMemoryBody[] collisionVolume)
         {
             CollidedBodies = collidedBodies;
-            CollisionVolume = collisionVolume;
+            m_CollisionVolume = collisionVolume;
+        }
+
+        internal SwCollisionResult(IXBody[] collidedBodies, Lazy<IXMemoryBody[]> collisionVolumeLazy)
+        {
+            CollidedBodies = collidedBodies;
+            m_CollisionVolumeLazy = collisionVolumeLazy;
         }
     }
 
@@ -350,7 +416,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             {
                 var collisions = new List<IXAssemblyCollisionResult>();
 
-                using (var interferences = m_InterferencesProvider.GetInterferences(m_Assm, (this as IXAssemblyCollisionDetection).Scope, VisibleOnly))
+                using (var interferences = m_InterferencesProvider.GetInterferences(m_Assm, (this as IXAssemblyCollisionDetection).Scope, VisibleOnly, IncludeCoincidentContact))
                 {
                     foreach (var interference in interferences) 
                     {
@@ -379,7 +445,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             }
         }
 
-        protected override IXMemoryBody CreateCollisionBody(IXBody body)
+        protected override ISwTempBody CreateCollisionBody(IXBody body)
         {
             if (!(body is IXMemoryBody))
             {
@@ -391,7 +457,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
                     copy.Transform(comp.Transformation);
 
-                    return copy;
+                    return (ISwTempBody)copy;
                 }
                 else 
                 {
@@ -400,7 +466,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
             }
             else 
             {
-                return body.Copy();
+                return (ISwTempBody)body.Copy();
             }
         }
     }
