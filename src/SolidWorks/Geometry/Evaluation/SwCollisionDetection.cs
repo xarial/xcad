@@ -149,38 +149,46 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
                     var firstBody = CreateCollisionBody(bodies[i]);
                     var secondBody = CreateCollisionBody(bodies[j]);
 
-                    swCheckInterferenceOption_e opts;
-
                     if (IncludeCoincidentContact)
                     {
-                        opts = swCheckInterferenceOption_e.swBodyInterference_IncludeCoincidentFaces;
+                        object firstBodyFaces = null;
+                        object secondBodyFaces = null;
+                        object intersectBodies = null;//actual bodies colliding, not the intersecting volume
+
+                        if (m_Modeler.CheckInterference3(new IBody2[] { firstBody.Body }, new IBody2[] { secondBody.Body },
+                            (int)swCheckInterferenceOption_e.swBodyInterference_IncludeCoincidentFaces, ref firstBodyFaces, ref secondBodyFaces, ref intersectBodies))
+                        {
+                            results.Add(new SwCollisionResult(new IXBody[] { bodies[i], bodies[j] }, new Lazy<IXMemoryBody[]>(() =>
+                            {
+                                try
+                                {
+                                    var intersection = firstBody.Common(secondBody);
+
+                                    return intersection;
+                                }
+                                catch
+                                {
+                                    //IBody2::Operation2 does not return the common for the coincidence intersection
+                                    return Array.Empty<IXMemoryBody>();
+                                }
+                            })));
+                        }
                     }
                     else 
                     {
-                        opts = swCheckInterferenceOption_e.swBodyInterference_OptionDefault;
-                    }
-
-                    object firstBodyFaces = null;
-                    object secondBodyFaces = null;
-                    object intersectBodies = null;//actual bodies colliding, not the intersecting volume
-
-                    if (m_Modeler.CheckInterference3(new IBody2[] { firstBody.Body }, new IBody2[] { secondBody.Body }, 
-                        (int)opts, ref firstBodyFaces, ref secondBodyFaces, ref intersectBodies)) 
-                    {
-                        results.Add(new SwCollisionResult(new IXBody[] { bodies[i], bodies[j] }, new Lazy<IXMemoryBody[]>(() => 
+                        //NOTE: body boolean operations does not work for the contact surface, using this option if contact is not required to improve performance
+                        try
                         {
-                            try
-                            {
-                                var intersection = firstBody.Common(secondBody);
+                            var intersection = firstBody.Common(secondBody);
 
-                                return intersection;
-                            }
-                            catch
+                            if (intersection?.Any() == true)
                             {
-                                //IBody2::Operation2 does not return the common for the coincidence intersection
-                                return Array.Empty<IXMemoryBody>();
+                                results.Add(new SwCollisionResult(new IXBody[] { bodies[i], bodies[j] }, intersection));
                             }
-                        })));
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
             }
