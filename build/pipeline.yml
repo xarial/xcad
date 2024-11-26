@@ -89,7 +89,7 @@ stages:
         inputs:
           targetType: 'inline'
           script: |
-            Start-Process -FilePath "$ENV:signer" -Wait -ArgumentList "`"$(Pipeline.Workspace)/tools/_build/Xarial.XCad.Inventor.Tools.StandAloneConnector.dll`" `"xCAD Stand-Alone Connector`" `"https://xcad.net`""
+            Start-Process -FilePath "$ENV:signer" -NoNewWindow -Wait -ArgumentList "`"$(Pipeline.Workspace)/tools/_build/Xarial.XCad.Inventor.Tools.StandAloneConnector.dll`" `"xCAD Stand-Alone Connector`" `"https://xcad.net`""
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - task: CopyFiles@2
           displayName: 'Staging signed tools binaries'
