@@ -79,9 +79,12 @@ stages:
       - checkout: none
       - download: current
         artifact: tools
-      - script: |
-              %signer% "$(Pipeline.Workspace)/tools/_build/Xarial.XCad.Inventor.Tools.StandAloneConnector.dll" "xCAD Stand-Alone Connector" "https://xcad.net"
-            displayName: 'Signing xCAD Stand-Alone Connector dll file'
+      - task: PowerShell@2
+        displayName: 'Signing xCAD Stand-Alone Connector dll file'
+        inputs:
+          targetType: 'inline'
+          script: |
+            Start-Process -FilePath %signer% -Wait -ArgumentList "$(Pipeline.Workspace)/tools/_build/Xarial.XCad.Inventor.Tools.StandAloneConnector.dll" "xCAD Stand-Alone Connector" "https://xcad.net"
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - task: CopyFiles@2
           displayName: 'Staging signed tools binaries'
