@@ -94,7 +94,7 @@ stages:
         - task: CopyFiles@2
           displayName: 'Staging signed tools binaries'
           inputs:
-            SourceFolder: '$(Pipeline.Workspace)/tools/_build'
+            SourceFolder: '$(Pipeline.Workspace)/tools/'
             Contents: '**\*.*'
             TargetFolder: '$(Build.ArtifactStagingDirectory)/tools-signed'
 
@@ -149,24 +149,23 @@ stages:
         inputs:
           secureFile: xarial.snk
 
-      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-        - task: CopyFiles@2
-          displayName: 'Copy NuGet packages to artifacts folder'
-          inputs:
-            SourceFolder: '$(system.defaultworkingdirectory)/build'
-            Contents: |
-              **\*.nupkg
-              **\*.snupkg
-            TargetFolder: '$(Build.ArtifactStagingDirectory)/packages'
+      # - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+      #   - task: CopyFiles@2
+      #     displayName: 'Copy NuGet packages to artifacts folder'
+      #     inputs:
+      #       SourceFolder: '$(system.defaultworkingdirectory)/build'
+      #       Contents: |
+      #         **\*.nupkg
+      #         **\*.snupkg
+      #       TargetFolder: '$(Build.ArtifactStagingDirectory)/packages'
 
-        #TODO: remove
-        - task: VSBuild@1
-          displayName: 'Build Tools projects'
-          inputs:
-            solution: 'tools/**/*.csproj'
-            msbuildArgs: '/p:SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=.$(Build.BuildID)'
-            platform: '$(BuildPlatform)'
-            configuration: '$(BuildConfiguration)'
+        # - task: VSBuild@1
+        #   displayName: 'Build Tools projects'
+        #   inputs:
+        #     solution: 'tools/**/*.csproj'
+        #     msbuildArgs: '/p:SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=.$(Build.BuildID)'
+        #     platform: '$(BuildPlatform)'
+        #     configuration: '$(BuildConfiguration)'
 
       # - task: codesigning@2
       #   displayName: 'Signing xCAD Stand-Alone Connector dll file'
@@ -186,6 +185,10 @@ stages:
           msbuildArgs: '/p:SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=.$(Build.BuildID)'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
+
+      - download: current
+        artifact: tools-signed
+        targetPath: '$(System.DefaultWorkingDirectory)/tools/_build'
 
       - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
