@@ -16,8 +16,14 @@ using Xarial.XCad.SolidWorks.Documents;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Surfaces
 {
+    /// <summary>
+    /// SOLIDWORKS-specific <see cref="IXSurface"/>
+    /// </summary>
     public interface ISwSurface : IXSurface, ISwObject
     {
+        /// <summary>
+        /// Pointer to SOLIDWORKS surfaces
+        /// </summary>
         ISurface Surface { get; }
     }
 

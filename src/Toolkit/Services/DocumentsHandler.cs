@@ -109,7 +109,7 @@ namespace Xarial.XCad.Toolkit.Services
             {
                 m_Handlers.Remove(handlerInfo);
 
-                foreach (var docMapKey in m_DocsMap) 
+                foreach (var docMapKey in m_DocsMap)
                 {
                     var handlers = docMapKey.Value;
 

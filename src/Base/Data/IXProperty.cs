@@ -16,7 +16,7 @@ namespace Xarial.XCad.Data
     /// <summary>
     /// Represents the custom property
     /// </summary>
-    public interface IXProperty : IXTransaction
+    public interface IXProperty : IXObject
     {
         /// <summary>
         /// Raised when the value of this property is changed

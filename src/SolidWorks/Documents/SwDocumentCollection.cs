@@ -317,7 +317,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void RegisterHandler<THandler>(Func<THandler> handlerFact) 
             where THandler : IDocumentHandler
-            => m_DocsHandler.RegisterHandler(handlerFact);
+            => m_DocsHandler.RegisterHandler<THandler>(handlerFact);
 
         public void UnregisterHandler<THandler>()
             where THandler : IDocumentHandler

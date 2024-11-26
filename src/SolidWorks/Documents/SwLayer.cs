@@ -90,7 +90,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public bool IsCommitted => m_Creator.IsCreated;
+        public override bool IsCommitted => m_Creator.IsCreated;
 
         public Color? Color
         {
@@ -134,7 +134,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         private ILayer CreateLayer(CancellationToken cancellationToken)
         {

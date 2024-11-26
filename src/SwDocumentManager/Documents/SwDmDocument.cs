@@ -140,7 +140,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         #endregion
 
         IXVersion IXDocument.Version => Version;
-        IXPropertyRepository IPropertiesOwner.Properties => Properties;
+        IXPropertyRepository IXDocument.Properties => Properties;
 
         public ISwDMDocument Document => m_Creator.Element;
 
@@ -286,7 +286,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IXDocumentDependencies Dependencies { get; }
 
-        public bool IsCommitted => m_Creator.IsCreated;
+        public override bool IsCommitted => m_Creator.IsCreated;
 
         public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
 
@@ -429,7 +429,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public virtual void Commit(CancellationToken cancellationToken)
+        public override void Commit(CancellationToken cancellationToken)
         {
             m_Creator.Create(cancellationToken);
             m_CreateHandler.Invoke(this);

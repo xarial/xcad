@@ -25,7 +25,8 @@ namespace Xarial.XCad.Geometry
         /// </summary>
         /// <param name="context">Context where preview should be displayed (e.g. document or component)</param>
         /// <param name="color">Color of the body</param>
-        void Preview(IXObject context, Color color);
+        /// <param name="selectable">True to allow users selecting body entities, False to disallow selection</param>
+        void Preview(IXObject context, Color color, bool selectable);
 
         /// <summary>
         /// Boolean add operation on body

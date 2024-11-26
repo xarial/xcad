@@ -13,6 +13,7 @@ using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Data.Delegates;
 using Xarial.XCad.Services;
+using Xarial.XCad.SwDocumentManager.Documents;
 
 namespace Xarial.XCad.SwDocumentManager.Data
 {
@@ -20,7 +21,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
     {
     }
 
-    internal abstract class SwDmCustomProperty : ISwDmCustomProperty
+    internal abstract class SwDmCustomProperty : SwDmObject, ISwDmCustomProperty
     {
         public event PropertyValueChangedDelegate ValueChanged;
 
@@ -88,18 +89,20 @@ namespace Xarial.XCad.SwDocumentManager.Data
             }
         }
 
-        public bool IsCommitted { get; set; }
+        public override bool IsCommitted => m_IsCommitted;
 
-        internal SwDmCustomProperty(string name, bool isCreated) 
+        private bool m_IsCommitted;
+
+        internal SwDmCustomProperty(string name, bool isCreated, SwDmDocument doc, SwDmApplication app)  : base(null, app, doc)
         {
             m_Name = name;
-            IsCommitted = isCreated;
+            m_IsCommitted = isCreated;
         }
 
-        public void Commit(CancellationToken cancellationToken)
+        public override void Commit(CancellationToken cancellationToken)
         {
             AddValue(Value);
-            IsCommitted = true;
+            m_IsCommitted = true;
         }
 
         private void RenameProperty(string from, string to) 

@@ -17,5 +17,10 @@ namespace Xarial.XCad.Data
     /// </summary>
     public interface IXPropertyRepository : IXRepository<IXProperty>
     {
+        /// <summary>
+        /// Owner object of the properties
+        /// </summary>
+        /// <remarks>Value can be one of the following <see cref="Documents.IXDocument"/>, <see cref="Documents.IXConfiguration"/>, <see cref="Features.IXCutListItem"/></remarks>
+        IXObject Owner { get; }
     }
 }

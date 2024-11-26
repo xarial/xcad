@@ -48,9 +48,9 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         private readonly Lazy<ISwCustomPropertiesCollection> m_Properties;
 
-        IXPropertyRepository IPropertiesOwner.Properties => Properties;
+        IXPropertyRepository IXCutListItem.Properties => Properties;
 
-        private ISwDocument3D m_ParentDoc;
+        private SwDocument3D m_ParentDoc;
         private ISwConfiguration m_ParentConf;
 
         private readonly Lazy<ICutListItem> m_CutListItemLazy;
@@ -68,8 +68,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
             CutListBodyFolder = (IBodyFolder)feat.GetSpecificFeature2();
 
-            m_Properties = new Lazy<ISwCustomPropertiesCollection>(
-                () => CreatePropertiesCollection());
+            m_Properties = new Lazy<ISwCustomPropertiesCollection>(CreatePropertiesCollection);
 
             if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
             {
@@ -122,7 +121,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
                 if (bodies != null)
                 {
-                    foreach (var body in bodies.Select(b => OwnerDocument.CreateObjectFromDispatch<ISwSolidBody>(b))) 
+                    foreach (var body in bodies.Select(OwnerDocument.CreateObjectFromDispatch<ISwSolidBody>)) 
                     {
                         if (comp != null && body.Component == null)
                         {
@@ -191,7 +190,7 @@ namespace Xarial.XCad.SolidWorks.Features
             }
         }
 
-        internal void SetParent(ISwDocument3D doc, ISwConfiguration conf) 
+        internal void SetParent(SwDocument3D doc, ISwConfiguration conf) 
         {
             m_ParentDoc = doc;
             m_ParentConf = conf;
@@ -216,20 +215,22 @@ namespace Xarial.XCad.SolidWorks.Features
 
     internal class SwCutListCustomPropertiesCollection : SwCustomPropertiesCollection
     {
-        private readonly ISwDocument3D m_ParentDoc;
+        private readonly SwDocument3D m_ParentDoc;
         private readonly ISwConfiguration m_ParentConf;
 
         private readonly SwCutListItem m_CutListItem;
 
         internal SwCutListCustomPropertiesCollection(SwCutListItem cutListItem,
-            ISwDocument3D parentDoc, ISwConfiguration parentConf, ISwApplication app) 
-            : base(cutListItem, app)
+            SwDocument3D parentDoc, ISwConfiguration parentConf, SwApplication app) 
+            : base(app)
         {
             m_CutListItem = cutListItem;
 
             m_ParentDoc = parentDoc;
             m_ParentConf = parentConf;
         }
+
+        public override IXObject Owner => m_CutListItem;
 
         protected override CustomPropertyManager PrpMgr
         {
@@ -274,8 +275,8 @@ namespace Xarial.XCad.SolidWorks.Features
         private readonly ISwConfiguration m_RefConf;
 
         internal SwCutListCustomProperty(Func<CustomPropertyManager> prpMgrFact, string name,
-            ISwDocument3D refDoc, ISwConfiguration refConf, bool isCommited, ISwApplication app) 
-            : base(prpMgrFact, name, isCommited, app)
+            SwDocument3D refDoc, ISwConfiguration refConf, bool isCommited, SwApplication app) 
+            : base(prpMgrFact, name, isCommited, refDoc, app)
         {
             m_RefDoc = refDoc;
             m_RefConf = refConf;

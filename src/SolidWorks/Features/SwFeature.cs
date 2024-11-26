@@ -225,6 +225,14 @@ namespace Xarial.XCad.SolidWorks.Features
             m_Context = context;
         }
 
+        internal virtual SwFeature Clone(Context context)
+        {
+            var feat = OwnerDocument.CreateObjectFromDispatch<SwFeature>(Feature);
+            feat.SetContext(context);
+
+            return feat;
+        }
+
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         public virtual ISwFeature CreateResilient()

@@ -158,6 +158,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public void Refresh()
+        {
+            var confsMgr = m_Doc.Model.ConfigurationManager;
+
+            confsMgr.EnableConfigurationTree = false;
+            confsMgr.EnableConfigurationTree = true;
+        }
+
         public virtual ISwConfiguration PreCreate() => new SwConfiguration(null, m_Doc, m_App, false);
 
         public void AddRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken) => m_RepoHelper.AddRange(ents, cancellationToken);

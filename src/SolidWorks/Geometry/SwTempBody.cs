@@ -73,16 +73,16 @@ namespace Xarial.XCad.SolidWorks.Geometry
             m_MathUtils = app.Sw.IGetMathUtility();
         }
 
-        internal virtual void Preview(IXObject context, Color color)
+        internal virtual void Preview(IXObject context, Color color, bool selectable)
         {
             switch (context)
             {
                 case ISwPart part:
-                    Display(Body, part.Model, color, false);
+                    Display(Body, part.Model, color, selectable);
                     break;
 
                 case ISwComponent comp:
-                    Display(Body, comp.Component, color, false);
+                    Display(Body, comp.Component, color, selectable);
                     break;
 
                 default:
@@ -289,7 +289,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
             set => throw new NotSupportedException("Temp body does not support name");
         }
 
-        public void Preview(IXObject context, Color color) => m_Creator.Element.Preview(context, color);
+        public void Preview(IXObject context, Color color, bool selectable) => m_Creator.Element.Preview(context, color, selectable);
 
         public ISwTempBody Add(ISwTempBody other) => m_Creator.Element.Add(other);
 

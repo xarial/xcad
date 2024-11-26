@@ -21,7 +21,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
 
         private readonly SwDmConfiguration m_Conf;
 
-        internal SwDmConfigurationCustomPropertiesCollection(SwDmConfiguration conf)
+        internal SwDmConfigurationCustomPropertiesCollection(SwDmConfiguration conf) : base(conf)
         {
             m_Conf = conf;
         }
@@ -47,7 +47,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
         private readonly SwDmConfiguration m_Conf;
 
         internal SwDmConfigurationCustomProperty(SwDmConfiguration conf, string name, bool isCreated) 
-            : base(name, isCreated)
+            : base(name, isCreated, conf.OwnerDocument, conf.OwnerApplication)
         {
             m_Conf = conf;
         }

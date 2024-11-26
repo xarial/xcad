@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Data;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Controls;
@@ -214,7 +215,28 @@ namespace Xarial.XCad.SolidWorks.Annotations
                         confs = null;
                     }
 
-                    return ((double[])Dimension.GetSystemValue3((int)opts, confs))[0];
+                    var sysVal = ((double[])Dimension.GetSystemValue3((int)opts, confs))[0];
+
+                    //NOTE: in some cases the system value is reported incorrectly as 0 (this can happen in the derived configuration when value is not explicitly changed)
+                    if (sysVal == 0) 
+                    {
+                        var units = OwnerDocument.Units;
+
+                        var userVal = ((double[])Dimension.GetValue3((int)opts, confs))[0];
+
+                        switch ((swDimensionParamType_e)Dimension.GetType())
+                        {
+                            case swDimensionParamType_e.swDimensionParamTypeDoubleLinear:
+                                sysVal = units.ConvertLengthToSystemValue(userVal);
+                                break;
+
+                            case swDimensionParamType_e.swDimensionParamTypeDoubleAngular:
+                                sysVal = units.ConvertAngleToSystemValue(userVal);
+                                break;
+                        }
+                    }
+
+                    return sysVal;
                 }
                 else 
                 {

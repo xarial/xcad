@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.IO;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
@@ -24,10 +25,10 @@ namespace Xarial.XCad.SolidWorks
     public interface ISwObject : IXObject
     {
         /// <inheritdoc/>
-        ISwApplication OwnerApplication { get; }
+        new ISwApplication OwnerApplication { get; }
 
         /// <inheritdoc/>
-        ISwDocument OwnerDocument { get; }
+        new ISwDocument OwnerDocument { get; }
 
         /// <summary>
         /// SOLIDWORKS specific dispatch
@@ -161,6 +162,10 @@ namespace Xarial.XCad.SolidWorks
         /// </summary>
         /// <returns></returns>
         protected virtual object GetSerializationDispatch() => Dispatch;
+
+        public virtual bool IsCommitted => throw new NotImplementedException();
+
+        public virtual void Commit(CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 
     internal static class SwObjectExtension

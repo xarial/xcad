@@ -66,8 +66,12 @@ namespace SolidWorks.Tests.Integration
             double v2_1;
             double v3;
             double v3_1;
+            double v3_2;
             double v4;
             double v4_1;
+            double v5;
+            double v5_1;
+            double v5_2;
 
             IDimension swDim;
 
@@ -87,10 +91,16 @@ namespace SolidWorks.Tests.Integration
                 ((ISwDocument3D)m_App.Documents.Active).Configurations["Default"].Dimensions["D1@Sketch1"].Value = 0.5d;
                 v3 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" }) as double[])[0];
                 v3_1 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf2" }) as double[])[0];
+                v3_2 = (swDim.GetValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "SubConf1" }) as double[])[0];
 
                 ((ISwDocument3D)m_App.Documents.Active).Configurations["Conf2"].ConvertObject(dim).Value = 0.6d;
                 v4 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf2" }) as double[])[0];
                 v4_1 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" }) as double[])[0];
+
+                ((ISwDocument3D)m_App.Documents.Active).Configurations["SubConf1"].ConvertObject(dim).Value = 0.7d;
+                v5 = (swDim.GetValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf2" }) as double[])[0];
+                v5_1 = (swDim.GetValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" }) as double[])[0];
+                v5_2 = (swDim.GetValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "SubConf1" }) as double[])[0];
 
                 Assert.Throws<EntityNotFoundException>(() => ((ISwDocument3D)m_App.Documents.Active).Dimensions["D2@Sketch1"].Value = 0.3d);
                 Assert.Throws<EntityNotFoundException>(() => ((ISwDocument3D)m_App.Documents.Active).Configurations["Conf2"].Dimensions["D2@Sketch1"].Value = 0.4d);
@@ -101,8 +111,12 @@ namespace SolidWorks.Tests.Integration
             Assert.That(0.1, Is.EqualTo(v2_1).Within(0.001).Percent);
             Assert.That(0.5, Is.EqualTo(v3).Within(0.001).Percent);
             Assert.That(0.2, Is.EqualTo(v3_1).Within(0.001).Percent);
+            Assert.That(50, Is.EqualTo(v3_2).Within(0.001).Percent);
             Assert.That(0.6, Is.EqualTo(v4).Within(0.001).Percent);
             Assert.That(0.5, Is.EqualTo(v4_1).Within(0.001).Percent);
+            Assert.That(600, Is.EqualTo(v5).Within(0.001).Percent);
+            Assert.That(500, Is.EqualTo(v5_1).Within(0.001).Percent);
+            Assert.That(700, Is.EqualTo(v5_2).Within(0.001).Percent);
         }
 
         [Test]
@@ -113,6 +127,11 @@ namespace SolidWorks.Tests.Integration
             double r2_1;
             double r3;
             double r3_1;
+            double r4;
+            double r4_1;
+            double r5;
+            double r5_1;
+            double r6;
 
             using (var doc = OpenDataDocument("Dimensions2.sldprt"))
             {
@@ -123,8 +142,13 @@ namespace SolidWorks.Tests.Integration
                 r2_1 = ((ISwDocument3D)m_App.Documents.Active).Configurations["Conf2"].ConvertObject(dim).Value;
                 r3 = ((ISwDocument3D)m_App.Documents.Active).Configurations["Default"].Dimensions["D1@Sketch1"].Value;
                 r3_1 = ((ISwDocument3D)m_App.Documents.Active).Configurations["Default"].ConvertObject(dim).Value;
-                Assert.Throws<EntityNotFoundException>(() => { var r4 = ((ISwDocument3D)m_App.Documents.Active).Configurations["Default"].Dimensions["D2@Sketch1"].Value; });
-                Assert.Throws<EntityNotFoundException>(() => { var r5 = ((ISwDocument3D)m_App.Documents.Active).Configurations["Conf2"].Dimensions["D2@Sketch1"].Value; });
+                r4 = ((ISwDocument3D)m_App.Documents.Active).Configurations["SubConf1"].Dimensions["D1@Sketch1"].Value;
+                r4_1 = ((ISwDocument3D)m_App.Documents.Active).Configurations["SubConf1"].ConvertObject(dim).Value;
+                r5 = ((ISwDocument3D)m_App.Documents.Active).Configurations["SubConf1"].Dimensions["D1@Sketch2"].Value;
+                r5_1 = ((ISwDocument3D)m_App.Documents.Active).Configurations["SubConf1"].ConvertObject(dim).Value;
+                r6 = ((ISwDocument3D)m_App.Documents.Active).Configurations["SubConf1"].Dimensions["D2@Sketch2"].Value;
+                Assert.Throws<EntityNotFoundException>(() => { var r7 = ((ISwDocument3D)m_App.Documents.Active).Configurations["Default"].Dimensions["D2@Sketch1"].Value; });
+                Assert.Throws<EntityNotFoundException>(() => { var r8 = ((ISwDocument3D)m_App.Documents.Active).Configurations["Conf2"].Dimensions["D2@Sketch1"].Value; });
             }
 
             Assert.That(0.125, Is.EqualTo(r1).Within(0.001).Percent);
@@ -132,6 +156,11 @@ namespace SolidWorks.Tests.Integration
             Assert.That(0.235, Is.EqualTo(r2_1).Within(0.001).Percent);
             Assert.That(0.125, Is.EqualTo(r3).Within(0.001).Percent);
             Assert.That(0.125, Is.EqualTo(r3_1).Within(0.001).Percent);
+            Assert.That(0.05, Is.EqualTo(r4).Within(0.001).Percent);
+            Assert.That(0.05, Is.EqualTo(r4_1).Within(0.001).Percent);
+            Assert.That(105 * Math.PI / 180, Is.EqualTo(r5).Within(0.001).Percent);
+            Assert.That(0.05, Is.EqualTo(r5_1).Within(0.001).Percent);
+            Assert.That(0.03, Is.EqualTo(r6).Within(0.001).Percent);
         }
 
         [Test]
@@ -203,6 +232,10 @@ namespace SolidWorks.Tests.Integration
             double v2_1;
             double v3;
             double v3_1;
+            double v3_2;
+            double v4;
+            double v4_1;
+            double v4_2;
 
             IDimension swDim;
 
@@ -225,6 +258,13 @@ namespace SolidWorks.Tests.Integration
                 m_App.Documents.Active.Rebuild();
                 v3 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" }) as double[])[0];
                 v3_1 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf2" }) as double[])[0];
+                v3_2 = (swDim.GetValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "SubConf1" }) as double[])[0];
+
+                assmConf.Components["Dimensions2-3"].ReferencedConfiguration.Dimensions["D1@Sketch1"].Value = 0.7d;
+                m_App.Documents.Active.Rebuild();
+                v4 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" }) as double[])[0];
+                v4_1 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf2" }) as double[])[0];
+                v4_2 = (swDim.GetValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "SubConf1" }) as double[])[0];
 
                 Assert.Throws<EntityNotFoundException>(() => assmConf.Components["Dimensions2-1"].Dimensions["D2@Sketch1"].Value = 0.3d);
                 Assert.Throws<EntityNotFoundException>(() => assmConf.Components["Dimensions2-2"].Dimensions["D2@Sketch1"].Value = 0.4d);
@@ -235,6 +275,10 @@ namespace SolidWorks.Tests.Integration
             Assert.That(0.1, Is.EqualTo(v2_1).Within(0.001).Percent);
             Assert.That(0.5, Is.EqualTo(v3).Within(0.001).Percent);
             Assert.That(0.2, Is.EqualTo(v3_1).Within(0.001).Percent);
+            Assert.That(50, Is.EqualTo(v3_2).Within(0.001).Percent);
+            Assert.That(0.5, Is.EqualTo(v4).Within(0.001).Percent);
+            Assert.That(0.2, Is.EqualTo(v4_1).Within(0.001).Percent);
+            Assert.That(700, Is.EqualTo(v4_2).Within(0.001).Percent);
         }
 
         [Test]
@@ -243,6 +287,9 @@ namespace SolidWorks.Tests.Integration
             double r1;
             double r2;
             double r3;
+            double r4;
+            double r5;
+            double r6;
 
             using (var doc = OpenDataDocument("DimensionsAssem2.SLDASM"))
             {
@@ -251,13 +298,20 @@ namespace SolidWorks.Tests.Integration
                 r1 = assmConf.Components["Dimensions2-1"].ReferencedConfiguration.Dimensions["D1@Sketch1"].Value;
                 r2 = assmConf.Components["Dimensions2-2"].Dimensions["D1@Sketch1"].Value;
                 r3 = assmConf.Components["Dimensions2-1"].Dimensions["D1@Sketch1"].Value;
-                Assert.Throws<EntityNotFoundException>(() => { var r4 = assmConf.Components["Dimensions2-1"].Dimensions["D2@Sketch1"].Value; });
-                Assert.Throws<EntityNotFoundException>(() => { var r5 = assmConf.Components["Dimensions2-2"].Dimensions["D2@Sketch1"].Value; });
+                r4 = assmConf.Components["Dimensions2-3"].Dimensions["D1@Sketch1"].Value;
+                r5 = assmConf.Components["Dimensions2-3"].Dimensions["D1@Sketch2"].Value;
+                r6 = assmConf.Components["Dimensions2-3"].Dimensions["D2@Sketch2"].Value;
+
+                Assert.Throws<EntityNotFoundException>(() => { var r7 = assmConf.Components["Dimensions2-1"].Dimensions["D2@Sketch1"].Value; });
+                Assert.Throws<EntityNotFoundException>(() => { var r8 = assmConf.Components["Dimensions2-2"].Dimensions["D2@Sketch1"].Value; });
             }
 
             Assert.That(0.125, Is.EqualTo(r1).Within(0.001).Percent);
             Assert.That(0.235, Is.EqualTo(r2).Within(0.001).Percent);
             Assert.That(0.125, Is.EqualTo(r3).Within(0.001).Percent);
+            Assert.That(0.05, Is.EqualTo(r4).Within(0.001).Percent);
+            Assert.That(105 * Math.PI / 180, Is.EqualTo(r5).Within(0.001).Percent);
+            Assert.That(0.03, Is.EqualTo(r6).Within(0.001).Percent);
         }
 
         [Test]

@@ -315,11 +315,11 @@ namespace Xarial.XCad.SolidWorks.Graphics
             m_WasShown = true;
         }
 
-        public bool IsCommitted => m_Creator.IsCreated;
+        public override bool IsCommitted => m_Creator.IsCreated;
 
         public ITriadManipulator Triad => m_Creator.Element;
 
-        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         private void ValidateHandler(SwTriadHandler handler)
         {

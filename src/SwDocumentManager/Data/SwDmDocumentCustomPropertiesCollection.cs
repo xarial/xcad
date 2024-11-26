@@ -19,9 +19,9 @@ namespace Xarial.XCad.SwDocumentManager.Data
     {
         public override int Count => m_Doc.Document.GetCustomPropertyCount();
 
-        private readonly ISwDmDocument m_Doc;
+        private readonly SwDmDocument m_Doc;
 
-        internal SwDmDocumentCustomPropertiesCollection(ISwDmDocument doc) 
+        internal SwDmDocumentCustomPropertiesCollection(SwDmDocument doc) : base(doc)
         {
             m_Doc = doc;
         }
@@ -45,7 +45,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
     {
         private readonly ISwDmDocument m_Doc;
         
-        public SwDmDocumentCustomProperty(ISwDmDocument doc, string name, bool isCreated) : base(name, isCreated)
+        public SwDmDocumentCustomProperty(SwDmDocument doc, string name, bool isCreated) : base(name, isCreated, doc, doc.OwnerApplication)
         {
             m_Doc = doc;
         }

@@ -51,7 +51,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
         public bool IsUserFeature => throw new NotSupportedException();
         #endregion
 
-        IXPropertyRepository IPropertiesOwner.Properties => Properties;
+        IXPropertyRepository IXCutListItem.Properties => Properties;
         
         public ISwDMCutListItem2 CutListItem { get; }
 

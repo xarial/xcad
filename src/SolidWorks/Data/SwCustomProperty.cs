@@ -32,7 +32,7 @@ namespace Xarial.XCad.SolidWorks.Data
     }
 
     [DebuggerDisplay("{" +nameof(Name) + "} = {" + nameof(Value) + "} ({" + nameof(Expression) + "})")]
-    internal class SwCustomProperty : ISwCustomProperty
+    internal class SwCustomProperty : SwObject, ISwCustomProperty
     {
         private string m_Name;
         private object m_TempValue;
@@ -119,23 +119,21 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected ICustomPropertyManager PrpMgr => m_PrpMgrFact.Invoke();
 
-        public bool IsCommitted 
-        {
-            get;
-            private set;
-        }
+        public override bool IsCommitted => m_IsCommitted;
         public bool UseCached { get; set; }
 
         protected readonly ISwApplication m_App;
 
+        private bool m_IsCommitted;
+
         private readonly Func<ICustomPropertyManager> m_PrpMgrFact;
 
-        internal SwCustomProperty(Func<ICustomPropertyManager> prpMgrFact, string name, bool isCommited, ISwApplication app)
+        internal SwCustomProperty(Func<ICustomPropertyManager> prpMgrFact, string name, bool isCommited, SwDocument doc, SwApplication app) : base(null, doc, app)
         {
             m_PrpMgrFact = prpMgrFact;
             UseCached = true;
             m_Name = name;
-            IsCommitted = isCommited;
+            m_IsCommitted = isCommited;
             m_App = app;
         }
 
@@ -223,13 +221,13 @@ namespace Xarial.XCad.SolidWorks.Data
             }
         }
 
-        public void Commit(CancellationToken cancellationToken)
+        public override void Commit(CancellationToken cancellationToken)
         {
             if (!IsCommitted)
             {
                 AddProperty(PrpMgr, Name, Value);
 
-                IsCommitted = true;
+                m_IsCommitted = true;
             }
             else 
             {
@@ -292,8 +290,8 @@ namespace Xarial.XCad.SolidWorks.Data
     {
         private readonly SwConfiguration m_Conf;
         
-        internal SwConfigurationCustomProperty(Func<ICustomPropertyManager> prpMgrFact, string name, bool isCommited, SwConfiguration conf, ISwApplication app)
-            : base(prpMgrFact, name, isCommited, app)
+        internal SwConfigurationCustomProperty(Func<ICustomPropertyManager> prpMgrFact, string name, bool isCommited, SwConfiguration conf, SwApplication app)
+            : base(prpMgrFact, name, isCommited, conf.OwnerDocument, app)
         {
             m_Conf = conf;
         }

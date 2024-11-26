@@ -36,6 +36,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             remove => throw new NotSupportedException();
         }
         public void AddRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public void Refresh() => throw new NotSupportedException();
         public IXConfiguration PreCreate() => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXConfiguration => throw new NotSupportedException();
         #endregion

@@ -205,14 +205,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
         public override event CutListRebuildDelegate CutListRebuild
         {
-            add
-            {
-                m_CutListRebuildLazy.Value.Attach(value);
-            }
-            remove
-            {
-                m_CutListRebuildLazy.Value.Detach(value);
-            }
+            add => m_CutListRebuildLazy.Value.Attach(value);
+            remove => m_CutListRebuildLazy.Value.Detach(value);
         }
 
         internal SwPartComponentCutListItemCollection(SwPartComponent comp) 
@@ -226,7 +220,7 @@ namespace Xarial.XCad.SolidWorks.Features
             var refConf = (ISwConfiguration)m_Comp.ReferencedConfiguration;
             var refDoc = m_Comp.ReferencedDocument;
 
-            if (refDoc is ISwPart)
+            if (refDoc is SwPart)
             {
                 if (refDoc.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2024) && refConf.IsCommitted && !ordered)
                 {
@@ -239,8 +233,8 @@ namespace Xarial.XCad.SolidWorks.Features
                             var compCutListItem = m_Comp.Component.GetCorresponding(cutListItem);
                             if (compCutListItem != null)
                             {
-                                var cutList = refDoc.CreateObjectFromDispatch<SwCutListItem>(cutListItem);
-                                cutList.SetParent(refDoc, refConf);
+                                var cutList = m_Comp.RootAssembly.CreateObjectFromDispatch<SwCutListItem>(cutListItem);
+                                cutList.SetParent((SwPart)refDoc, refConf);
                                 yield return cutList;
                             }
                             else 
@@ -254,7 +248,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 {
                     if (refDoc.IsCommitted)
                     {
-                        foreach (var cutList in FeatureManager.IterateCutListFeatures(refDoc, refConf))
+                        foreach (var cutList in FeatureManager.IterateCutListFeatures((SwPart)refDoc, refConf))
                         {
                             yield return cutList;
                         }

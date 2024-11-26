@@ -112,7 +112,33 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        IXPropertyRepository IPropertiesOwner.Properties => Properties;
+        public virtual string Comment
+        {
+            get
+            {
+                if (m_Creator.IsCreated)
+                {
+                    return Configuration.Comment;
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<string>();
+                }
+            }
+            set
+            {
+                if (m_Creator.IsCreated)
+                {
+                    Configuration.Comment = value;
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        IXPropertyRepository IXConfiguration.Properties => Properties;
         IXDimensionRepository IDimensionable.Dimensions => Dimensions;
 
         public virtual ISwCustomPropertiesCollection Properties => m_PropertiesLazy.Value;
@@ -347,6 +373,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                 case SwDimension dim:
                     return dim.Clone(new Context(this)) as TSelObject;
 
+                case SwFeature feat:
+                    return feat.Clone(new Context(this)) as TSelObject;
+
                 default:
                     throw new NotSupportedException();
             }
@@ -468,6 +497,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             var name = Name;
             var desc = Description;
+            var comment = Comment;
 
             if (!string.IsNullOrEmpty(name))
             {
@@ -504,11 +534,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
                 {
-                    conf = m_Doc.Model.ConfigurationManager.AddConfiguration2(name, "", "", (int)confOpts, Parent?.Name, desc, false);
+                    conf = m_Doc.Model.ConfigurationManager.AddConfiguration2(name, comment, "", (int)confOpts, Parent?.Name, desc, false);
                 }
                 else
                 {
-                    conf = m_Doc.Model.ConfigurationManager.AddConfiguration(name, "", "", (int)confOpts, Parent?.Name, desc);
+                    conf = m_Doc.Model.ConfigurationManager.AddConfiguration(name, comment, "", (int)confOpts, Parent?.Name, desc);
                 }
 
                 if (conf != null)
@@ -629,6 +659,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public override string Description { get => throw new InactiveLdrConfigurationNotSupportedException(); set => throw new InactiveLdrConfigurationNotSupportedException(); }
+        public override string Comment { get => throw new InactiveLdrConfigurationNotSupportedException(); set => throw new InactiveLdrConfigurationNotSupportedException(); }
 
         private string m_ViewOnlyConfName;
 
@@ -660,6 +691,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public override string Description { get => throw new InactiveLdrConfigurationNotSupportedException(); set => throw new InactiveLdrConfigurationNotSupportedException(); }
+        public override string Comment { get => throw new InactiveLdrConfigurationNotSupportedException(); set => throw new InactiveLdrConfigurationNotSupportedException(); }
         public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfigurationNotSupportedException();
         public override object Dispatch => throw new InactiveLdrConfigurationNotSupportedException();
         public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfigurationNotSupportedException();
@@ -682,6 +714,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public override string Description { get => throw new InactiveLdrConfigurationNotSupportedException(); set => throw new InactiveLdrConfigurationNotSupportedException(); }
+        public override string Comment { get => throw new InactiveLdrConfigurationNotSupportedException(); set => throw new InactiveLdrConfigurationNotSupportedException(); }
         public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfigurationNotSupportedException();
         public override object Dispatch => throw new InactiveLdrConfigurationNotSupportedException();
         public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfigurationNotSupportedException();

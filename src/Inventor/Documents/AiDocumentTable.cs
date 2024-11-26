@@ -51,6 +51,9 @@ namespace Xarial.XCad.Inventor.Documents
 
         public void AddRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken)
             => throw new NotSupportedException();
+
+        public void Refresh() => throw new NotSupportedException();
+
         public T PreCreate<T>() where T : IXConfiguration
             => throw new NotSupportedException();
 

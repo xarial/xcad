@@ -24,7 +24,7 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     internal class SwSelObject : SwObject, ISwSelObject
     {        
-        public virtual bool IsCommitted => true;
+        public override bool IsCommitted => true;
 
         public bool IsSelected => SelectionIndex != -1;
 
@@ -67,7 +67,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public virtual void Commit(CancellationToken cancellationToken)
+        public override void Commit(CancellationToken cancellationToken)
         {
         }
 

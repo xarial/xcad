@@ -187,7 +187,7 @@ namespace Xarial.XCad.SolidWorks.Graphics
 
         public IXCalloutRow[] Rows { get; private set; }
 
-        public bool IsCommitted => m_Creator.IsCreated;
+        public override bool IsCommitted => m_Creator.IsCreated;
 
         public ICallout Callout => m_Creator.Element;
         
@@ -336,7 +336,7 @@ namespace Xarial.XCad.SolidWorks.Graphics
             }
         }
 
-        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         public IXCalloutRow AddRow()
         {

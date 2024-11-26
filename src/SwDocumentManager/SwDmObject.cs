@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.SwDocumentManager.Documents;
@@ -67,6 +68,9 @@ namespace Xarial.XCad.SwDocumentManager
                 return false;
             }
         }
+
+        public virtual bool IsCommitted => throw new NotImplementedException();
+        public virtual void Commit(CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 
     public static class SwDmObjectFactory 

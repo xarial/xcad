@@ -25,7 +25,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
         private readonly SwDmDocument3D m_Doc;
         private readonly ISwDmPartConfiguration m_Conf;
 
-        internal SwDmCutListCustomPropertiesCollection(ISwDmCutListItem cutList, SwDmDocument3D doc, ISwDmPartConfiguration conf)
+        internal SwDmCutListCustomPropertiesCollection(SwDmCutListItem cutList, SwDmDocument3D doc, ISwDmPartConfiguration conf) : base(cutList)
         {
             m_CutList = cutList;
             m_Doc = doc;
@@ -54,7 +54,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
         private readonly ISwDmConfiguration m_Conf;
 
         public SwDmCutListCustomProperty(ISwDmCutListItem cutList, SwDmDocument3D doc, ISwDmConfiguration conf, string name, bool isCreated) 
-            : base(name, isCreated)
+            : base(name, isCreated, doc, doc.OwnerApplication)
         {
             m_CutList = cutList;
             m_Doc = doc;

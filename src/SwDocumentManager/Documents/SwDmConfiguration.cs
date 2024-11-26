@@ -45,7 +45,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";
 
-        IXPropertyRepository IPropertiesOwner.Properties => Properties;
+        IXPropertyRepository IXConfiguration.Properties => Properties;
         
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
@@ -212,6 +212,16 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set
             {
                 Configuration.Description = value;
+                Document.IsDirty = true;
+            }
+        }
+
+        public string Comment
+        {
+            get => ((ISwDMConfiguration7)Configuration).Comment2;
+            set
+            {
+                ((ISwDMConfiguration7)Configuration).Comment2 = value;
                 Document.IsDirty = true;
             }
         }

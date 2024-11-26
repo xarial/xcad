@@ -269,7 +269,7 @@ namespace Xarial.XCad.Utils.CustomFeature
                 {
                     Definition.OnAssignPreviewBodyColor(CurrentFeature, body, out Color color);
 
-                    body.Preview(previewContext, color);
+                    body.Preview(previewContext, color, false);
                 }
             }
         }

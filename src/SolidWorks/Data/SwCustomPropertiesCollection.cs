@@ -27,6 +27,9 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Data
 {
+    /// <summary>
+    /// SOLIDWORKS-specific <see cref="IXPropertyRepository"/>
+    /// </summary>
     public interface ISwCustomPropertiesCollection : IXPropertyRepository, IDisposable
     {
         new ISwCustomProperty this[string name] { get; }
@@ -35,13 +38,15 @@ namespace Xarial.XCad.SolidWorks.Data
 
     internal class PropertyEntityCache : EntityCache<IXProperty>
     {
-        private readonly IPropertiesOwner m_Owner;
+        private readonly IXPropertyRepository m_Prps;
 
-        public PropertyEntityCache(IPropertiesOwner owner, IXRepository<IXProperty> repo, Func<IXProperty, string> nameProvider) 
-            : base(owner, repo, nameProvider)
+        public PropertyEntityCache(IXPropertyRepository prps, Func<IXProperty, string> nameProvider) 
+            : base(prps.Owner, prps, nameProvider)
         {
-            m_Owner = owner;
+            m_Prps = prps;
         }
+
+        protected override IXObject Owner => m_Prps.Owner;
 
         protected override void CommitEntitiesFromCache(IReadOnlyList<IXProperty> ents, CancellationToken cancellationToken)
         {
@@ -49,7 +54,7 @@ namespace Xarial.XCad.SolidWorks.Data
             {
                 //NOTE: when new configuration is created it may copy proepties from the source configuration
                 //and it is required to overwrite their values instead of adding new as it may fail
-                if (m_Owner.Properties.TryGet(ent.Name, out var prp))
+                if (m_Prps.TryGet(ent.Name, out var prp))
                 {
                     prp.Value = ent.Value;
                 }
@@ -83,7 +88,7 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public bool TryGet(string name, out IXProperty ent)
         {
-            if (m_Owner.IsCommitted)
+            if (Owner.IsCommitted)
             {
                 if (Exists(name))
                 {
@@ -106,7 +111,7 @@ namespace Xarial.XCad.SolidWorks.Data
         {
             get
             {
-                if (m_Owner.IsCommitted)
+                if (Owner.IsCommitted)
                 {
                     return PrpMgr.Count;
                 }
@@ -119,23 +124,22 @@ namespace Xarial.XCad.SolidWorks.Data
 
         protected abstract CustomPropertyManager PrpMgr { get; }
 
-        protected readonly ISwApplication m_App;
+        public abstract IXObject Owner { get; }
+
+        protected readonly SwApplication m_App;
 
         private readonly RepositoryHelper<IXProperty> m_RepoHelper;
 
-        private readonly IPropertiesOwner m_Owner;
-
         private readonly EntityCache<IXProperty> m_Cache;
 
-        protected SwCustomPropertiesCollection(IPropertiesOwner owner, ISwApplication app)
+        protected SwCustomPropertiesCollection(SwApplication app)
         {
             m_App = app;
-            m_Owner = owner;
 
             m_RepoHelper = new RepositoryHelper<IXProperty>(this,
-                TransactionFactory<IXProperty>.Create(() => PreCreate()));
+                TransactionFactory<IXProperty>.Create(PreCreate));
 
-            m_Cache = new PropertyEntityCache(owner, this, c => c.Name);
+            m_Cache = new PropertyEntityCache(this, c => c.Name);
         }
 
         public T PreCreate<T>() where T : IXProperty => m_RepoHelper.PreCreate<T>();
@@ -159,7 +163,7 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public void AddRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken)
         {
-            if (m_Owner.IsCommitted)
+            if (Owner.IsCommitted)
             {
                 m_RepoHelper.AddRange(ents, cancellationToken);
             }
@@ -171,7 +175,7 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public IEnumerator<IXProperty> GetEnumerator()
         {
-            if (m_Owner.IsCommitted)
+            if (Owner.IsCommitted)
             {
                 return IterateProperties().GetEnumerator();
             }
@@ -183,7 +187,7 @@ namespace Xarial.XCad.SolidWorks.Data
 
         public void RemoveRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken)
         {
-            if (m_Owner.IsCommitted)
+            if (Owner.IsCommitted)
             {
                 foreach (var prp in ents)
                 {
@@ -258,11 +262,7 @@ namespace Xarial.XCad.SolidWorks.Data
 
         private readonly SwDocument m_Doc;
 
-        internal SwFileCustomPropertiesCollection(SwDocument doc, ISwApplication app) : this(doc, doc, app)
-        {
-        }
-
-        protected SwFileCustomPropertiesCollection(SwDocument doc, IPropertiesOwner owner, ISwApplication app) : base(owner, app)
+        internal SwFileCustomPropertiesCollection(SwDocument doc, SwApplication app) : base(app)
         {
             m_Doc = doc;
             m_EventsHelper = new CustomPropertiesEventsHelper(app.Sw, doc);
@@ -270,11 +270,13 @@ namespace Xarial.XCad.SolidWorks.Data
             m_EventsHandlers = new List<EventsHandler<PropertyValueChangedDelegate>>();
         }
 
+        public override IXObject Owner => m_Doc;
+
         protected override CustomPropertyManager PrpMgr => m_Doc.Model.Extension.CustomPropertyManager[GetConfiguration()?.Name ?? ""];
 
         protected override SwCustomProperty CreatePropertyInstance(string name, bool isCreated)
         {
-            var prp = new SwCustomProperty(() => PrpMgr, name, isCreated, m_App);
+            var prp = new SwCustomProperty(() => PrpMgr, name, isCreated, m_Doc, m_App);
             InitProperty(prp);
             return prp;
         }
@@ -316,11 +318,13 @@ namespace Xarial.XCad.SolidWorks.Data
     {
         private readonly SwConfiguration m_Conf;
 
-        internal SwConfigurationCustomPropertiesCollection(SwConfiguration conf, SwDocument doc, ISwApplication app)
-            : base(doc, conf, app)
+        internal SwConfigurationCustomPropertiesCollection(SwConfiguration conf, SwDocument doc, SwApplication app)
+            : base(doc, app)
         {
             m_Conf = conf;
         }
+
+        public override IXObject Owner => m_Conf;
 
         protected override SwCustomProperty CreatePropertyInstance(string name, bool isCreated)
         {

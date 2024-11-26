@@ -35,7 +35,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
         public IXPoint StartPoint => GetPoint(true);
         public IXPoint EndPoint => GetPoint(false);
 
-        public bool IsCommitted => m_Creator.IsCreated;
+        public override bool IsCommitted => m_Creator.IsCreated;
 
         public double Length
         {
@@ -116,7 +116,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             m_Creator = new ElementCreator<ICurve[]>(Create, curves, isCreated);
         }
 
-        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
 
         protected virtual ICurve[] Create(CancellationToken cancellationToken) => throw new NotSupportedException();
 

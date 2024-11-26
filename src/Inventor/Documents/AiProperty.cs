@@ -30,11 +30,11 @@ namespace Xarial.XCad.Inventor.Documents
     }
 
     [DebuggerDisplay("{" + nameof(Name) + "} = {" + nameof(Value) + "} ({" + nameof(Expression) + "})")]
-    internal class AiProperty : IAiProperty
+    internal class AiProperty : AiObject, IAiProperty
     {
         public event PropertyValueChangedDelegate ValueChanged;
 
-        internal AiProperty (Property prp)
+        internal AiProperty (Property prp, AiDocument doc, AiApplication app) : base(prp, doc, app)
         {
             Property = prp;
         }
@@ -59,19 +59,14 @@ namespace Xarial.XCad.Inventor.Documents
             set => Property.Expression = value; 
         }
 
-        public bool IsCommitted => true;
-
-        public void Commit(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+        public override bool IsCommitted => true;
     }
 
     internal class AiPartCellProperty : AiProperty, IAiPartCellProperty
     {
         public iPartTableCell Cell { get; }
 
-        internal AiPartCellProperty(Property prp, iPartTableCell cell) : base(prp)
+        internal AiPartCellProperty(Property prp, iPartTableCell cell, AiDocument doc, AiApplication app) : base(prp, doc, app)
         {
             Cell = cell;
         }
@@ -87,7 +82,7 @@ namespace Xarial.XCad.Inventor.Documents
     {
         public iAssemblyTableCell Cell { get; }
 
-        internal AiAssemblyCellProperty(Property prp, iAssemblyTableCell cell) : base(prp)
+        internal AiAssemblyCellProperty(Property prp, iAssemblyTableCell cell, AiDocument doc, AiApplication app) : base(prp, doc, app)
         {
             Cell = cell;
         }

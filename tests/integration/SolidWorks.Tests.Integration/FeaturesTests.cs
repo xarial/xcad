@@ -292,6 +292,10 @@ namespace SolidWorks.Tests.Integration
             FeatureState_e s9;
             FeatureState_e s10;
 
+            FeatureState_e ds1;
+            FeatureState_e ds2;
+            FeatureState_e ds3;
+
             bool r1;
             bool r2;
             bool r3;
@@ -314,6 +318,13 @@ namespace SolidWorks.Tests.Integration
 
                 s7 = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components["Part1-2"].Features["Sketch1"].State;
                 s8 = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components["Part1-2"].Features["Sketch2"].State;
+
+                var refDoc = ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components["Part1-1"].ReferencedDocument;
+                var f1 = refDoc.Features["Sketch2"];
+
+                ds1 = f1.State;
+                ds2 = refDoc.Configurations["Default"].ConvertObject(f1).State;
+                ds3 = refDoc.Configurations["Conf1"].ConvertObject(f1).State;
 
                 ((ISwAssembly)assm).Model.Extension.SelectByID2("Sketch2@Part1-1@Assem19", "SKETCH", 0, 0, 0, false, 0, null, 0);
                 s9 = assm.Selections.OfType<IXFeature>().First().State;
@@ -344,6 +355,9 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(FeatureState_e.Suppressed, s8);
             Assert.AreEqual(FeatureState_e.Suppressed, s9);
             Assert.AreEqual(FeatureState_e.Suppressed, s10);
+            Assert.AreEqual(FeatureState_e.Default, ds1);
+            Assert.AreEqual(FeatureState_e.Default, ds2);
+            Assert.AreEqual(FeatureState_e.Suppressed, ds3);
             Assert.AreEqual(true, r1);
             Assert.AreEqual(false, r2);
             Assert.AreEqual(false, r3);

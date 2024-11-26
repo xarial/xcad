@@ -23,9 +23,9 @@ namespace Xarial.XCad.SolidWorks.Utils
         /// Owner of this object
         /// </summary>
         /// <remarks>This is typically either <see cref="XCad.Documents.IXDocument"/>, <see cref="XCad.Documents.IXConfiguration"/> or <see cref="XCad.Documents.IXComponent"/></remarks>
-        internal IXTransaction Owner { get; }
+        internal IXObject Owner { get; }
 
-        internal Context(IXTransaction owner) 
+        internal Context(IXObject owner) 
         {
             Owner = owner;
         }

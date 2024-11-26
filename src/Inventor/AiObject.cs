@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
@@ -36,6 +37,8 @@ namespace Xarial.XCad.Inventor
 
         public ITagsManager Tags => throw new NotImplementedException();
 
+        public virtual bool IsCommitted => throw new NotImplementedException();
+
         internal AiObject(object dispatch, AiDocument ownerDoc, AiApplication ownerApp) 
         {
             Dispatch = dispatch;
@@ -43,14 +46,10 @@ namespace Xarial.XCad.Inventor
             OwnerApplication = ownerApp;
         }
 
-        public virtual bool Equals(IXObject other)
-        {
-            throw new NotImplementedException();
-        }
+        public virtual bool Equals(IXObject other) => Dispatch == ((AiObject)other).Dispatch;
 
-        public void Serialize(Stream stream)
-        {
-            throw new NotImplementedException();
-        }
+        public void Serialize(Stream stream) => throw new NotImplementedException();
+
+        public virtual void Commit(CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 }

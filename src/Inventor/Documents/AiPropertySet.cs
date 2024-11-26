@@ -54,6 +54,8 @@ namespace Xarial.XCad.Inventor.Documents
 
         public PropertySet PropertySet => m_Doc.Document.PropertySets[USER_DEFINED_PRP_SET_NAME];
 
+        public abstract IXObject Owner { get; }
+
         public void AddRange(IEnumerable<IXProperty> ents, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
@@ -84,13 +86,15 @@ namespace Xarial.XCad.Inventor.Documents
 
         public override int Count => PropertySet.Count;
 
+        public override IXObject Owner => m_Doc;
+
         public override bool TryGet(string name, out IXProperty ent) => m_RepoHelper.TryFindByName(name, out ent);
 
         protected override IEnumerable<AiProperty> EnumerateProperties()
         {
             foreach (Property prp in PropertySet) 
             {
-                yield return new AiProperty(prp);
+                yield return new AiProperty(prp, m_Doc, m_Doc.OwnerApplication);
             }
         }
     }
@@ -105,6 +109,7 @@ namespace Xarial.XCad.Inventor.Documents
         }
 
         public override int Count => EnumerateProperties().Count();
+        public override IXObject Owner => m_Row;
 
         public override bool TryGet(string name, out IXProperty ent) => m_RepoHelper.TryFindByName(name, out ent);
 
@@ -117,7 +122,7 @@ namespace Xarial.XCad.Inventor.Documents
                 if (refObj is Property) 
                 {
                     var cell = m_Row.Row[column];
-                    yield return new AiAssemblyCellProperty((Property)refObj, cell);
+                    yield return new AiAssemblyCellProperty((Property)refObj, cell, m_Row.OwnerDocument, m_Row.OwnerApplication);
                 }
             }
         }
@@ -133,6 +138,7 @@ namespace Xarial.XCad.Inventor.Documents
         }
 
         public override int Count => EnumerateProperties().Count();
+        public override IXObject Owner => m_Row;
 
         public override bool TryGet(string name, out IXProperty ent) => m_RepoHelper.TryFindByName(name, out ent);
 
@@ -145,7 +151,7 @@ namespace Xarial.XCad.Inventor.Documents
                 if (refObj is Property)
                 {
                     var cell = m_Row.Row[column.Index];
-                    yield return new AiPartCellProperty((Property)refObj, cell);
+                    yield return new AiPartCellProperty((Property)refObj, cell, m_Row.OwnerDocument, m_Row.OwnerApplication);
                 }
             }
         }

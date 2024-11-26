@@ -65,7 +65,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public bool IsSelected => throw new NotSupportedException();
 
-        public bool IsCommitted => true;
+        public override bool IsCommitted => true;
 
         public abstract IXPropertyRepository Properties { get; }
 
@@ -74,23 +74,15 @@ namespace Xarial.XCad.Inventor.Documents
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : class, IXSelObject => throw new NotSupportedException();
 
-        public void Commit(CancellationToken cancellationToken)
-        {
-            throw new NotSupportedException();
-        }
+        public override void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
 
-        public void Delete()
-        {
-            throw new NotSupportedException();
-        }
+        public void Delete() => throw new NotSupportedException();
 
-        public void Select(bool append)
-        {
-            throw new NotSupportedException();
-        }
+        public void Select(bool append) => throw new NotSupportedException();
 
         public abstract string Name { get; set; }
         public string Description { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string Comment { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 
     internal class AiPartRow : AiDocumentRow, IAiPartRow 

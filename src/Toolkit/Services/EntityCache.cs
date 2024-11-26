@@ -21,7 +21,7 @@ namespace Xarial.XCad.Toolkit.Services
     /// </summary>
     /// <typeparam name="TEnt">Type of entity</typeparam>
     public class EntityCache<TEnt> : IXRepository<TEnt>
-            where TEnt : IXTransaction
+            where TEnt : IXObject
     {
         private readonly List<TEnt> m_Cache;
 
@@ -30,7 +30,7 @@ namespace Xarial.XCad.Toolkit.Services
         /// <summary>
         /// Owner of the entities
         /// </summary>
-        protected readonly IXTransaction m_Owner;
+        protected virtual IXObject Owner { get; }
 
         /// <summary>
         /// Source repository of the cahce
@@ -43,9 +43,9 @@ namespace Xarial.XCad.Toolkit.Services
         /// <param name="owner">Owner of the cache</param>
         /// <param name="repo">Repository with cache</param>
         /// <param name="nameProvider">Provider for the name of the item in the cache</param>
-        public EntityCache(IXTransaction owner, IXRepository<TEnt> repo, Func<TEnt, string> nameProvider)
+        public EntityCache(IXObject owner, IXRepository<TEnt> repo, Func<TEnt, string> nameProvider)
         {
-            m_Owner = owner;
+            Owner = owner;
             m_Repo = repo;
             m_NameProvider = nameProvider;
 
@@ -135,7 +135,7 @@ namespace Xarial.XCad.Toolkit.Services
         {
             if (ents.Any())
             {
-                if (m_Owner.IsCommitted)
+                if (Owner.IsCommitted)
                 {
                     m_Repo.AddRange(ents, cancellationToken);
                 }

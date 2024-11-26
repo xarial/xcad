@@ -37,7 +37,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
     {
         private readonly SwDimensionsCollection m_DimsColl;
 
-        public SwDimensionEntityCache(IXTransaction owner, SwDimensionsCollection dimsColl, Func<IXDimension, string> nameProvider) : base(owner, dimsColl, nameProvider)
+        public SwDimensionEntityCache(IXObject owner, SwDimensionsCollection dimsColl, Func<IXDimension, string> nameProvider) : base(owner, dimsColl, nameProvider)
         {
             m_DimsColl = dimsColl;
         }

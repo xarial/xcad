@@ -45,7 +45,7 @@ namespace SolidWorksDocMgr.Tests.Integration
     public abstract class IntegrationTests
     {
         private readonly string m_DataFolder;
-        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2023;
+        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2025;
 
         protected ISwDmApplication m_App;
 

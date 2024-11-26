@@ -28,9 +28,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
 
         public Point Coordinate { get; set; }
 
-        public bool IsCommitted => true;
+        public override bool IsCommitted => true;
 
-        public void Commit(CancellationToken cancellationToken)
+        public override void Commit(CancellationToken cancellationToken)
         {
         }
     }
@@ -44,7 +44,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             MathPoint = mathPt;
         }
 
-        public bool IsCommitted => true;
+        public override bool IsCommitted => true;
 
         public Point Coordinate 
         {
@@ -52,7 +52,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Curves
             set => MathPoint.ArrayData = value.ToArray();
         }
 
-        public void Commit(CancellationToken cancellationToken)
+        public override void Commit(CancellationToken cancellationToken)
         {
         }
     }

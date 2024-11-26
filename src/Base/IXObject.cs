@@ -7,6 +7,7 @@
 
 using System;
 using System.IO;
+using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 
@@ -15,7 +16,7 @@ namespace Xarial.XCad
     /// <summary>
     /// Wrapper interface over the specific object
     /// </summary>
-    public interface IXObject : IEquatable<IXObject>
+    public interface IXObject : IXTransaction, IEquatable<IXObject>
     {
         /// <summary>
         /// Application which owns this object

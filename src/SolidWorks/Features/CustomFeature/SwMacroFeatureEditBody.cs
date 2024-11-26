@@ -97,11 +97,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        internal override void Preview(IXObject context, Color color)
+        internal override void Preview(IXObject context, Color color, bool selectable)
         {
             if (m_IsPreview)
             {
-                PreviewBody.Value.Preview(context, color);
+                PreviewBody.Value.Preview(context, color, selectable);
             }
             else
             {
@@ -141,7 +141,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_MacroFeatureBodyContainer = new SwMacroFeatureBodyContainer(body, doc, app, isPreview);
         }
 
-        public void Preview(IXObject context, Color color) => m_MacroFeatureBodyContainer.Preview(context, color);
+        public void Preview(IXObject context, Color color, bool selectable) => m_MacroFeatureBodyContainer.Preview(context, color, selectable);
         public ISwTempBody Add(ISwTempBody other) => m_MacroFeatureBodyContainer.Add(other);
         public ISwTempBody[] Substract(ISwTempBody other) => m_MacroFeatureBodyContainer.Substract(other);
         public ISwTempBody[] Common(ISwTempBody other) => m_MacroFeatureBodyContainer.Common(other);
@@ -167,7 +167,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_MacroFeatureBodyContainer = new SwMacroFeatureBodyContainer(body, doc, app, isPreview);
         }
 
-        public void Preview(IXObject context, Color color) => m_MacroFeatureBodyContainer.Preview(context, color);
+        public void Preview(IXObject context, Color color, bool selectable) => m_MacroFeatureBodyContainer.Preview(context, color, selectable);
         public ISwTempBody Add(ISwTempBody other) => m_MacroFeatureBodyContainer.Add(other);
         public ISwTempBody[] Substract(ISwTempBody other) => m_MacroFeatureBodyContainer.Substract(other);
         public ISwTempBody[] Common(ISwTempBody other) => m_MacroFeatureBodyContainer.Common(other);
@@ -193,7 +193,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_MacroFeatureBodyContainer = new SwMacroFeatureBodyContainer(body, doc, app, isPreview);
         }
 
-        public void Preview(IXObject context, Color color) => m_MacroFeatureBodyContainer.Preview(context, color);
+        public void Preview(IXObject context, Color color, bool selectable) => m_MacroFeatureBodyContainer.Preview(context, color, selectable);
         public ISwTempBody Add(ISwTempBody other) => m_MacroFeatureBodyContainer.Add(other);
         public ISwTempBody[] Substract(ISwTempBody other) => m_MacroFeatureBodyContainer.Substract(other);
         public ISwTempBody[] Common(ISwTempBody other) => m_MacroFeatureBodyContainer.Common(other);
@@ -219,7 +219,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_MacroFeatureBodyContainer = new SwMacroFeatureBodyContainer(body, doc, app, isPreview);
         }
 
-        public void Preview(IXObject context, Color color) => m_MacroFeatureBodyContainer.Preview(context, color);
+        public void Preview(IXObject context, Color color, bool selectable) => m_MacroFeatureBodyContainer.Preview(context, color, selectable);
         public ISwTempBody Add(ISwTempBody other) => m_MacroFeatureBodyContainer.Add(other);
         public ISwTempBody[] Substract(ISwTempBody other) => m_MacroFeatureBodyContainer.Substract(other);
         public ISwTempBody[] Common(ISwTempBody other) => m_MacroFeatureBodyContainer.Common(other);

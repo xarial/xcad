@@ -164,7 +164,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public int UpdateStamp => throw new NotImplementedException();
 
-        public bool IsCommitted => m_Creator.IsCreated;
+        public override bool IsCommitted => m_Creator.IsCreated;
 
         public IXPropertyRepository Properties { get; }
 
@@ -217,7 +217,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public void Close() => Document.Close(true);
 
-        public void Commit(CancellationToken cancellationToken)
+        public override void Commit(CancellationToken cancellationToken)
             => m_Creator.Create(cancellationToken);
 
         public TObj DeserializeObject<TObj>(Stream stream) where TObj : IXObject

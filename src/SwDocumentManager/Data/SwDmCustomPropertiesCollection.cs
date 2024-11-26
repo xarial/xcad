@@ -53,9 +53,10 @@ namespace Xarial.XCad.SwDocumentManager.Data
 
         private readonly RepositoryHelper<IXProperty> m_RepoHelper;
 
-        protected SwDmCustomPropertiesCollection() 
+        protected SwDmCustomPropertiesCollection(SwDmObject owner) 
         {
             m_RepoHelper = new RepositoryHelper<IXProperty>(this);
+            Owner = owner;
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -64,6 +65,9 @@ namespace Xarial.XCad.SwDocumentManager.Data
             => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
         public abstract int Count { get; }
+
+        public IXObject Owner { get; }
+
         public abstract IEnumerator<IXProperty> GetEnumerator();
 
         protected abstract bool Exists(string name);

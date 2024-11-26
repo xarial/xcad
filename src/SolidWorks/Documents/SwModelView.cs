@@ -118,7 +118,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public virtual IModelView View { get; }
 
         //TODO: implement creation of new views
-        public bool IsCommitted => true;
+        public override bool IsCommitted => true;
 
         public override object Dispatch => View;
 
@@ -253,7 +253,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         /// <inheritdoc/>
         public void ZoomToFit() => Owner.ViewZoomtofit2();
 
-        public void Commit(CancellationToken cancellationToken)
+        public override void Commit(CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

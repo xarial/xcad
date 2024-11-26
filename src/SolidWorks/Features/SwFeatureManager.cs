@@ -87,6 +87,9 @@ namespace Xarial.XCad.SolidWorks.Features
 
         protected readonly RepositoryHelper<IXFeature> m_RepoHelper;
 
+        internal virtual TFeat Get<TFeat>(IFeature feat) where TFeat : SwFeature
+            => Document.CreateObjectFromDispatch<TFeat>(feat);
+
         internal SwFeatureManager(SwDocument doc, SwApplication app, Context context)
         {
             m_App = app;
@@ -299,7 +302,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
                 if (swFeat != null)
                 {
-                    var feat = Document.CreateObjectFromDispatch<SwFeature>(swFeat);
+                    var feat = this.Get<SwFeature>(swFeat);
                     feat.SetContext(m_Context);
                     ent = feat;
                     return true;
@@ -347,7 +350,7 @@ namespace Xarial.XCad.SolidWorks.Features
         }
 
         internal static IEnumerable<SwCutListItem> IterateCutListFeatures(this SwFeatureManager featMgr,
-            ISwDocument3D parent, ISwConfiguration refConf)
+            SwDocument3D parent, ISwConfiguration refConf)
         {
             if (TryGetSolidBodyFeature(featMgr, out var solidBodyFeat))
             {
@@ -359,7 +362,7 @@ namespace Xarial.XCad.SolidWorks.Features
 
                         if (cutListFolder.GetBodyCount() > 0)//no bodies for hidden cut-lists (not available in the specific configuration)
                         {
-                            var cutList = featMgr.Document.CreateObjectFromDispatch<SwCutListItem>(subFeat);
+                            var cutList = featMgr.Get<SwCutListItem>(subFeat);
                             cutList.SetParent(parent, refConf);
                             yield return cutList;
                         }

@@ -222,7 +222,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXFeatureRepository IXDocument.Features => Features;
         IXSelectionRepository IXDocument.Selections => Selections;
         IXDimensionRepository IDimensionable.Dimensions => Dimensions;
-        IXPropertyRepository IPropertiesOwner.Properties => Properties;
+        IXPropertyRepository IXDocument.Properties => Properties;
         IXVersion IXDocument.Version => Version;
         IXModelViewRepository IXDocument.ModelViews => ModelViews;
 
@@ -472,7 +472,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
         
-        public bool IsCommitted => m_Creator.IsCreated;
+        public override bool IsCommitted => m_Creator.IsCreated;
 
         protected readonly IElementCreator<IModelDoc2> m_Creator;
 
@@ -844,6 +844,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                         return SwVersion_e.Sw2023;
                     case 17000:
                         return SwVersion_e.Sw2024;
+                    case 18000:
+                        return SwVersion_e.Sw2025;
                     default:
                         throw new NotSupportedException($"'{latestVers}' version is not recognized");
                 }
@@ -1301,7 +1303,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public virtual void Commit(CancellationToken cancellationToken)
+        public override void Commit(CancellationToken cancellationToken)
             => m_Creator.Create(cancellationToken);
 
         public void Save()

@@ -877,7 +877,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SwAssembly m_Assm;
         internal SwComponent Component { get; }
 
-        private readonly RepositoryHelper<IXFeature> m_RepoHelper;
+        private readonly RepositoryHelper<IXFeature> m_CompsRepoHelper;
 
         public SwComponentFeatureManager(SwComponent comp, SwAssembly assm, SwApplication app, Context context) 
             : base((SwDocument)comp.ReferencedDocument, app, context)
@@ -885,7 +885,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Assm = assm;
             Component = comp;
 
-            m_RepoHelper = new RepositoryHelper<IXFeature>(this);
+            m_CompsRepoHelper = new RepositoryHelper<IXFeature>(this);
         }
 
         public override void AddRange(IEnumerable<IXFeature> feats, CancellationToken cancellationToken)
@@ -896,10 +896,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        internal override TFeat Get<TFeat>(IFeature feat) => m_Assm.CreateObjectFromDispatch<TFeat>(feat);
+
         public override IEnumerator<IXFeature> GetEnumerator() => new ComponentFeatureEnumerator(m_Assm, GetFirstFeature(), new Context(Component));
 
         public override IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) 
-            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
+            => m_CompsRepoHelper.FilterDefault(this, filters, reverseOrder);
 
         protected internal override IFeature GetFirstFeature() => Component.Component.FirstFeature();
 
@@ -909,7 +911,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (swFeat != null)
             {
-                var feat = m_Assm.CreateObjectFromDispatch<SwFeature>(swFeat);
+                var feat = Get<SwFeature>(swFeat);
                 feat.SetContext(m_Context);
                 ent = feat;
                 return true;

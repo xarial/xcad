@@ -108,6 +108,92 @@ namespace SwAddInExample
     }
 
     [ComVisible(true)]
+    [LockedPage(LockPageStrategy_e.Restorable)]
+    [PageButtons(PageButtons_e.Okay | PageButtons_e.Cancel | PageButtons_e.Pushpin)]
+    public class DynamicSketchBasedObjectData : SwPropertyManagerPageHandler
+    {
+        [Tab(nameof(TabData1.OnClicked))]
+        public class TabData1 
+        {
+            public class GroupData1 
+            {
+                public double Number { get; set; }
+            }
+
+            public GroupData1 Group1 { get; }
+
+            private readonly ISwApplication m_App;
+
+            public TabData1(ISwApplication app) 
+            {
+                m_App = app;
+                Group1 = new GroupData1();
+            }
+
+            private void OnClicked()
+            {
+                const int swCommands_Point = 72;
+
+                m_App.Sw.RunCommand(swCommands_Point, "");
+            }
+        }
+
+        [Tab(nameof(TabData2.OnClicked))]
+        public class TabData2
+        {
+            public class GroupData2
+            {
+                public double Number { get; set; }
+            }
+
+            public GroupData2 Group2 { get; }
+
+            private readonly ISwApplication m_App;
+
+            private readonly Mouse m_Mouse;
+
+            public TabData2(ISwApplication app)
+            {
+                m_App = app;
+                m_App.Documents.Active.Selections.NewSelection += OnNewSelection;
+
+                m_Mouse = ((ISwModelView)m_App.Documents.Active.ModelViews.Active).View.GetMouse();
+                m_Mouse.MouseLBtnUpNotify += OnMouseLBtnUpNotify;
+
+                Group2 = new GroupData2();
+            }
+
+            private int OnMouseLBtnUpNotify(int X, int Y, int WParam)
+            {
+                var ptsCount = ((ISwDocument)m_App.Documents.Active).Model.SketchManager.ActiveSketch.GetSketchPointsCount2();
+                System.Diagnostics.Trace.WriteLine(ptsCount);
+                return 0;
+            }
+
+            private void OnNewSelection(IXDocument doc, IXSelObject selObject)
+            {
+            }
+
+            private void OnClicked()
+            {
+                const int swCommands_Point = 72;
+
+                m_App.Sw.RunCommand(swCommands_Point, "");
+            }
+        }
+
+        public TabData1 Tab1 { get; }
+
+        public TabData2 Tab2 { get; }
+
+        public DynamicSketchBasedObjectData(ISwApplication app) 
+        {
+            Tab1 = new TabData1(app);
+            Tab2 = new TabData2(app);
+        }
+    }
+
+    [ComVisible(true)]
     [Guid("3078E7EF-780E-4A70-9359-172D90FAAED2")]
     public class SwAddInSample : SwAddInEx
     {
@@ -338,6 +424,8 @@ namespace SwAddInExample
                 "xCAD.NET Local Folder"));
         }
 
+        private IXPropertyPage<DynamicSketchBasedObjectData> m_DynamicSketchBasedObjectPage;
+
         public override void OnConnect()
         {
             //CommandManager.AddCommandGroup<MainCommands1_e>();
@@ -398,6 +486,8 @@ namespace SwAddInExample
 
                 m_ToggleGroupPage = this.CreatePage<ToggleGroupPmpData>();
                 m_ToggleGroupPage.Closed += OnToggleGroupPageClosed;
+
+                m_DynamicSketchBasedObjectPage = this.CreatePage<DynamicSketchBasedObjectData>();
 
                 m_MacroFeatPage = this.CreatePage<PmpMacroFeatData>();
                 m_MacroFeatPage.Closed += OnClosed;
@@ -897,7 +987,23 @@ namespace SwAddInExample
 
         private void Custom()
         {
-            var doc = Application.Documents.Active;
+            var doc = (ISwDocument3D)Application.Documents.Active;
+
+            var feat = doc.Features["Sketch1"];
+            var d1 = feat.Dimensions["D1@Sketch1"];
+            var d2 = feat.Dimensions["D1"];
+
+            var v1 = d1.Value;
+            var v2 = d2.Value;
+
+            var dim = (ISwDimension)doc.Configurations.Active.Dimensions["D1@Sketch1"];
+            var val = dim.Value;
+
+            var swDispDim = dim.DisplayDimension;
+            var swDim = dim.Dimension;
+            var swAnn = dim.Annotation;
+
+            //m_DynamicSketchBasedObjectPage.Show(new DynamicSketchBasedObjectData(Application));
         }
 
         private void HandleAddEvents()
