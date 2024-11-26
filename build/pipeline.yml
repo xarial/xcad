@@ -70,6 +70,11 @@ stages:
             Contents: '**\*.*'
             TargetFolder: '$(Build.ArtifactStagingDirectory)/tools'
 
+      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+        - publish: '$(Build.ArtifactStagingDirectory)/tools'
+          displayName: 'Publish tools artifact'
+          artifact: 'tools'
+
   - job: 'SignTools'
     dependsOn: 'CompileTools'
     timeoutInMinutes: 5
@@ -92,6 +97,11 @@ stages:
             SourceFolder: '$(Pipeline.Workspace)/tools/_build'
             Contents: '**\*.*'
             TargetFolder: '$(Build.ArtifactStagingDirectory)/tools-signed'
+
+      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+        - publish: '$(Build.ArtifactStagingDirectory)/tools-signed'
+          displayName: 'Publish tools-signed artifact'
+          artifact: 'tools-signed'
 
   - job: 'CompileAndPack'
     dependsOn: 'SignTools'
