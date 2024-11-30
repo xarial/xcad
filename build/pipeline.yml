@@ -84,12 +84,10 @@ stages:
       - checkout: none
       - download: current
         artifact: tools
-      - task: PowerShell@2
+        patterns: |
+          **/Xarial.XCad.Inventor.Tools.StandAloneConnector.dll
+      - script: '"%sign% "$(Pipeline.Workspace)\tools" "xCAD Stand-Alone Connector" "https://xcad.net"'
         displayName: 'Signing xCAD Stand-Alone Connector dll file'
-        inputs:
-          targetType: 'inline'
-          script: |
-            Start-Process -FilePath "$ENV:signer" -NoNewWindow -Wait -PassThru -ArgumentList "`"$(Pipeline.Workspace)\tools\Xarial.XCad.Inventor.Tools.StandAloneConnector.dll`" `"xCAD Stand-Alone Connector`" `"https://xcad.net`""
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - task: CopyFiles@2
           displayName: 'Staging signed tools binaries'
@@ -149,35 +147,6 @@ stages:
         inputs:
           secureFile: xarial.snk
 
-      # - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-      #   - task: CopyFiles@2
-      #     displayName: 'Copy NuGet packages to artifacts folder'
-      #     inputs:
-      #       SourceFolder: '$(system.defaultworkingdirectory)/build'
-      #       Contents: |
-      #         **\*.nupkg
-      #         **\*.snupkg
-      #       TargetFolder: '$(Build.ArtifactStagingDirectory)/packages'
-
-        # - task: VSBuild@1
-        #   displayName: 'Build Tools projects'
-        #   inputs:
-        #     solution: 'tools/**/*.csproj'
-        #     msbuildArgs: '/p:SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=.$(Build.BuildID)'
-        #     platform: '$(BuildPlatform)'
-        #     configuration: '$(BuildConfiguration)'
-
-      # - task: codesigning@2
-      #   displayName: 'Signing xCAD Stand-Alone Connector dll file'
-      #   continueOnError: true 
-      #   inputs:
-      #     secureFileId: xarial-code-signing.pfx
-      #     signCertPassword: $(CODE_SIGN_CERT_PWD)
-      #     files: 'tools/_build/Xarial.XCad.Inventor.Tools.StandAloneConnector.dll'
-      #     timeServer: 'http://timestamp.comodoca.com'
-      #     hashingAlgorithm: 'SHA256'
-      #     description: 'xCAD Stand-Alone Connector'
-
       - task: VSBuild@1
         displayName: 'Build projects'
         inputs:
@@ -187,6 +156,14 @@ stages:
           configuration: '$(BuildConfiguration)'
 
       - task: DownloadPipelineArtifact@2
+        displayName: 'Downloading tools'
+        inputs:
+          buildType: 'current'
+          artifactName: tools
+          targetPath: '$(System.DefaultWorkingDirectory)/tools/_build'
+
+      - task: DownloadPipelineArtifact@2
+        displayName: 'Downloading signed tools'
         inputs:
           buildType: 'current'
           artifactName: tools-signed
