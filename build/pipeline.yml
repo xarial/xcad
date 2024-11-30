@@ -77,6 +77,8 @@ stages:
 
   - job: 'SignTools'
     dependsOn: 'CompileTools'
+    workspace:
+      clean: all
     timeoutInMinutes: 5
     pool:
       name: 'Local'
