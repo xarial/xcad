@@ -82,11 +82,14 @@ stages:
       name: 'Local'
     steps:
       - checkout: none
-      - download: current
-        artifact: tools
-        patterns: |
-          **/Xarial.XCad.Inventor.Tools.StandAloneConnector.dll
-      - script: '"%sign% "$(Pipeline.Workspace)\tools" "xCAD Stand-Alone Connector" "https://xcad.net"'
+      - task: DownloadPipelineArtifact@2
+        displayName: 'Downloading tools'
+        inputs:
+          buildType: 'current'
+          artifactName: tools
+          patterns: |
+            **/Xarial.XCad.Inventor.Tools.StandAloneConnector.dll
+      - script: '"%sign%" "$(Pipeline.Workspace)\tools" "xCAD Stand-Alone Connector" "https://xcad.net"'
         displayName: 'Signing xCAD Stand-Alone Connector dll file'
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - task: CopyFiles@2
