@@ -88,7 +88,8 @@ stages:
           buildType: 'current'
           artifactName: tools
           patterns: |
-            **\Xarial.XCad.Inventor.Tools.StandAloneConnector.dll
+            **/Xarial.XCad.Inventor.Tools.StandAloneConnector.dll
+          targetPath: '$(Pipeline.Workspace)/tools'
       - script: '"%sign%" "$(Pipeline.Workspace)\tools" "xCAD Stand-Alone Connector" "https://xcad.net"'
         displayName: 'Signing xCAD Stand-Alone Connector dll file'
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
