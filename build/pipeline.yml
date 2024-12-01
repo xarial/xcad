@@ -173,7 +173,24 @@ stages:
         inputs:
           buildType: 'current'
           artifactName: tools-signed
-          targetPath: '$(System.DefaultWorkingDirectory)/tools/_build'
+          targetPath: '$(Pipeline.Workspace)/tools-signed'
+          #targetPath: '$(System.DefaultWorkingDirectory)/tools/_build'
+
+      - task: DownloadSecureFile@1
+          name: SignaturelessComparer
+          displayName: 'Download compare signed files tool'
+          inputs:
+            secureFile: signatureless-comparer.exe
+
+      - script: '"$(SignaturelessComparer.secureFilePath)" "$(Pipeline.Workspace)/tools-signed" "$(System.DefaultWorkingDirectory)/tools/_build"'
+        displayName: 'Validating the signed binaries'
+
+      - task: CopyFiles@2
+        displayName: 'Overwriting binaries of the signed tools'
+        inputs:
+          SourceFolder: '$(Pipeline.Workspace)/tools-signed'
+          Contents: '**\*.*'
+          TargetFolder: '$(System.DefaultWorkingDirectory)/tools/_build'
 
       - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
