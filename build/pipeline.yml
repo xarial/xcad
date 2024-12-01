@@ -177,10 +177,10 @@ stages:
           #targetPath: '$(System.DefaultWorkingDirectory)/tools/_build'
 
       - task: DownloadSecureFile@1
-          name: SignaturelessComparer
-          displayName: 'Download compare signed files tool'
-          inputs:
-            secureFile: signatureless-comparer.exe
+        name: SignaturelessComparer
+        displayName: 'Download compare signed files tool'
+        inputs:
+          secureFile: signatureless-comparer.exe
 
       - script: '"$(SignaturelessComparer.secureFilePath)" "$(Pipeline.Workspace)/tools-signed" "$(System.DefaultWorkingDirectory)/tools/_build"'
         displayName: 'Validating the signed binaries'
