@@ -174,7 +174,6 @@ stages:
           buildType: 'current'
           artifactName: tools-signed
           targetPath: '$(Pipeline.Workspace)/tools-signed'
-          #targetPath: '$(System.DefaultWorkingDirectory)/tools/_build'
 
       - task: DownloadSecureFile@1
         name: SignaturelessComparer
@@ -190,6 +189,7 @@ stages:
         inputs:
           SourceFolder: '$(Pipeline.Workspace)/tools-signed'
           Contents: '**\*.*'
+          OverWrite: true
           TargetFolder: '$(System.DefaultWorkingDirectory)/tools/_build'
 
       - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
@@ -273,26 +273,6 @@ stages:
 
           - download: current
             artifact: 'packages'
-
-          # - task: DownloadSecureFile@1
-          #   name: Certificate
-          #   displayName: 'Download code signing certificate'
-          #   inputs:
-          #     secureFile: xarial-code-signing.pfx
-
-          # - task: PowerShell@2
-          #   displayName: 'Write the paths to nuget package into variable'
-          #   inputs:
-          #     targetType: 'inline'
-          #     script: |
-          #       $packagePath = (Get-ChildItem -Path "$(Pipeline.Workspace)/packages/$(versionSuffix)" -Filter "*.nupkg" | Select-Object  @{Name='QuotedFullPath';Expression={"""$($_.FullName)"""}} | Select-Object -ExpandProperty QuotedFullPath )
-          #       Write-Host $packagePath
-          #       Write-Host "##vso[task.setvariable variable=packagePath;]$packagePath"
-
-          # nuget packages cannot be signed with ECDSA certificates (only support 3072 bit RSA), while token based (e.g. Yubikey) certificates do not support RSA > 2048
-          # - script: |
-          #     dotnet nuget sign $(PackagePath) --certificate-path "$(Certificate.secureFilePath)" --certificate-password "$(CODE_SIGN_CERT_PWD)" --timestamper http://timestamp.comodoca.com
-          #   displayName: Sign NuGet Packages
 
           - task: NuGetCommand@2
             displayName: 'Push NuGet Packages'
