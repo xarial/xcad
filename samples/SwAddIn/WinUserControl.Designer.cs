@@ -60,7 +60,7 @@
 
         }
 
-        #endregion
+        #endregion  Component Designer generated code
 
         private System.Windows.Forms.Label lblMessage;
         private System.Windows.Forms.TextBox textBox1;

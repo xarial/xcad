@@ -1,0 +1,29 @@
+{
+  "name": "xcad",
+  "version": "1.0.0",
+  "description": "docs test",
+  "type": "module",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emersonbottero/xcad.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/emersonbottero/xcad/issues"
+  },
+  "homepage": "https://github.com/emersonbottero/xcad#readme",
+  "devDependencies": {
+    "vitepress": "^1.3.4",
+    "vitepress-sidebar": "^1.27.0"
+  }
+}

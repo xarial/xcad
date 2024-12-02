@@ -4,7 +4,7 @@ caption: Preview Builds
 description: Instructions on installing and updating the preview builds of xCAD.NET framework from development enviro
 image: selecting-package-source.png
 ---
-All production releases of xCAD.NET framework are automatically published to the [Nuget.org](Nuget.org).
+All production releases of xCAD.NET framework are automatically published to the [Nuget.org](https://Nuget.org).
 
 All intermediate preview releases (from the dev branch) are published to the separate server in Azure dev ops which is publically available. All users can install the preview build to test new features.
 
@@ -24,7 +24,7 @@ Below are the instructions of settings up the nuget source which points to the p
 
 ## Installing the libraries from the preview nuget feed
 
-* Open the package manager as described in [installation](/installation) article
+* Open the package manager as described in [installation](../../installation/) article
 * Select the *Xarial* from the source drop-down
 
 ![Selecting Xarial package source](selecting-package-source.png)

@@ -21,17 +21,17 @@ using Xarial.XCad.Documents.Extensions;
 
 namespace Xarial.XCad.Documentation
 {
-    //--- Register
+    #region Register
     [ComVisible(true), Guid("736EEACF-B294-40F6-8541-CFC8E7C5AA61")]
     public class SampleAddIn : SwAddInEx
     {
-        //---
-        //--- TaskPane
+        #endregion Register
+        #region TaskPane
         public class TaskPaneControl : UserControl
         {
         }
-        //---
-        //--- CommandGroup
+        #endregion TaskPane
+        #region CommandGroup
         [Title(typeof(Resources), nameof(Resources.ToolbarTitle)), Description("Toolbar with commands")]
         [Icon(typeof(Resources), nameof(Resources.commands))]
         public enum Commands_e
@@ -42,14 +42,14 @@ namespace Xarial.XCad.Documentation
             Command1,
             Command2
         }
-        //---
-        //--- TaskPane
+        #endregion CommandGroup
+        #region TaskPane2
         public enum TaskPaneCommands_e
         {
             Command1
         }
-        //---
-        //--- DocHandler
+        #endregion TaskPane2
+        #region DocHandler
         public class MyDocumentHandler : SwDocumentHandler
         {
             protected override void AttachAssemblyEvents(AssemblyDoc assm)
@@ -100,32 +100,32 @@ namespace Xarial.XCad.Documentation
                 draw.RegenNotify -= OnRegen;
             }
         }
-        //---
+        #endregion DocHandler
         public override void OnConnect()
         {
-            //--- CommandGroup
+            #region CommandGroup2
             this.CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnButtonClick;
-            //---
-            //--- DocHandler
+            #endregion CommandGroup2
+            #region DocHandler
             Application.Documents.RegisterHandler<MyDocumentHandler>();
-            //---
-            //--- TaskPane
+            #endregion DocHandler
+            #region TaskPane3
             var taskPane = this.CreateTaskPane<TaskPaneControl, TaskPaneCommands_e>();
             taskPane.ButtonClick += OnTaskPaneCommandClick;
             TaskPaneControl ctrl = taskPane.Control;
-            //---
-            //--- 3rdParty
+            #endregion TaskPane3
+            #region 3rdParty
             Application.Documents.Active.StreamWriteAvailable += OnWriteToStream;
-            //---
+            #endregion 3rdParty
         }
-        
-        //--- CommandGroup
+
+        #region CommandGroup3
         private void OnButtonClick(Commands_e cmd)
         {
             //handle commands
         }
-        //---
-        //--- 3rdParty
+        #endregion CommandGroup3
+        #region 3rdParty
         private void OnWriteToStream(IXDocument doc)
         {
             const string STREAM_NAME = "CodeStackStream";
@@ -137,8 +137,8 @@ namespace Xarial.XCad.Documentation
                 xmlSer.Serialize(str, new string[] { "A", "B" });
             }
         }
-        //---
-        //--- TaskPane
+        #endregion 3rdParty
+        #region TaskPane4
         private void OnTaskPaneCommandClick(TaskPaneCommands_e cmd)
         {
             switch (cmd)
@@ -148,6 +148,6 @@ namespace Xarial.XCad.Documentation
                     break;
             }
         }
-        //---
+        #endregion TaskPane4
     }
 }

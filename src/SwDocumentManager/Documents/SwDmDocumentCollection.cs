@@ -21,7 +21,7 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
-    public interface ISwDmDocumentCollection : IXDocumentRepository, IDisposable 
+    public interface ISwDmDocumentCollection : IXDocumentRepository, IDisposable
     {
         bool TryGet(string name, out ISwDmDocument ent);
         new ISwDmDocument this[string name] { get; }
@@ -31,8 +31,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal class SwDmDocumentCollection : ISwDmDocumentCollection
     {
         #region NotSupported
-        
-        public event DocumentEventDelegate DocumentActivated 
+
+        public event DocumentEventDelegate DocumentActivated
         {
             add => throw new NotSupportedException();
             remove => throw new NotSupportedException();
@@ -56,7 +56,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             remove => throw new NotSupportedException();
         }
 
-        #endregion
+        #endregion NotSupported
 
         IXDocument IXRepository<IXDocument>.this[string name] => this[name];
 
@@ -143,7 +143,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     name, StringComparison.CurrentCultureIgnoreCase));
             }
 
-            if (ent?.IsAlive == false) 
+            if (ent?.IsAlive == false)
             {
                 ent.Close();
                 ent = null;
@@ -178,20 +178,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public void Dispose()
         {
-            foreach (var doc in m_Documents) 
+            foreach (var doc in m_Documents)
             {
                 doc.Close();
             }
         }
     }
 
-    public static class ISwDmDocumentCollectionExtension 
+    public static class ISwDmDocumentCollectionExtension
     {
-        public static ISwDmDocument PreCreateFromPath(this ISwDmDocumentCollection docs, string path) 
+        public static ISwDmDocument PreCreateFromPath(this ISwDmDocumentCollection docs, string path)
         {
             ISwDmDocument doc;
 
-            switch (SwDmDocument.GetDocumentType(path)) 
+            switch (SwDmDocument.GetDocumentType(path))
             {
                 case SwDmDocumentType.swDmDocumentPart:
                     doc = docs.PreCreate<ISwDmPart>();

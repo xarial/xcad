@@ -27,7 +27,7 @@ Two commands in menu are localized for Russian and English versions of the add-i
 
 ![Localized menu commands](menu-localized.png)
 
-{% code-snippet { file-name: ~LocalizationAddIn.*, regions: [Commands] } %}
+<<< @/_src/LocalizationAddIn.cs#Commands
 
 ## Property Manager Page
 
@@ -35,7 +35,7 @@ Property Manager page title and tooltips for the controls are localized for Russ
 
 ![Localized Property Manager Page](property-page-localized.png)
 
-{% code-snippet { file-name: ~LocalizationAddIn.*, regions: [PMPage] } %}
+<<< @/_src/LocalizationAddIn.cs#PMPage
 
 ## Macro Feature
 
@@ -49,4 +49,4 @@ In a similar way it is possible to use strings from the resources to return anot
 
 ![Localized macro feature error](macro-feature-error-localized.png)
 
-{% code-snippet { file-name: ~LocalizationAddIn.*, regions: [MacroFeature] } %}
+<<< @/_src/LocalizationAddIn.cs#MacroFeature

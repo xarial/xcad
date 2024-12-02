@@ -103,7 +103,7 @@ namespace Toolkit.Tests
                     numberOfUsedIds = m_IdRangeSelector.Invoke();
                 }
 
-                switch (parentGroup) 
+                switch (parentGroup)
                 {
                     case PageMock page:
                         var ctrl = new ControlMock(atts.Id, atts.Tag);
@@ -131,7 +131,7 @@ namespace Toolkit.Tests
         {
             public PageBuilderMock(Func<int> idRangeSelector = null)
                 : base(new Moq.Mock<IXApplication>().Object,
-                      new TypeDataBinder(new Mock<IXLogger>().Object), 
+                      new TypeDataBinder(new Mock<IXLogger>().Object),
                       new PageMockConstructor(),
                       new ControlMockConstructor(idRangeSelector))
             {
@@ -145,7 +145,7 @@ namespace Toolkit.Tests
             public string Prp3 { get; set; }
         }
 
-        #endregion
+        #endregion Mocks
 
         [Test]
         public void CreatePageIdsTest()
@@ -163,7 +163,7 @@ namespace Toolkit.Tests
         public void CreatePageIdsRangeTest()
         {
             int ctrlIndex = 0;
-            var builder = new PageBuilderMock(()=> 
+            var builder = new PageBuilderMock(() =>
             {
                 int idRange = 1;
 
@@ -171,7 +171,7 @@ namespace Toolkit.Tests
                 {
                     idRange = 3;
                 }
-                
+
                 ctrlIndex++;
                 return idRange;
             });

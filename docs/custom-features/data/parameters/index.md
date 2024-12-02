@@ -6,4 +6,4 @@ order: 1
 ---
 Parameters are any additional metadata required by the macro feature. Currently only primitive types of parameters are supported (i.e. string, bool, double, int etc.)
 
-{% code-snippet { file-name: ~CustomFeature\PrimitiveParameters.* } %}
+<<< @/_src/CustomFeature/PrimitiveParameters.cs

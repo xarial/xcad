@@ -29,7 +29,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         IXAssemblyEvaluation IXAssembly.Evaluation => throw new NotSupportedException();
         IXComponent IXAssembly.EditingComponent => throw new NotSupportedException();
-        #endregion
+        #endregion  Not Supported
 
         private readonly Lazy<SwDmAssemblyConfigurationCollection> m_LazyConfigurations;
 
@@ -54,7 +54,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private readonly SwDmDocument m_Owner;
 
         public SwDmVirtualAssembly(SwDmApplication dmApp, ISwDMDocument doc, SwDmDocument owner, bool isCreated,
-            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly) 
+            Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler, bool? isReadOnly)
             : base(dmApp, doc, isCreated, createHandler, closeHandler, isReadOnly)
         {
             m_Owner = owner;
@@ -69,7 +69,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public override string Title
         {
             get => SwDmVirtualDocumentHelper.GetTitle(base.Title);
-            set => base.Title = value; 
+            set => base.Title = value;
         }
 
         public override bool IsDirty
