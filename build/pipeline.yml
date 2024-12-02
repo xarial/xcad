@@ -108,7 +108,10 @@ stages:
           artifact: 'tools-signed'
 
   - job: 'CompileAndPack'
-    dependsOn: 'SignTools'
+    ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
+      dependsOn: 'SignTools'
+    ${{ else }}:
+      dependsOn: 'CompileTools'
     pool:
       name: 'Azure Pipelines'
       vmImage: windows-latest
@@ -168,29 +171,33 @@ stages:
           artifactName: tools
           targetPath: '$(System.DefaultWorkingDirectory)/tools/_build'
 
-      - task: DownloadPipelineArtifact@2
-        displayName: 'Downloading signed tools'
-        inputs:
-          buildType: 'current'
-          artifactName: tools-signed
-          targetPath: '$(Pipeline.Workspace)/tools-signed'
+      ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
+        - task: DownloadPipelineArtifact@2
+          displayName: 'Downloading signed tools'
+          inputs:
+            buildType: 'current'
+            artifactName: tools-signed
+            targetPath: '$(Pipeline.Workspace)/tools-signed'
 
-      - task: DownloadSecureFile@1
-        name: SignaturelessComparer
-        displayName: 'Download compare signed files tool'
-        inputs:
-          secureFile: signatureless-comparer.exe
+      ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
+        - task: DownloadSecureFile@1
+          name: SignaturelessComparer
+          displayName: 'Download compare signed files tool'
+          inputs:
+            secureFile: signatureless-comparer.exe
 
-      - script: '"$(SignaturelessComparer.secureFilePath)" "$(Pipeline.Workspace)/tools-signed" "$(System.DefaultWorkingDirectory)/tools/_build"'
-        displayName: 'Validating the signed binaries'
+      ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
+        - script: '"$(SignaturelessComparer.secureFilePath)" "$(Pipeline.Workspace)/tools-signed" "$(System.DefaultWorkingDirectory)/tools/_build"'
+          displayName: 'Validating the signed binaries'
 
-      - task: CopyFiles@2
-        displayName: 'Overwriting binaries of the signed tools'
-        inputs:
-          SourceFolder: '$(Pipeline.Workspace)/tools-signed'
-          Contents: '**\*.*'
-          OverWrite: true
-          TargetFolder: '$(System.DefaultWorkingDirectory)/tools/_build'
+      ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
+        - task: CopyFiles@2
+          displayName: 'Overwriting binaries of the signed tools'
+          inputs:
+            SourceFolder: '$(Pipeline.Workspace)/tools-signed'
+            Contents: '**\*.*'
+            OverWrite: true
+            TargetFolder: '$(System.DefaultWorkingDirectory)/tools/_build'
 
       - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
