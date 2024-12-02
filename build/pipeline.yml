@@ -1,5 +1,3 @@
-#Install CodeSigning task from https://marketplace.visualstudio.com/items?itemName=stefankert.codesigning
-
 variables:
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     versionSuffix: release
@@ -33,7 +31,88 @@ stages:
     - name: buildPlatform
       value: 'Any CPU'
   jobs:
-  - job:
+  - job: 'CompileTools'
+    pool:
+      name: 'Azure Pipelines'
+      vmImage: windows-latest
+      demands:
+        - msbuild
+        - visualstudio
+
+    steps:
+      - task: NuGetToolInstaller@1
+        displayName: 'Install NuGet'
+
+      - task: NuGetCommand@2
+        displayName: 'Restore NuGet References'
+        inputs:
+          restoreSolution: 'tools/**/*.csproj'
+      
+      - task: DownloadSecureFile@1
+        name: Certificate
+        displayName: 'Download strong name certificate'
+        inputs:
+          secureFile: xarial.snk
+
+      - task: VSBuild@1
+        displayName: 'Build Tools projects'
+        inputs:
+          solution: 'tools/**/*.csproj'
+          msbuildArgs: '/p:SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=.$(Build.BuildID)'
+          platform: '$(BuildPlatform)'
+          configuration: '$(BuildConfiguration)'
+
+      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+        - task: CopyFiles@2
+          displayName: 'Staging tools binaries'
+          inputs:
+            SourceFolder: '$(System.DefaultWorkingDirectory)/tools/_build'
+            Contents: '**\*.*'
+            TargetFolder: '$(Build.ArtifactStagingDirectory)/tools'
+
+      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+        - publish: '$(Build.ArtifactStagingDirectory)/tools'
+          displayName: 'Publish tools artifact'
+          artifact: 'tools'
+
+  - job: 'SignTools'
+    pool:
+      name: 'Local'
+    dependsOn: 'CompileTools'
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
+    workspace:
+      clean: all
+    timeoutInMinutes: 5
+    steps:
+      - checkout: none
+      - task: DownloadPipelineArtifact@2
+        displayName: 'Downloading tools'
+        inputs:
+          buildType: 'current'
+          artifactName: tools
+          patterns: |
+            **/Xarial.XCad.Inventor.Tools.StandAloneConnector.dll
+          targetPath: '$(Pipeline.Workspace)/tools'
+      - script: '"%sign%" "$(Pipeline.Workspace)\tools" "xCAD Stand-Alone Connector" "https://xcad.net"'
+        displayName: 'Signing xCAD Stand-Alone Connector dll file'
+      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+        - task: CopyFiles@2
+          displayName: 'Staging signed tools binaries'
+          inputs:
+            SourceFolder: '$(Pipeline.Workspace)/tools/'
+            Contents: '**\*.*'
+            TargetFolder: '$(Build.ArtifactStagingDirectory)/tools-signed'
+
+      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+        - publish: '$(Build.ArtifactStagingDirectory)/tools-signed'
+          displayName: 'Publish tools-signed artifact'
+          artifact: 'tools-signed'
+
+  - job: 'CompileAndPack'
+    ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
+      dependsOn: 'SignTools'
+    ${{ else }}:
+      dependsOn: 'CompileTools'
     pool:
       name: 'Azure Pipelines'
       vmImage: windows-latest
@@ -74,28 +153,9 @@ stages:
 
       - task: DownloadSecureFile@1
         name: Certificate
-        displayName: 'Download code signing certificate'
+        displayName: 'Download strong name certificate'
         inputs:
           secureFile: xarial.snk
-
-      - task: VSBuild@1
-        displayName: 'Build Tools projects'
-        inputs:
-          solution: 'tools/**/*.csproj'
-          msbuildArgs: '/p:SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=.$(Build.BuildID)'
-          platform: '$(BuildPlatform)'
-          configuration: '$(BuildConfiguration)'
-
-      - task: codesigning@2
-        displayName: 'Signing xCAD Stand-Alone Connector dll file'
-        continueOnError: true 
-        inputs:
-          secureFileId: xarial-code-signing.pfx
-          signCertPassword: $(CODE_SIGN_CERT_PWD)
-          files: 'tools/_build/Xarial.XCad.Inventor.Tools.StandAloneConnector.dll'
-          timeServer: 'http://timestamp.comodoca.com'
-          hashingAlgorithm: 'SHA256'
-          description: 'xCAD Stand-Alone Connector'
 
       - task: VSBuild@1
         displayName: 'Build projects'
@@ -104,6 +164,41 @@ stages:
           msbuildArgs: '/p:SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=.$(Build.BuildID)'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
+
+      - task: DownloadPipelineArtifact@2
+        displayName: 'Downloading tools'
+        inputs:
+          buildType: 'current'
+          artifactName: tools
+          targetPath: '$(System.DefaultWorkingDirectory)/tools/_build'
+
+      - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
+        - task: DownloadPipelineArtifact@2
+          displayName: 'Downloading signed tools'
+          inputs:
+            buildType: 'current'
+            artifactName: tools-signed
+            targetPath: '$(Pipeline.Workspace)/tools-signed'
+
+      - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
+        - task: DownloadSecureFile@1
+          name: SignaturelessComparer
+          displayName: 'Download compare signed files tool'
+          inputs:
+            secureFile: signatureless-comparer.exe
+
+      - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
+        - script: '"$(SignaturelessComparer.secureFilePath)" "$(Pipeline.Workspace)/tools-signed" "$(System.DefaultWorkingDirectory)/tools/_build"'
+          displayName: 'Validating the signed binaries'
+
+      - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
+        - task: CopyFiles@2
+          displayName: 'Overwriting binaries of the signed tools'
+          inputs:
+            SourceFolder: '$(Pipeline.Workspace)/tools-signed'
+            Contents: '**\*.*'
+            OverWrite: true
+            TargetFolder: '$(System.DefaultWorkingDirectory)/tools/_build'
 
       - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
@@ -164,30 +259,6 @@ stages:
         packagesToPush: '$(Pipeline.Workspace)/packages/dev/*.nupkg'
         nuGetFeedType: 'internal'
         publishVstsFeed: 'xcad/xcad-dev'
-       
-- stage: 'PublishProvisionalNuGetPackage'
-  displayName: 'Publish Provisional NuGet packages to xcad-dev nuget feed'
-  dependsOn: 'Build'
-  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
-  jobs:
-  - job:
-    pool:
-      vmImage: 'windows-latest'
-
-    steps:
-    - checkout: none
-
-    - download: current
-      artifact: 'packages'
-
-    - task: NuGetCommand@2
-      displayName: 'Push NuGet Packages'
-      inputs:
-        command: 'push'
-        packagesToPush: '$(Pipeline.Workspace)/packages/$(versionSuffix)/*.nupkg'
-        allowPackageConflicts: true
-        nuGetFeedType: 'internal'
-        publishVstsFeed: 'xcad/xcad-dev'
 
 - stage: 'PublishPublicPackage'
   variables:
@@ -195,7 +266,7 @@ stages:
     - name: packagePath
       value:
   displayName: 'Publish public NuGet packages to nuget.org'
-  dependsOn: 'PublishProvisionalNuGetPackage'
+  dependsOn: 'Build'
   condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - deployment:
@@ -210,25 +281,6 @@ stages:
 
           - download: current
             artifact: 'packages'
-
-          - task: DownloadSecureFile@1
-            name: Certificate
-            displayName: 'Download code signing certificate'
-            inputs:
-              secureFile: xarial-code-signing.pfx
-
-          - task: PowerShell@2
-            displayName: 'Write the paths to nuget package into variable'
-            inputs:
-              targetType: 'inline'
-              script: |
-                $packagePath = (Get-ChildItem -Path "$(Pipeline.Workspace)/packages/$(versionSuffix)" -Filter "*.nupkg" | Select-Object  @{Name='QuotedFullPath';Expression={"""$($_.FullName)"""}} | Select-Object -ExpandProperty QuotedFullPath )
-                Write-Host $packagePath
-                Write-Host "##vso[task.setvariable variable=packagePath;]$packagePath"
-
-          - script: |
-              dotnet nuget sign $(PackagePath) --certificate-path "$(Certificate.secureFilePath)" --certificate-password "$(CODE_SIGN_CERT_PWD)" --timestamper http://timestamp.comodoca.com
-            displayName: Sign NuGet Packages
 
           - task: NuGetCommand@2
             displayName: 'Push NuGet Packages'

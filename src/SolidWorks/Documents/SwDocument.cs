@@ -814,6 +814,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                         return SwVersion_e.Sw2023;
                     case 17000:
                         return SwVersion_e.Sw2024;
+                    case 18000:
+                        return SwVersion_e.Sw2025;
                     default:
                         throw new NotSupportedException($"'{latestVers}' version is not recognized");
                 }
