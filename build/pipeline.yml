@@ -76,12 +76,13 @@ stages:
           artifact: 'tools'
 
   - job: 'SignTools'
+    pool:
+      name: 'Local'
     dependsOn: 'CompileTools'
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
     workspace:
       clean: all
     timeoutInMinutes: 5
-    pool:
-      name: 'Local'
     steps:
       - checkout: none
       - task: DownloadPipelineArtifact@2
