@@ -22,6 +22,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
     internal class SwDmPart : SwDmDocument3D, ISwDmPart
     {
+        #region Not Supported
+        public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        #endregion
+
         private readonly Lazy<SwDmPartConfigurationCollection> m_LazyConfigurations;
 
         internal SwDmPart(SwDmApplication dmApp, ISwDMDocument doc, bool isCreated,

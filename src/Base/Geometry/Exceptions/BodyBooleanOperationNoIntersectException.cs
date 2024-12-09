@@ -12,7 +12,7 @@ using System.Text;
 namespace Xarial.XCad.Geometry.Exceptions
 {
     /// <summary>
-    /// This exception is thrown as the result of <see cref="IXBody.Add(IXBody)"/>, or <see cref="IXBody.Common(IXBody)"/> or <see cref="IXBody.Substract(IXBody)"/> if bodies do not intersect
+    /// This exception is thrown as the result of <see cref="IXBody.Add(IXBody)"/>, or <see cref="IXBody.Common(IXBody)"/> or <see cref="IXBody.Subtract(IXBody)"/> if bodies do not intersect
     /// </summary>
     public class BodyBooleanOperationNoIntersectException : Exception
     {

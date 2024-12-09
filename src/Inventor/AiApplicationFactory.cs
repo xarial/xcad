@@ -20,6 +20,8 @@ using System.IO;
 using System.Linq;
 using Xarial.XCad.Inventor.Utils;
 using Xarial.XCad.Base;
+using Xarial.XCad.Inventor.Services;
+using static Xarial.XCad.Inventor.AiApplicationFactory;
 
 namespace Xarial.XCad.Inventor
 {
@@ -28,29 +30,35 @@ namespace Xarial.XCad.Inventor
     /// </summary>
     public class AiApplicationFactory
     {
-        internal const string PROG_ID_TEMPLATE = "Inventor.Application.{0}";
+        internal class AiVersionInfo
+        {
+            internal string ExePath { get; }
+            internal int Major { get; }
+            internal int Minor { get; }
+            internal AiVersion_e Version { get; }
+
+            internal AiVersionInfo(string exePath, AiVersion_e vers, int major, int minor)
+            {
+                ExePath = exePath;
+                Version = vers;
+                Major = major;
+                Minor = minor;
+            }
+        }
+
         internal const string APP_MONIKER_NAME = "!{B6B5DC40-96E3-11D2-B774-0060B0F159EF}";
 
         private const string REG_PATH = @"SOFTWARE\Autodesk\Inventor";
-        private const string REG_KEY_TEMPLATE = "RegistryVersion{0}.{1}";
+        private const string REG_KEY_BASE = "RegistryVersion";
 
-        internal static RegistryKey OpenRegistryVersionKey(AiVersion_e specVerc)
+        private static readonly AiVersionMapper m_VersionMapper;
+
+        static AiApplicationFactory() 
         {
-            string regVersKeyName;
-
-            if (specVerc == AiVersion_e.Inventor5dot3)
-            {
-                regVersKeyName = string.Format(REG_KEY_TEMPLATE, 5, 3);
-            }
-            else
-            {
-                regVersKeyName = string.Format(REG_KEY_TEMPLATE, (int)specVerc, 0);
-            }
-
-            return Registry.LocalMachine.OpenSubKey(REG_PATH + @"\" + regVersKeyName, false);
+            m_VersionMapper = new AiVersionMapper();
         }
 
-        internal static string GetApplicationPathFromRegistryVersionKey(RegistryKey regVersKey)
+        private static string GetApplicationPathFromRegistryVersionKey(RegistryKey regVersKey)
         {
             var path = (string)regVersKey.GetValue("InventorLocation");
 
@@ -72,6 +80,82 @@ namespace Xarial.XCad.Inventor
         }
 
         /// <summary>
+        /// Returns all installed SOLIDWORKS versions
+        /// </summary>
+        /// <returns>Enumerates versions</returns>
+        public static IEnumerable<IAiVersion> GetInstalledVersions()
+            => GetInstalledVersionInfos().Select(v => CreateVersion(v.Version));
+
+        internal static IEnumerable<AiVersionInfo> GetInstalledVersionInfos()
+        {
+            var invRegKey = Registry.LocalMachine.OpenSubKey(REG_PATH, false);
+
+            if (invRegKey != null)
+            {
+                foreach (var verRegKeyName in invRegKey.GetSubKeyNames().Where(k => k.StartsWith(REG_KEY_BASE, StringComparison.CurrentCultureIgnoreCase)))
+                {
+                    var verRegKey = invRegKey.OpenSubKey(verRegKeyName, false);
+
+                    if (verRegKey != null) 
+                    {
+                        var isInstalled = false;
+
+                        int major;
+                        int minor;
+                        string path;
+                        
+                        try
+                        {
+                            var version = verRegKeyName.Substring(REG_KEY_BASE.Length).Split('.');
+
+                            major = int.Parse(version[0]);
+
+                            if (version.Length > 1)
+                            {
+                                minor = int.Parse(version[1]);
+                            }
+                            else 
+                            {
+                                minor = 0;
+                            }
+
+                            path = GetApplicationPathFromRegistryVersionKey(verRegKey);
+
+                            if (!System.IO.File.Exists(path))
+                            {
+                                throw new Exception("Installation path is not found");
+                            }
+
+                            isInstalled = true;
+                        }
+                        catch
+                        {
+                            major = -1;
+                            minor = -1;
+                            path = "";
+                        }
+
+                        if (isInstalled)
+                        {
+                            AiVersion_e vers;
+
+                            if (major == 5 && minor == 3)
+                            {
+                                vers = AiVersion_e.Inventor5dot3;
+                            }
+                            else
+                            {
+                                vers = m_VersionMapper.FromApplicationRevision(major);
+                            }
+
+                            yield return new AiVersionInfo(path, vers, major, minor);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Pre-creates a template for Inventor application
         /// </summary>
         /// <returns></returns>
@@ -81,32 +165,42 @@ namespace Xarial.XCad.Inventor
         /// Returns all installed Inventor versions
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<IAiVersion> GetInstalledVersions()
-        {
-            foreach (var versCand in Enum.GetValues(typeof(AiVersion_e)).Cast<AiVersion_e>())
-            {
-                var regKey = OpenRegistryVersionKey(versCand);
+        //public static IEnumerable<IAiVersion> GetInstalledVersions()
+        //{
+        //    var invRegKey = Registry.LocalMachine.OpenSubKey(REG_PATH, false);
 
-                if (regKey != null)
-                {
-                    var isInstalled = false;
+        //    if (invRegKey != null) 
+        //    {
+        //        foreach (var verRegKeyName in invRegKey.GetSubKeyNames().Where(k => k.StartsWith(REG_KEY_BASE, StringComparison.CurrentCultureIgnoreCase))) 
+        //        {
+        //            var verRegKey = invRegKey.OpenSubKey(verRegKeyName, false);
+        //        }
+        //    }
 
-                    try
-                    {
-                        GetApplicationPathFromRegistryVersionKey(regKey);
-                        isInstalled = true;
-                    }
-                    catch
-                    {
-                    }
+        //    foreach (var versCand in Enum.GetValues(typeof(AiVersion_e)).Cast<AiVersion_e>())
+        //    {
+        //        var regKey = OpenRegistryVersionKey(versCand);
 
-                    if (isInstalled)
-                    {
-                        yield return CreateVersion(versCand);
-                    }
-                }
-            }
-        }
+        //        if (regKey != null)
+        //        {
+        //            var isInstalled = false;
+
+        //            try
+        //            {
+        //                GetApplicationPathFromRegistryVersionKey(regKey);
+        //                isInstalled = true;
+        //            }
+        //            catch
+        //            {
+        //            }
+
+        //            if (isInstalled)
+        //            {
+        //                yield return CreateVersion(versCand);
+        //            }
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Creates <see cref="IAiApplication"/> from Inventor pointer
@@ -117,7 +211,7 @@ namespace Xarial.XCad.Inventor
             => FromPointer(app, new ServiceCollection());
 
         /// <inheritdoc cref="FromPointer(Application)"/>
-        /// <param name="services">Custom serives</param>
+        /// <param name="services">Custom services</param>
         public static IAiApplication FromPointer(Application app, IXServiceCollection services)
             => new AiApplication(app, services);
 
@@ -130,7 +224,7 @@ namespace Xarial.XCad.Inventor
             => FromProcess(process, new ServiceCollection());
 
         /// <inheritdoc cref="FromProcess(Process)"/>
-        /// <param name="services">Custom serives</param>
+        /// <param name="services">Custom services</param>
         public static IAiApplication FromProcess(Process process, IXServiceCollection services)
         {
             if (TryGetApplicationFromProcess(process, new TraceLogger("xCAD.AiApplication"), out var invApp))
@@ -203,8 +297,22 @@ namespace Xarial.XCad.Inventor
         /// <summary>
         /// Creates instance of Inventor version from the major version
         /// </summary>
-        /// <param name="vers">Major version</param>
-        /// <returns>Version</returns>
-        public static IAiVersion CreateVersion(AiVersion_e vers) => new AiVersion(new Version((int)vers, 0));
+        /// <param name="vers">Version</param>
+        /// <returns>Version instance</returns>
+        public static IAiVersion CreateVersion(AiVersion_e vers) => new AiVersion(new Version((int)vers, 0, 0), vers, m_VersionMapper.GetVersionName(vers));
+
+        /// <summary>
+        /// Creates instance of Inventor version from the release year
+        /// </summary>
+        /// <param name="releaseYear">Release year</param>
+        /// <returns>Version instance</returns>
+        public static IAiVersion CreateVersionFromReleaseYear(int releaseYear) => CreateVersion(m_VersionMapper.FromReleaseYear(releaseYear));
+
+        /// <summary>
+        /// Creates instance of Inventor version from the revision number
+        /// </summary>
+        /// <param name="revision">Revision number</param>
+        /// <returns>Version instance</returns>
+        public static IAiVersion CreateVersionFromRevision(int revision) => CreateVersion(m_VersionMapper.FromApplicationRevision(revision));
     }
 }

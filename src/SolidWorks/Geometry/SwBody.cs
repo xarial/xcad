@@ -411,6 +411,17 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public double Volume => this.GetVolume();
     }
 
+    internal class SwSheetMetalBody : SwSolidBody, IXSheetMetalBody
+    {
+        internal SwSheetMetalBody(IBody2 body, SwDocument doc, SwApplication app) : base(body, doc, app)
+        {
+            if (!body.IsSheetMetal()) 
+            {
+                throw new Exception("Body is not sheet metal");
+            }
+        }
+    }
+
     internal static class ISwBodyExtension
     { 
         public static double GetVolume(this ISwBody body)

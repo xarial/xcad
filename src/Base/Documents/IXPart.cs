@@ -19,6 +19,11 @@ namespace Xarial.XCad.Documents
         new IXPartConfigurationRepository Configurations { get; }
 
         /// <summary>
+        /// Material assigned to part
+        /// </summary>
+        IXMaterial Material { get; set; }
+
+        /// <summary>
         /// Bodies in this part document
         /// </summary>
         IXBodyRepository Bodies { get; }

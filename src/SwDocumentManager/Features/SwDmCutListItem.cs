@@ -143,7 +143,7 @@ namespace Xarial.XCad.SwDocumentManager.Features
                 }
                 else 
                 {
-                    throw new NotSupportedException("This propery is only supported in SOLIDWORKS 2021 or newer");
+                    throw new NotSupportedException("This property is only supported in SOLIDWORKS 2021 or newer");
                 }
             }
         }

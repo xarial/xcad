@@ -17,6 +17,7 @@ using System.Security;
 using System.Text;
 using Xarial.XCad.Base;
 using Xarial.XCad.SwDocumentManager.Exceptions;
+using Xarial.XCad.SwDocumentManager.Services;
 
 namespace Xarial.XCad.SwDocumentManager
 {
@@ -26,6 +27,13 @@ namespace Xarial.XCad.SwDocumentManager
     public static class SwDmApplicationFactory
     {
         private const string DM_CLASS_FACT_PROG_ID = "SwDocumentMgr.SwDMClassFactory";
+
+        private static readonly SwDmVersionMapper m_VersionMapper;
+
+        static SwDmApplicationFactory() 
+        {
+            m_VersionMapper = new SwDmVersionMapper();
+        }
 
         /// <summary>
         /// Pre-creates application
@@ -59,20 +67,9 @@ namespace Xarial.XCad.SwDocumentManager
                         //only support SW 2000 or newer
                         if (majorVers >= 8) 
                         {
-                            var dmVersList = ((SwDmVersion_e[])Enum.GetValues(typeof(SwDmVersion_e))).ToList();
+                            var dmVers = m_VersionMapper.FromApplicationRevision(majorVers);
 
-                            var dmVersInd = dmVersList.IndexOf(SwDmVersion_e.Sw2000) + (majorVers - 8);
-
-                            if (dmVersInd < dmVersList.Count)
-                            {
-                                var dmVers = dmVersList[dmVersInd];
-
-                                yield return CreateVersion(dmVers);
-                            }
-                            else 
-                            {
-                                throw new NotSupportedException($"File versions {majorVers} cannot be converted to Document Manager version");
-                            }
+                            yield return CreateVersion(dmVers);
                         }
                     }
                 }
@@ -141,10 +138,24 @@ namespace Xarial.XCad.SwDocumentManager
         }
 
         /// <summary>
-        /// Creates a version of the application
+        /// Creates instance of SOLIDWORKS version from the major version
         /// </summary>
-        /// <param name="major">Major version</param>
-        /// <returns>Version</returns>
-        public static ISwDmVersion CreateVersion(SwDmVersion_e major) => new SwDmVersion(new Version((int)major, 0));
+        /// <param name="vers">Version</param>
+        /// <returns>Version instance</returns>
+        public static ISwDmVersion CreateVersion(SwDmVersion_e vers) => new SwDmVersion(new Version((int)vers, 0, 0), vers, m_VersionMapper.GetVersionName(vers));
+
+        /// <summary>
+        /// Creates instance of SOLIDWORKS version from the release year
+        /// </summary>
+        /// <param name="releaseYear">Release year</param>
+        /// <returns>Version instance</returns>
+        public static ISwDmVersion CreateVersionFromReleaseYear(int releaseYear) => CreateVersion(m_VersionMapper.FromReleaseYear(releaseYear));
+
+        /// <summary>
+        /// Creates instance of SOLIDOWRKS version from the revision number
+        /// </summary>
+        /// <param name="revision">Revision number</param>
+        /// <returns>Version instance</returns>
+        public static ISwDmVersion CreateVersionFromRevision(int revision) => CreateVersion(m_VersionMapper.FromApplicationRevision(revision));
     }
 }

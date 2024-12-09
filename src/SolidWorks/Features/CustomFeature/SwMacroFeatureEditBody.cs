@@ -73,15 +73,15 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             }
         }
 
-        internal override ISwTempBody[] Substract(ISwTempBody other)
+        internal override ISwTempBody[] Subtract(ISwTempBody other)
         {
             if (m_IsPreview)
             {
-                return PreviewBody.Value.Substract(other);
+                return PreviewBody.Value.Subtract(other);
             }
             else
             {
-                return base.Substract(other);
+                return base.Subtract(other);
             }
         }
 
@@ -126,7 +126,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     internal class SwPlanarSheetMacroFeatureEditBody : SwPlanarSheetBody, ISwMacroFeatureEditBody, ISwTempPlanarSheetBody
     {
         IXMemoryBody IXMemoryBody.Add(IXMemoryBody other) => Add((ISwTempBody)other);
-        IXMemoryBody[] IXMemoryBody.Substract(IXMemoryBody other) => Substract((ISwTempBody)other);
+        IXMemoryBody[] IXMemoryBody.Subtract(IXMemoryBody other) => Subtract((ISwTempBody)other);
         IXMemoryBody[] IXMemoryBody.Common(IXMemoryBody other) => Common((ISwTempBody)other);
 
         public bool IsPreviewMode { get; }
@@ -143,7 +143,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         public void Preview(IXObject context, Color color, bool selectable) => m_MacroFeatureBodyContainer.Preview(context, color, selectable);
         public ISwTempBody Add(ISwTempBody other) => m_MacroFeatureBodyContainer.Add(other);
-        public ISwTempBody[] Substract(ISwTempBody other) => m_MacroFeatureBodyContainer.Substract(other);
+        public ISwTempBody[] Subtract(ISwTempBody other) => m_MacroFeatureBodyContainer.Subtract(other);
         public ISwTempBody[] Common(ISwTempBody other) => m_MacroFeatureBodyContainer.Common(other);
         public void Transform(TransformMatrix transform) => m_MacroFeatureBodyContainer.Transform(transform);
         public void Dispose() => m_MacroFeatureBodyContainer.Dispose();
@@ -152,7 +152,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     internal class SwSheetMacroFeatureEditBody : SwSheetBody, ISwMacroFeatureEditBody, ISwTempSheetBody
     {
         IXMemoryBody IXMemoryBody.Add(IXMemoryBody other) => Add((ISwTempBody)other);
-        IXMemoryBody[] IXMemoryBody.Substract(IXMemoryBody other) => Substract((ISwTempBody)other);
+        IXMemoryBody[] IXMemoryBody.Subtract(IXMemoryBody other) => Subtract((ISwTempBody)other);
         IXMemoryBody[] IXMemoryBody.Common(IXMemoryBody other) => Common((ISwTempBody)other);
 
         public bool IsPreviewMode { get; }
@@ -169,7 +169,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         public void Preview(IXObject context, Color color, bool selectable) => m_MacroFeatureBodyContainer.Preview(context, color, selectable);
         public ISwTempBody Add(ISwTempBody other) => m_MacroFeatureBodyContainer.Add(other);
-        public ISwTempBody[] Substract(ISwTempBody other) => m_MacroFeatureBodyContainer.Substract(other);
+        public ISwTempBody[] Subtract(ISwTempBody other) => m_MacroFeatureBodyContainer.Subtract(other);
         public ISwTempBody[] Common(ISwTempBody other) => m_MacroFeatureBodyContainer.Common(other);
         public void Transform(TransformMatrix transform) => m_MacroFeatureBodyContainer.Transform(transform);
         public void Dispose() => m_MacroFeatureBodyContainer.Dispose();
@@ -178,7 +178,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     internal class SwSolidMacroFeatureEditBody : SwSolidBody, ISwMacroFeatureEditBody, ISwTempSolidBody
     {
         IXMemoryBody IXMemoryBody.Add(IXMemoryBody other) => Add((ISwTempBody)other);
-        IXMemoryBody[] IXMemoryBody.Substract(IXMemoryBody other) => Substract((ISwTempBody)other);
+        IXMemoryBody[] IXMemoryBody.Subtract(IXMemoryBody other) => Subtract((ISwTempBody)other);
         IXMemoryBody[] IXMemoryBody.Common(IXMemoryBody other) => Common((ISwTempBody)other);
 
         public bool IsPreviewMode { get; }
@@ -195,7 +195,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         public void Preview(IXObject context, Color color, bool selectable) => m_MacroFeatureBodyContainer.Preview(context, color, selectable);
         public ISwTempBody Add(ISwTempBody other) => m_MacroFeatureBodyContainer.Add(other);
-        public ISwTempBody[] Substract(ISwTempBody other) => m_MacroFeatureBodyContainer.Substract(other);
+        public ISwTempBody[] Subtract(ISwTempBody other) => m_MacroFeatureBodyContainer.Subtract(other);
         public ISwTempBody[] Common(ISwTempBody other) => m_MacroFeatureBodyContainer.Common(other);
         public void Transform(TransformMatrix transform) => m_MacroFeatureBodyContainer.Transform(transform);
         public void Dispose() => m_MacroFeatureBodyContainer.Dispose();
@@ -204,7 +204,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     internal class SwWireMacroFeatureEditBody : SwWireBody, ISwMacroFeatureEditBody, ISwTempWireBody
     {
         IXMemoryBody IXMemoryBody.Add(IXMemoryBody other) => Add((ISwTempBody)other);
-        IXMemoryBody[] IXMemoryBody.Substract(IXMemoryBody other) => Substract((ISwTempBody)other);
+        IXMemoryBody[] IXMemoryBody.Subtract(IXMemoryBody other) => Subtract((ISwTempBody)other);
         IXMemoryBody[] IXMemoryBody.Common(IXMemoryBody other) => Common((ISwTempBody)other);
 
         public bool IsPreviewMode { get; }
@@ -221,7 +221,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         public void Preview(IXObject context, Color color, bool selectable) => m_MacroFeatureBodyContainer.Preview(context, color, selectable);
         public ISwTempBody Add(ISwTempBody other) => m_MacroFeatureBodyContainer.Add(other);
-        public ISwTempBody[] Substract(ISwTempBody other) => m_MacroFeatureBodyContainer.Substract(other);
+        public ISwTempBody[] Subtract(ISwTempBody other) => m_MacroFeatureBodyContainer.Subtract(other);
         public ISwTempBody[] Common(ISwTempBody other) => m_MacroFeatureBodyContainer.Common(other);
         public void Transform(TransformMatrix transform) => m_MacroFeatureBodyContainer.Transform(transform);
         public void Dispose() => m_MacroFeatureBodyContainer.Dispose();

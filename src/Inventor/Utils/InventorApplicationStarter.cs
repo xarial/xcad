@@ -217,32 +217,40 @@ namespace Xarial.XCad.Inventor.Utils
 
         private string FindInventorAppPath(AiVersion_e? vers)
         {
-            RegistryKey invAppRegKey = null;
-
             if (vers.HasValue)
             {
-                invAppRegKey = AiApplicationFactory.OpenRegistryVersionKey(vers.Value);
-            }
-            else
-            {
-                foreach (var versCand in Enum.GetValues(typeof(AiVersion_e)).Cast<AiVersion_e>().OrderByDescending(x => (int)x))
-                {
-                    invAppRegKey = AiApplicationFactory.OpenRegistryVersionKey(versCand);
+                var rev = Convert.ToInt32(vers.Value);
 
-                    if (invAppRegKey != null)
+                foreach (var instVers in AiApplicationFactory.GetInstalledVersionInfos()) 
+                {
+                    if (instVers.Major == rev) 
                     {
-                        break;
+                        if (vers == AiVersion_e.Inventor5dot3)
+                        {
+                            if (instVers.Minor != 3) 
+                            {
+                                continue;
+                            }
+                        }
+
+                        return instVers.ExePath;
                     }
                 }
-            }
 
-            if (invAppRegKey != null)
-            {
-                return AiApplicationFactory.GetApplicationPathFromRegistryVersionKey(invAppRegKey);
+                throw new NullReferenceException("Failed to find the specified version");
             }
             else
             {
-                throw new NullReferenceException("Failed to find the information about the installed Inventor applications in the registry");
+                var newestVersion = AiApplicationFactory.GetInstalledVersionInfos().OrderBy(v => v.Major).LastOrDefault();
+
+                if (newestVersion != null)
+                {
+                    return newestVersion.ExePath;
+                }
+                else
+                {
+                    throw new Exception("No installed Inventor versions found");
+                }
             }
         }
 

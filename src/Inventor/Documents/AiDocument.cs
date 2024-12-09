@@ -60,7 +60,15 @@ namespace Xarial.XCad.Inventor.Documents
 
         public IXIdentifier Id => new XIdentifier(Document.InternalName);
 
-        public IXVersion Version => throw new NotImplementedException();
+        public IXVersion Version
+        {
+            get
+            {
+                var softwareVersion = Document.SoftwareVersionSaved;
+
+                return new AiVersion(softwareVersion, OwnerApplication.VersionMapper.FromApplicationRevision(softwareVersion.Major));
+            }
+        }
 
         public IXUnits Units => throw new NotImplementedException();
 

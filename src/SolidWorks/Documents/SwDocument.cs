@@ -39,6 +39,7 @@ using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Documents.Services;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit;
@@ -643,9 +644,20 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
                 }
 
-                var vers = GetVersion(versHistory);
+                if (versHistory?.Any() == true)
+                {
+                    var latestVers = versHistory.Last();
 
-                return SwApplicationFactory.CreateVersion(vers);
+                    var majorRev = int.Parse(latestVers.Substring(0, latestVers.IndexOf('[')));
+
+                    var vers = OwnerApplication.VersionMapper.FromFileRevision(majorRev);
+
+                    return SwApplicationFactory.CreateVersion(vers);
+                }
+                else
+                {
+                    throw new NullReferenceException($"Version information is not found");
+                }
             }
         }
 
@@ -775,86 +787,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         public virtual ISwModelViewsCollection ModelViews => m_ModelViewsLazy.Value;
 
         public IXAnnotationRepository Annotations => m_AnnotationsLazy.Value;
-
-        private SwVersion_e GetVersion(string[] versHistory)
-        {
-            if (versHistory?.Any() == true)
-            {
-                var latestVers = versHistory.Last();
-
-                var majorRev = int.Parse(latestVers.Substring(0, latestVers.IndexOf('[')));
-
-                switch (majorRev)
-                {
-                    case 44:
-                    case 243:
-                    case 483:
-                    case 629:
-                    case 822:
-                    case 1008:
-                    case 1137:
-                        return SwVersion_e.SwPrior2000;
-                    case 1500:
-                        return SwVersion_e.Sw2000;
-                    case 1750:
-                        return SwVersion_e.Sw2001;
-                    case 1950:
-                        return SwVersion_e.Sw2001Plus;
-                    case 2200:
-                        return SwVersion_e.Sw2003;
-                    case 2500:
-                        return SwVersion_e.Sw2004;
-                    case 2800:
-                        return SwVersion_e.Sw2005;
-                    case 3100:
-                        return SwVersion_e.Sw2006;
-                    case 3400:
-                        return SwVersion_e.Sw2007;
-                    case 3800:
-                        return SwVersion_e.Sw2008;
-                    case 4100:
-                        return SwVersion_e.Sw2009;
-                    case 4400:
-                        return SwVersion_e.Sw2010;
-                    case 4700:
-                        return SwVersion_e.Sw2011;
-                    case 5000:
-                        return SwVersion_e.Sw2012;
-                    case 6000:
-                        return SwVersion_e.Sw2013;
-                    case 7000:
-                        return SwVersion_e.Sw2014;
-                    case 8000:
-                        return SwVersion_e.Sw2015;
-                    case 9000:
-                        return SwVersion_e.Sw2016;
-                    case 10000:
-                        return SwVersion_e.Sw2017;
-                    case 11000:
-                        return SwVersion_e.Sw2018;
-                    case 12000:
-                        return SwVersion_e.Sw2019;
-                    case 13000:
-                        return SwVersion_e.Sw2020;
-                    case 14000:
-                        return SwVersion_e.Sw2021;
-                    case 15000:
-                        return SwVersion_e.Sw2022;
-                    case 16000:
-                        return SwVersion_e.Sw2023;
-                    case 17000:
-                        return SwVersion_e.Sw2024;
-                    case 18000:
-                        return SwVersion_e.Sw2025;
-                    default:
-                        throw new NotSupportedException($"'{latestVers}' version is not recognized");
-                }
-            }
-            else
-            {
-                throw new NullReferenceException($"Version information is not found");
-            }
-        }
 
         private IModelDoc2 CreateNewDocument() 
         {
@@ -1064,7 +996,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             height = -1;
         }
 
-        //NOTE: closing of document migth note neecsserily unload if from memory (if this document is used in active assembly or drawing)
+        //NOTE: closing of document might note necessarily unload if from memory (if this document is used in active assembly or drawing)
         //do not dispose or set m_IsClosed flag in this function
         public void Close()
             => OwnerApplication.Sw.CloseDoc(Model.GetTitle());

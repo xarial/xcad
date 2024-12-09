@@ -42,5 +42,7 @@ namespace Xarial.XCad.Inventor.Documents
         IXPartConfigurationRepository IXPart.Configurations => m_iPartTable;
 
         public override IXConfigurationRepository Configurations => m_iPartTable;
+
+        public IXMaterial Material { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }

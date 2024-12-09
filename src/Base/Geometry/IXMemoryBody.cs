@@ -37,12 +37,12 @@ namespace Xarial.XCad.Geometry
         IXMemoryBody Add(IXMemoryBody other);
 
         /// <summary>
-        /// Boolean substract operation
+        /// Boolean subtract operation
         /// </summary>
-        /// <param name="other">Body to substract</param>
+        /// <param name="other">Body to subtract</param>
         /// <returns>Resulting bodies</returns>
         /// <exception cref="Exceptions.BodyBooleanOperationNoIntersectException"/>
-        IXMemoryBody[] Substract(IXMemoryBody other);
+        IXMemoryBody[] Subtract(IXMemoryBody other);
 
         /// <summary>
         /// Boolean common operation

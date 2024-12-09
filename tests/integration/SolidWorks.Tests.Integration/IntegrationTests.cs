@@ -45,7 +45,7 @@ namespace SolidWorks.Tests.Integration
         private const int SW_PRC_ID = -1;
 
         private readonly string m_DataFolder;
-        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2025;
+        private SwVersion_e? SW_VERSION = SwVersion_e.Sw2024;
 
         protected ISwApplication m_App;
         private Process m_Process;

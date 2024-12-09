@@ -84,6 +84,13 @@ namespace Xarial.XCad.Geometry
     }
 
     /// <summary>
+    /// Represents sheet metal body
+    /// </summary>
+    public interface IXSheetMetalBody : IXSolidBody 
+    {
+    }
+
+    /// <summary>
     /// Represents the wire body
     /// </summary>
     public interface IXWireBody : IXBody, IXWireEntity

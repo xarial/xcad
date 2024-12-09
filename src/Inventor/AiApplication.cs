@@ -23,6 +23,7 @@ using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Inventor.Documents;
 using Xarial.XCad.Inventor.Enums;
+using Xarial.XCad.Inventor.Services;
 using Xarial.XCad.Inventor.Utils;
 using Xarial.XCad.Services;
 using Xarial.XCad.Toolkit;
@@ -160,7 +161,9 @@ namespace Xarial.XCad.Inventor
             {
                 if (IsCommitted)
                 {
-                    return new AiVersion(new Version(Application.SoftwareVersion.Major, Application.SoftwareVersion.Minor, Application.SoftwareVersion.ServicePack));
+                    var softwareVersion = Application.SoftwareVersion;
+
+                    return new AiVersion(softwareVersion, VersionMapper.FromApplicationRevision(softwareVersion.Major));
                 }
                 else 
                 {
@@ -205,6 +208,8 @@ namespace Xarial.XCad.Inventor
                 }
             }
         }
+
+        internal IAiVersionMapper VersionMapper { get; private set; }
 
         private readonly IElementCreator<Application> m_Creator;
         private readonly Action<AiApplication> m_StartupCompletedCallback;
@@ -251,6 +256,7 @@ namespace Xarial.XCad.Inventor
                 m_CustomServices = customServices;
 
                 customServices.Add<IXLogger>(() => new TraceLogger("xCAD.AiApplication"), ServiceLifetimeScope_e.Singleton, false);
+                customServices.Add<IAiVersionMapper, AiVersionMapper>(ServiceLifetimeScope_e.Singleton, false);
                 
                 ConfigureServices?.Invoke(this, customServices);
             }
@@ -268,6 +274,7 @@ namespace Xarial.XCad.Inventor
 
                 Services = svcProvider;
                 Logger = Services.GetService<IXLogger>();
+                VersionMapper = Services.GetService<IAiVersionMapper>();
 
                 m_Documents = new AiDocumentsCollection(this, Logger);
             }

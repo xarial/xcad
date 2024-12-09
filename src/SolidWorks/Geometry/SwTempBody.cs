@@ -34,7 +34,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     public interface ISwTempBody : ISwBody, IXMemoryBody
     {
         ISwTempBody Add(ISwTempBody other);
-        ISwTempBody[] Substract(ISwTempBody other);
+        ISwTempBody[] Subtract(ISwTempBody other);
         ISwTempBody[] Common(ISwTempBody other);
     }
 
@@ -121,7 +121,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         }
 
         /// <remarks>Empty array can be returned if bodies are equal</remarks>
-        internal virtual ISwTempBody[] Substract(ISwTempBody other)
+        internal virtual ISwTempBody[] Subtract(ISwTempBody other)
             => PerformOperation(other, swBodyOperationType_e.SWBODYCUT);
 
         internal virtual ISwTempBody[] Common(ISwTempBody other)
@@ -234,7 +234,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
     internal class SwTempBody : SwBody, ISwTempBody
     {
         IXMemoryBody IXMemoryBody.Add(IXMemoryBody other) => Add((ISwTempBody)other);
-        IXMemoryBody[] IXMemoryBody.Substract(IXMemoryBody other) => Substract((ISwTempBody)other);
+        IXMemoryBody[] IXMemoryBody.Subtract(IXMemoryBody other) => Subtract((ISwTempBody)other);
         IXMemoryBody[] IXMemoryBody.Common(IXMemoryBody other) => Common((ISwTempBody)other);
 
         public override IBody2 Body => m_Creator.Element.Body;
@@ -294,7 +294,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
         public ISwTempBody Add(ISwTempBody other) => m_Creator.Element.Add(other);
 
         /// <remarks>Empty array can be returned if bodies are equal</remarks>
-        public ISwTempBody[] Substract(ISwTempBody other) => m_Creator.Element.Substract(other);
+        public ISwTempBody[] Subtract(ISwTempBody other) => m_Creator.Element.Subtract(other);
 
         public ISwTempBody[] Common(ISwTempBody other) => m_Creator.Element.Common(other);
 

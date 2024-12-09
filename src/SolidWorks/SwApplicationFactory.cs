@@ -18,6 +18,7 @@ using Microsoft.Win32;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Utils.Diagnostics;
+using Xarial.XCad.SolidWorks.Services;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -26,6 +27,22 @@ namespace Xarial.XCad.SolidWorks
     /// </summary>
     public class SwApplicationFactory
     {
+        internal class SwVersionInfo
+        {
+            internal string ProgId { get; }
+            internal string ExePath { get; }
+            internal int Revision { get; }
+            internal SwVersion_e Version { get; }
+
+            internal SwVersionInfo(string progId, string exePath, SwVersion_e vers, int rev)
+            {
+                ProgId = progId;
+                ExePath = exePath;
+                Version = vers;
+                Revision = rev;
+            }
+        }
+
         internal static class CommandLineArguments
         {
             /// <summary>
@@ -44,9 +61,16 @@ namespace Xarial.XCad.SolidWorks
             public const string SilentMode = "/r";
         }
 
-        internal const string PROG_ID_TEMPLATE = "SldWorks.Application.{0}";
+        internal const string PROG_ID_BASE_NAME = "SldWorks.Application.";
         
         private const string ADDINS_STARTUP_REG_KEY = @"Software\SolidWorks\AddInsStartup";
+
+        private static readonly SwVersionMapper m_VersionMapper;
+
+        static SwApplicationFactory() 
+        {
+            m_VersionMapper = new SwVersionMapper();
+        }
 
         /// <summary>
         /// Disables all startup add-ins
@@ -119,29 +143,46 @@ namespace Xarial.XCad.SolidWorks
         /// Returns all installed SOLIDWORKS versions
         /// </summary>
         /// <returns>Enumerates versions</returns>
-        public static IEnumerable<ISwVersion> GetInstalledVersions()
+        public static IEnumerable<ISwVersion> GetInstalledVersions() 
+            => GetInstalledVersionInfos().Select(v => CreateVersion(v.Version));
+
+        internal static IEnumerable<SwVersionInfo> GetInstalledVersionInfos()
         {
-            foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<SwVersion_e>())
+            foreach (var swProgIdKey in Registry.ClassesRoot.GetSubKeyNames().Where(k => k.StartsWith(PROG_ID_BASE_NAME, StringComparison.CurrentCultureIgnoreCase)))
             {
-                var progId = string.Format(PROG_ID_TEMPLATE, (int)versCand);
-                var swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId);
+                var swAppRegKey = Registry.ClassesRoot.OpenSubKey(swProgIdKey, false);
 
                 if (swAppRegKey != null)
                 {
                     var isInstalled = false;
 
+                    int appRev;
+                    string path;
+
                     try
                     {
-                        FindSwPathFromRegKey(swAppRegKey);
+                        appRev = int.Parse(swProgIdKey.Substring(PROG_ID_BASE_NAME.Length));
+
+                        path = FindSwPathFromRegKey(swAppRegKey);
+
+                        if (!File.Exists(path)) 
+                        {
+                            throw new Exception("Installation path is not found");
+                        }
+
                         isInstalled = true;
                     }
                     catch
                     {
+                        appRev = -1;
+                        path = "";
                     }
 
                     if (isInstalled)
                     {
-                        yield return CreateVersion(versCand);
+                        var vers = m_VersionMapper.FromApplicationRevision(appRev);
+
+                        yield return new SwVersionInfo(swProgIdKey, path, vers, appRev);
                     }
                 }
             }
@@ -156,7 +197,7 @@ namespace Xarial.XCad.SolidWorks
             => FromPointer(app, new ServiceCollection());
 
         /// <inheritdoc cref="FromPointer(ISldWorks)"/>
-        /// <param name="services">Custom serives</param>
+        /// <param name="services">Custom services</param>
         public static ISwApplication FromPointer(ISldWorks app, IXServiceCollection services)
             => new SwApplication(app, services);
 
@@ -169,7 +210,7 @@ namespace Xarial.XCad.SolidWorks
             => FromProcess(process, new ServiceCollection());
 
         /// <inheritdoc cref="FromProcess(Process)"/>
-        /// <param name="services">Custom serives</param>
+        /// <param name="services">Custom services</param>
         public static ISwApplication FromProcess(Process process, IXServiceCollection services)
         {
             var app = RotHelper.TryGetComObjectByMonikerName<ISldWorks>(GetMonikerName(process), new TraceLogger("xCAD.SwApplication"));
@@ -208,9 +249,23 @@ namespace Xarial.XCad.SolidWorks
         /// <summary>
         /// Creates instance of SOLIDWORKS version from the major version
         /// </summary>
-        /// <param name="vers"></param>
-        /// <returns></returns>
-        public static ISwVersion CreateVersion(SwVersion_e vers) => new SwVersion(new Version((int)vers, 0), 0, 0);
+        /// <param name="vers">Version</param>
+        /// <returns>Version instance</returns>
+        public static ISwVersion CreateVersion(SwVersion_e vers) => new SwVersion(new Version((int)vers, 0, 0), vers, 0, 0, m_VersionMapper.GetVersionName(vers));
+
+        /// <summary>
+        /// Creates instance of SOLIDWORKS version from the release year
+        /// </summary>
+        /// <param name="releaseYear">Release year</param>
+        /// <returns>Version instance</returns>
+        public static ISwVersion CreateVersionFromReleaseYear(int releaseYear) => CreateVersion(m_VersionMapper.FromReleaseYear(releaseYear));
+
+        /// <summary>
+        /// Creates instance of SOLIDOWRKS version from the revision number
+        /// </summary>
+        /// <param name="revision">Revision number</param>
+        /// <returns>Version instance</returns>
+        public static ISwVersion CreateVersionFromRevision(int revision) => CreateVersion(m_VersionMapper.FromApplicationRevision(revision));
 
         internal static string GetMonikerName(Process process) => $"SolidWorks_PID_{process.Id}";
 

@@ -43,6 +43,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             Evaluation = new SwPartEvaluation(this);
         }
 
+        public IXMaterial Material
+        {
+            get => GetMaterial("");
+            set => SetMaterial(value, "");
+        }
+
         internal IXMaterial GetMaterial(string confName) 
         {
             var materialName = Part.GetMaterialPropertyName2(confName, out var database);
@@ -84,7 +90,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         ISwPartConfigurationCollection ISwPart.Configurations => (ISwPartConfigurationCollection)Configurations;
 
         public override IXDocumentEvaluation Evaluation { get; }
-
+        
         protected override SwConfigurationCollection CreateConfigurations()
             => new SwPartConfigurationCollection(this, OwnerApplication);
 

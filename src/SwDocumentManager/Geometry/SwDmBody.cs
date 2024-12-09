@@ -32,9 +32,6 @@ namespace Xarial.XCad.SwDocumentManager.Geometry
         public IEnumerable<IXFace> Faces => throw new NotSupportedException();
         public IEnumerable<IXEdge> Edges => throw new NotSupportedException();
         public IXComponent Component => throw new NotSupportedException();
-        public IXMemoryBody Add(IXMemoryBody other) => throw new NotSupportedException();
-        public IXMemoryBody[] Common(IXMemoryBody other) => throw new NotSupportedException();
-        public IXMemoryBody[] Substract(IXMemoryBody other) => throw new NotSupportedException();
         public IXMemoryBody Copy() => throw new NotSupportedException();
         public void Transform(TransformMatrix transform) => throw new NotSupportedException();
         public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }

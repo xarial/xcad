@@ -152,9 +152,13 @@ namespace Xarial.XCad.SolidWorks
                 if (IsCommitted)
                 {
                     var major = Sw.GetVersion(out var sp, out var spRev);
-                    var minor = sp > 0 ? sp : 0;//pre-release versiosn will have a negative SP
+                    var minor = sp > 0 ? sp : 0;//pre-release version will have a negative SP
                     var build = spRev > 0 ? spRev : 0;
-                    return new SwVersion(new Version(major, minor, build), sp, spRev);
+
+                    var version = VersionMapper.FromApplicationRevision(major);
+                    var dispName = VersionMapper.GetVersionName(version);
+
+                    return new SwVersion(new Version(major, minor, build), version, sp, spRev, dispName);
                 }
                 else
                 {
@@ -295,6 +299,8 @@ namespace Xarial.XCad.SolidWorks
 
         public SwMaterialsDatabaseRepository MaterialDatabases { get; private set; }
 
+        internal ISwVersionMapper VersionMapper { get; private set; }
+
         internal SwApplication(ISldWorks app, IXServiceCollection customServices) 
             : this(default)
         {
@@ -357,6 +363,7 @@ namespace Xarial.XCad.SolidWorks
                 customServices.Add<IFilePathResolver>(() => new SwFilePathResolverNoSearchFolders(this), ServiceLifetimeScope_e.Singleton, false);//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
                 customServices.Add<IMemoryGeometryBuilderToleranceProvider, DefaultMemoryGeometryBuilderToleranceProvider>(ServiceLifetimeScope_e.Singleton, false);
                 customServices.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, false);
+                customServices.Add<ISwVersionMapper, SwVersionMapper>(ServiceLifetimeScope_e.Singleton, false);
                 customServices.Add<IMacroFeatureTypeProvider, ComMacroFeatureTypeProvider>(ServiceLifetimeScope_e.Singleton);
                 customServices.Add<IInterferencesProvider, InterferencesProvider>(ServiceLifetimeScope_e.Singleton);
                 customServices.Add<ICustomGraphicsContextProvider, OglCustomGraphicsContextProvider>(ServiceLifetimeScope_e.Singleton);
@@ -377,6 +384,8 @@ namespace Xarial.XCad.SolidWorks
 
                 Services = svcProvider;
                 Logger = Services.GetService<IXLogger>();
+
+                VersionMapper = Services.GetService<ISwVersionMapper>();
 
                 m_Documents = new SwDocumentCollection(this, Logger);
 

@@ -13,10 +13,24 @@ using Xarial.XCad.SolidWorks.Enums;
 
 namespace Xarial.XCad.SolidWorks
 {
+    /// <summary>
+    /// SOLIDWORKS specific version
+    /// </summary>
     public interface ISwVersion : IXVersion
     {
+        /// <summary>
+        /// Major version
+        /// </summary>
         SwVersion_e Major { get; }
+
+        /// <summary>
+        /// Service pack
+        /// </summary>
         int ServicePack { get; }
+
+        /// <summary>
+        /// Revision of service pack
+        /// </summary>
         int ServicePackRevision { get; }
     }
 
@@ -24,18 +38,18 @@ namespace Xarial.XCad.SolidWorks
     {
         public SwVersion_e Major { get; }
 
-        public string DisplayName
-            => $"SOLIDWORKS {Major.ToString().Substring("Sw".Length)}";
+        public string DisplayName { get; }
 
         public Version Version { get; }
 
         public int ServicePack { get; }
         public int ServicePackRevision { get; }
 
-        internal SwVersion(Version version, int sp, int spRev) 
+        internal SwVersion(Version version, SwVersion_e major, int sp, int spRev, string dispName)
         {
             Version = version;
-            Major = (SwVersion_e)version.Major;
+            Major = major;
+            DisplayName = dispName;
 
             ServicePack = sp;
             ServicePackRevision = spRev;

@@ -160,8 +160,15 @@ namespace Xarial.XCad.SolidWorks
 
                         case swBodyType_e.swSolidBody:
                             if (!isTemp)
-                            {
-                                return new SwSolidBody(body, doc, app);
+                            { 
+                                if (body.IsSheetMetal())
+                                {
+                                    return new SwSheetMetalBody(body, doc, app);
+                                }
+                                else 
+                                {
+                                    return new SwSolidBody(body, doc, app);
+                                }
                             }
                             else
                             {

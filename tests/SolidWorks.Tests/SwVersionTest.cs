@@ -9,6 +9,8 @@ using Xarial.XCad;
 using SolidWorks.Interop.sldworks;
 using Moq;
 using Xarial.XCad.SolidWorks.Enums;
+using Xarial.XCad.SolidWorks.Services;
+using Microsoft.Win32;
 
 namespace SolidWorks.Tests
 {
@@ -42,9 +44,9 @@ namespace SolidWorks.Tests
         [Test]
         public void EqualityTest() 
         {
-            var v1 = SwApplicationFactory.CreateVersion(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
-            var v2 = SwApplicationFactory.CreateVersion(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
-            var v3 = SwApplicationFactory.CreateVersion(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2019);
+            var v1 = SwApplicationFactory.CreateVersion(SwVersion_e.Sw2020);
+            var v2 = SwApplicationFactory.CreateVersion(SwVersion_e.Sw2020);
+            var v3 = SwApplicationFactory.CreateVersion(SwVersion_e.Sw2019);
 
             Assert.That(v1.Equals(v2));
             Assert.That(!v1.Equals(v3));
@@ -53,9 +55,9 @@ namespace SolidWorks.Tests
         [Test]
         public void CompareTest()
         {
-            var v1 = SwApplicationFactory.CreateVersion(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
-            var v2 = SwApplicationFactory.CreateVersion(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
-            var v3 = SwApplicationFactory.CreateVersion(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2019);
+            var v1 = SwApplicationFactory.CreateVersion(SwVersion_e.Sw2020);
+            var v2 = SwApplicationFactory.CreateVersion(SwVersion_e.Sw2020);
+            var v3 = SwApplicationFactory.CreateVersion(SwVersion_e.Sw2019);
 
             Assert.AreEqual(0, v1.CompareTo(v2));
             Assert.AreEqual(1, v1.CompareTo(v3));
@@ -65,13 +67,47 @@ namespace SolidWorks.Tests
         [Test]
         public void CompareExtensionTest()
         {
-            var v1 = SwApplicationFactory.CreateVersion(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
-            var v2 = SwApplicationFactory.CreateVersion(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020);
-            var v3 = SwApplicationFactory.CreateVersion(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2019);
+            var v1 = SwApplicationFactory.CreateVersion(SwVersion_e.Sw2020);
+            var v2 = SwApplicationFactory.CreateVersion(SwVersion_e.Sw2020);
+            var v3 = SwApplicationFactory.CreateVersion(SwVersion_e.Sw2019);
 
             Assert.AreEqual(VersionEquality_e.Same, v1.Compare(v2));
             Assert.AreEqual(VersionEquality_e.Newer, v1.Compare(v3));
             Assert.AreEqual(VersionEquality_e.Older, v3.Compare(v2));
+        }
+
+        [Test]
+        public void VersionMapperTest() 
+        {
+            var mapper = new SwVersionMapper();
+
+            var av1 = mapper.FromApplicationRevision(20);
+            var av2 = mapper.FromApplicationRevision(100);
+
+            var fv1 = mapper.FromFileRevision(14000);
+            var fv2 = mapper.FromFileRevision(100000);
+
+            var yv1 = mapper.FromReleaseYear(2014);
+            var yv2 = mapper.FromReleaseYear(2100);
+            var yv3 = mapper.FromReleaseYear(1998, "+");
+
+            var vn1 = mapper.GetVersionName(SwVersion_e.Sw97Plus);
+            var vn2 = mapper.GetVersionName(SwVersion_e.Sw2011);
+            var vn3 = mapper.GetVersionName((SwVersion_e)131);
+
+            Assert.AreEqual(SwVersion_e.Sw2012, av1);
+            Assert.AreEqual((SwVersion_e)100, av2);
+
+            Assert.AreEqual(SwVersion_e.Sw2021, fv1);
+            Assert.AreEqual((SwVersion_e)115, fv2);
+
+            Assert.AreEqual(SwVersion_e.Sw2014, yv1);
+            Assert.AreEqual((SwVersion_e)108, yv2);
+            Assert.AreEqual(SwVersion_e.Sw98Plus, yv3);
+
+            Assert.AreEqual("SOLIDWORKS 1997+", vn1);
+            Assert.AreEqual("SOLIDWORKS 2011", vn2);
+            Assert.AreEqual("SOLIDWORKS 2123", vn3);
         }
     }
 }

@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Inventor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +15,14 @@ using Xarial.XCad.Inventor.Enums;
 
 namespace Xarial.XCad.Inventor
 {
+    /// <summary>
+    /// Autodesk Inventor Version
+    /// </summary>
     public interface IAiVersion : IXVersion
     {
+        /// <summary>
+        /// Major version identifier
+        /// </summary>
         AiVersion_e Major { get; }
     }
 
@@ -23,31 +30,23 @@ namespace Xarial.XCad.Inventor
     {
         public AiVersion_e Major { get; }
 
-        public string DisplayName
-        {
-            get 
-            {
-                string vers;
-
-                if (Major == AiVersion_e.Inventor5dot3)
-                {
-                    vers = "5.3";
-                }
-                else 
-                {
-                    vers = Major.ToString().Substring("Inventor".Length);
-                }
-
-                return $"Inventor {vers}";
-            }
-        }
+        public string DisplayName { get; }
 
         public Version Version { get; }
 
-        internal AiVersion(Version version)
+        internal AiVersion(SoftwareVersion softwareVersion, AiVersion_e major)
+        {
+            Version = new Version(softwareVersion.Major, softwareVersion.Minor, softwareVersion.ServicePack);
+            DisplayName = softwareVersion.ProductName + " " + softwareVersion.DisplayVersion;
+
+            Major = major;
+        }
+
+        internal AiVersion(Version version, AiVersion_e major, string dispName)
         {
             Version = version;
-            Major = (AiVersion_e)version.Major;
+            Major = major;
+            DisplayName = dispName;
         }
 
         public int CompareTo(IXVersion other)

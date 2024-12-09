@@ -19,6 +19,7 @@ using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Enums;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Exceptions;
+using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Toolkit.Windows;
 
 namespace Xarial.XCad.SolidWorks.Utils
@@ -135,30 +136,30 @@ namespace Xarial.XCad.SolidWorks.Utils
 
             if (vers.HasValue)
             {
-                var progId = string.Format(SwApplicationFactory.PROG_ID_TEMPLATE, (int)vers);
+                var progId = SwApplicationFactory.PROG_ID_BASE_NAME + Convert.ToInt32(vers.Value);
                 swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId, false);
-            }
-            else
-            {
-                foreach (var versCand in Enum.GetValues(typeof(SwVersion_e)).Cast<int>().OrderByDescending(x => x))
-                {
-                    var progId = string.Format(SwApplicationFactory.PROG_ID_TEMPLATE, versCand);
-                    swAppRegKey = Registry.ClassesRoot.OpenSubKey(progId, false);
 
-                    if (swAppRegKey != null)
-                    {
-                        break;
-                    }
+                if (swAppRegKey != null)
+                {
+                    return SwApplicationFactory.FindSwPathFromRegKey(swAppRegKey);
+                }
+                else
+                {
+                    throw new NullReferenceException("Failed to find the information about the installed SOLIDWORKS applications in the registry");
                 }
             }
-
-            if (swAppRegKey != null)
-            {
-                return SwApplicationFactory.FindSwPathFromRegKey(swAppRegKey);
-            }
             else
             {
-                throw new NullReferenceException("Failed to find the information about the installed SOLIDWORKS applications in the registry");
+                var newestVersion = SwApplicationFactory.GetInstalledVersionInfos().OrderBy(v => v.Revision).LastOrDefault();
+
+                if (newestVersion != null)
+                {
+                    return newestVersion.ExePath;
+                }
+                else 
+                {
+                    throw new Exception("No installed SOLIDWORKS versions found");
+                }
             }
         }
 

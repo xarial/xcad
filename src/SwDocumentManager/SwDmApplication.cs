@@ -23,6 +23,7 @@ using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Services;
 using Xarial.XCad.SwDocumentManager.Documents;
+using Xarial.XCad.SwDocumentManager.Services;
 
 namespace Xarial.XCad.SwDocumentManager
 {
@@ -64,7 +65,7 @@ namespace Xarial.XCad.SwDocumentManager
             set => throw new Exception("This property is read-only"); 
         }
 
-        public ISwDmVersion Version => SwDmApplicationFactory.CreateVersion((SwDmVersion_e)SwDocMgr.GetLatestSupportedFileVersion());
+        public ISwDmVersion Version => SwDmApplicationFactory.CreateVersion(VersionMapper.FromFileRevision(SwDocMgr.GetLatestSupportedFileVersion()));
 
         public ISwDmDocumentCollection Documents { get; }
 
@@ -103,10 +104,14 @@ namespace Xarial.XCad.SwDocumentManager
 
         private readonly IElementCreator<ISwDMApplication> m_Creator;
 
+        internal SwDmVersionMapper VersionMapper { get; }
+
         internal SwDmApplication(ISwDMApplication dmApp, bool isCreated) 
         {
             m_Creator = new ElementCreator<ISwDMApplication>(CreateApplication, dmApp, isCreated);
             Documents = new SwDmDocumentCollection(this);
+
+            VersionMapper = new SwDmVersionMapper();
         }
 
         private ISwDMApplication CreateApplication(CancellationToken cancellationToken)

@@ -334,7 +334,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
             try
             {
-                var subsBodies = PrepareBody(toolBody, null).Substract(PrepareBody(mainBody, mainBodyTransform));
+                var subsBodies = PrepareBody(toolBody, null).Subtract(PrepareBody(mainBody, mainBodyTransform));
 
                 return subsBodies?.Any() != true;
             }

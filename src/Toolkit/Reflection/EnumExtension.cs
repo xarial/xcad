@@ -43,7 +43,7 @@ namespace Xarial.XCad.Utils.Reflection
         /// Attempts to the attribute from enumeration
         /// </summary>
         /// <typeparam name="TAtt">Type of the attribute</typeparam>
-        /// <param name="type">Type to get attribute from</param>
+        /// <param name="enumer">Enumerator field</param>
         /// <returns>Attribute or null if not found</returns>
         public static TAtt TryGetAttribute<TAtt>(this Enum enumer)
             where TAtt : Attribute

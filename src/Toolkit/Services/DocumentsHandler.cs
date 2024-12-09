@@ -177,23 +177,26 @@ namespace Xarial.XCad.Toolkit.Services
 
         private void TryInitHandlers(IXDocument doc) 
         {
-            var handlers = new List<IDocumentHandler>();
-
-            foreach (var handlerInfo in m_Handlers) 
+            if (!m_DocsMap.ContainsKey(doc))
             {
-                try
+                var handlers = new List<IDocumentHandler>();
+
+                foreach (var handlerInfo in m_Handlers)
                 {
-                    CreateHandler(doc, handlerInfo, handlers);
+                    try
+                    {
+                        CreateHandler(doc, handlerInfo, handlers);
+                    }
+                    catch (Exception ex)
+                    {
+                        m_Logger.Log(ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    m_Logger.Log(ex);
-                }
+
+                m_DocsMap.Add(doc, handlers);
+
+                doc.Destroyed += OnDocumentDestroyed;
             }
-
-            m_DocsMap.Add(doc, handlers);
-
-            doc.Destroyed += OnDocumentDestroyed;
         }
 
         private void TryReleaseHandlers(IXDocument doc)

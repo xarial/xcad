@@ -162,7 +162,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public ISwDmVersion Version => SwDmApplicationFactory.CreateVersion((SwDmVersion_e)Document.GetVersion());
+        public ISwDmVersion Version => SwDmApplicationFactory.CreateVersion(OwnerApplication.VersionMapper.FromFileRevision(Document.GetVersion()));
 
         public virtual string Title 
         {
