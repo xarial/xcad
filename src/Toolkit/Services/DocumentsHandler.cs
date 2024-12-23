@@ -161,7 +161,7 @@ namespace Xarial.XCad.Toolkit.Services
         public THandler GetHandler<THandler>(IXDocument doc) 
             where THandler : IDocumentHandler
         {
-            var handlers = m_DocsMap[doc].Where(h => h.GetType() == typeof(THandler));
+            var handlers = m_DocsMap[doc].Where(h => typeof(THandler).IsAssignableFrom(h.GetType()));
 
             if (handlers.Any())
             {

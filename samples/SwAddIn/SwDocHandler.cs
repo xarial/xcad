@@ -25,8 +25,12 @@ using Xarial.XCad.UI;
 
 namespace SwAddInExample
 {
+    public interface ISwDocHandler : IDocumentHandler 
+    { 
+    }
+
     //[DocumentHandlerFilter(typeof(ISwDocument3D))]
-    public class SwDocHandler : IDocumentHandler
+    public class SwDocHandler : ISwDocHandler
     {
         public class RevData
         {

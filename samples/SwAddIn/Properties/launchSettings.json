@@ -11,6 +11,10 @@
     "Attach To SOLIDWORKS 2019": {
       "commandName": "Executable",
       "executablePath": "C:\\Program Files\\SOLIDWORKS Corp\\SOLIDWORKS (2)\\sldworks.exe"
+    },
+    "SOLIDWORKS 2025": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\SOLIDWORKS 2025\\SOLIDWORKS\\sldworks.exe"
     }
   }
 }

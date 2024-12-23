@@ -293,7 +293,7 @@ namespace SwAddInExample
             color = Color.FromArgb(100, Color.Green);
         }
 
-        private void OnPostRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxMacroFeatureData> feature, BoxMacroFeatureData parameters)
+        private void OnPostRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature<BoxMacroFeatureData> feature)
         { 
         }
 

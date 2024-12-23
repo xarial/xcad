@@ -203,7 +203,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 if (m_IsPageActive)
                 {
                     var selObj = ToSelObject(selection);
-
+                    
                     if (m_ElementType.IsAssignableFrom(selObj.GetType()))
                     {
                         if (m_CustomFilter != null)

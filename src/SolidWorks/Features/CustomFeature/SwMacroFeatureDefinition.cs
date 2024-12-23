@@ -521,7 +521,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <remarks>Typically add-in is loaded before the instance of the macro feature definition service is created
         /// In this case macro feature services will inherit services configured within the <see cref="ISwApplication"/> and <see cref="SwAddInEx"/> and overriding of this method or handling the <see cref="ConfigureServices"/> event is not required
         /// However macro feature definition is independent COM server which means it can be loaded without the add-in. In this case add-in services will not be automatically inherited
-        /// It is recommended to haev independent helper class which registers all services and shares between the <see cref="ISwApplication"/>, <see cref="SwAddInEx"/> and <see cref="SwMacroFeatureDefinition"/></remarks>
+        /// It is recommended to have independent helper class which registers all services and shares between the <see cref="ISwApplication"/>, <see cref="SwAddInEx"/> and <see cref="SwMacroFeatureDefinition"/></remarks>
         protected virtual void OnConfigureServices(IXServiceCollection svcColl)
         {
             ConfigureServices?.Invoke(this, svcColl);
@@ -532,12 +532,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     public abstract class SwMacroFeatureDefinition<TParams> : SwMacroFeatureDefinition, IXCustomFeatureDefinition<TParams>
         where TParams : class
     {
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        internal class MacroFeatureParametersRegenerateData : MacroFeatureRegenerateData
-        {
-            internal TParams Parameters { get; set; }
-        }
-
         private PostRebuildMacroFeatureDelegate<TParams> m_PostRebuild;
 
         /// <inheritdoc/>
@@ -601,7 +595,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             if (HandlePostRebuild)
             {
-                AddDataToRebuildQueue(app, doc, (ISwMacroFeature<TParams>)feature, paramsFeat.Parameters);
+                AddDataToRebuildQueue(app, doc, (ISwMacroFeature<TParams>)feature);
             }
 
             return res;
@@ -614,30 +608,11 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         internal override SwMacroFeature CreateMacroFeatureInstance(IFeature feat, SwDocument doc, SwApplication app)
             => new SwMacroFeature<TParams>(feat, doc, app, feat != null);
 
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        internal override void AddDataToRebuildQueue(ISwApplication app, ISwDocument doc, ISwMacroFeature macroFeatInst)
-        {
-            //Do nothing, this method is overriden
-        }
-
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        internal virtual void AddDataToRebuildQueue(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> macroFeatInst, TParams parameters)
-        {
-            m_RebuildFeaturesQueue.Add(new MacroFeatureParametersRegenerateData()
-            {
-                Application = app,
-                Document = doc,
-                Feature = macroFeatInst,
-                Parameters = parameters
-            });
-        }
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         internal override void DispatchPostBuildData(MacroFeatureRegenerateData data)
         {
-            var paramData = (MacroFeatureParametersRegenerateData)data;
-
-            m_PostRebuild?.Invoke(paramData.Application, paramData.Document, (ISwMacroFeature<TParams>)paramData.Feature, paramData.Parameters);
+            m_PostRebuild?.Invoke(data.Application, data.Document, (ISwMacroFeature<TParams>)data.Feature);
         }
 
         /// <inheritdoc/>

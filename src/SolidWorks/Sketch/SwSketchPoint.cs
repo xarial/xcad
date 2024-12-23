@@ -22,8 +22,14 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
+    /// <summary>
+    /// SOLIDWORKS specific sketch point
+    /// </summary>
     public interface ISwSketchPoint : IXSketchPoint, ISwSketchEntity, ISwPoint
     {
+        /// <summary>
+        /// Pointer to sketch point
+        /// </summary>
         ISketchPoint Point { get; }
     }
 
@@ -126,6 +132,14 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
+            }
+        }
+
+        internal override void Select(bool append, ISelectData selData)
+        {
+            if (!Point.Select4(append, (SelectData)selData))
+            {
+                throw new Exception("Failed to select sketch point");
             }
         }
 

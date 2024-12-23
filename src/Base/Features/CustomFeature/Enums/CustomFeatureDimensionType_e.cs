@@ -8,7 +8,7 @@
 namespace Xarial.XCad.Features.CustomFeature.Enums
 {
     /// <summary>
-    /// Type of the dimansion associated with <see cref="IXCustomFeature"/>
+    /// Type of the dimension associated with <see cref="IXCustomFeature"/>
     /// </summary>
     public enum CustomFeatureDimensionType_e
     {

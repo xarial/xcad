@@ -70,7 +70,7 @@ namespace Xarial.XCad.SolidWorks.Features
             {
                 if (!Target.Feature.ModifyDefinition(m_FeatData, m_Doc.Model, m_Comp?.Component))
                 {
-                    throw new Exception("Failed to modify defintion of the feature");
+                    throw new Exception("Failed to modify definition of the feature");
                 }
             }
             else 

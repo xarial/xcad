@@ -989,6 +989,8 @@ namespace SwAddInExample
         {
             var doc = (ISwDocument3D)Application.Documents.Active;
 
+            var handler = Application.Documents.GetHandler<ISwDocHandler>(doc);
+
             var feat = doc.Features["Sketch1"];
             var d1 = feat.Dimensions["D1@Sketch1"];
             var d2 = feat.Dimensions["D1"];

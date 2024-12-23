@@ -331,7 +331,7 @@ namespace Xarial.XCad.Utils.CustomFeature
         }
 
         /// <summary>
-        /// Traverses the definiton of the parameters class with custom handler for each parameter group
+        /// Traverses the definition of the parameters class with custom handler for each parameter group
         /// </summary>
         //TODO: implement the support for the nested types
         public void TraverseParametersDefinition(object parameters,

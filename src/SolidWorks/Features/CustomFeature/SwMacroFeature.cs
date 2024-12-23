@@ -676,6 +676,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 {
                     var dispWraps = selection.Cast<SwSelObject>().Select(s => new DispatchWrapper(s.Dispatch)).ToArray();
 
+                    //TODO: in some cases set selections may fail (e.g. linear component pattern feature cannot be set by some reasons), need validation if the selection failed as it will break when readins the indices
                     featData.SetSelections2(dispWraps, new int[selection.Length], new IView[selection.Length]);
                 }
                 else

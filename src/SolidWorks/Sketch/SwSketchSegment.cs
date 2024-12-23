@@ -27,9 +27,19 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
+    /// <summary>
+    /// SOLIDWORKS specific sketch segment
+    /// </summary>
     public interface ISwSketchSegment : IXSketchSegment, ISwSelObject, ISwSketchEntity
     {
+        /// <summary>
+        /// Pointer to sketch segment
+        /// </summary>
         ISketchSegment Segment { get; }
+
+        /// <summary>
+        /// Pointer to the underlying curve
+        /// </summary>
         new ISwCurve Definition { get; }
     }
 
@@ -160,6 +170,14 @@ namespace Xarial.XCad.SolidWorks.Sketch
         public bool IsConstruction => Segment.ConstructionGeometry;
 
         public override IXSketchBase OwnerSketch => m_OwnerSketch;
+
+        internal override void Select(bool append, ISelectData selData)
+        {
+            if (!Segment.Select4(append, (SelectData)selData)) 
+            {
+                throw new Exception("Failed to select sketch segment");
+            }
+        }
 
         private void SetColor(ISketchSegment seg, Color? color)
         {

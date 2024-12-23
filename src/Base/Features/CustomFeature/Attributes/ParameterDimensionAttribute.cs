@@ -22,6 +22,9 @@ namespace Xarial.XCad.Features.CustomFeature.Attributes
     [AttributeUsage(AttributeTargets.Property)]
     public class ParameterDimensionAttribute : Attribute
     {
+        /// <summary>
+        /// Type of the dimension
+        /// </summary>
         public CustomFeatureDimensionType_e DimensionType { get; private set; }
 
         /// <summary>
