@@ -5,7 +5,7 @@ description: Hosting options for SOLIDWORKS commands using xCAD (command group, 
 image: commands-toolbar.png
 order: 2
 ---
-[Defined commands](/extension/commands/defining-commands/) can be hosted in different locations of SOLIDWORKS commands area: [command group](#command-group), which includes [menu](#menu), [toolbar](#toolbar) and [command tab box (ribbon)](#command-tab-box) as well as in the [context menu](#context-menu)
+[Defined commands](../../../extensions/commands/defining-commands/index) can be hosted in different locations of SOLIDWORKS commands area: [command group](#command-group), which includes [menu](#menu), [toolbar](#toolbar) and [command tab box (ribbon)](#command-tab-box) as well as in the [context menu](#context-menu)
 
 ## Command Group
 
@@ -13,7 +13,8 @@ In order to add command group it is required to call the **AddCommandGroup** met
 
 It is required to provide the void handler function with a parameter of enumerator which will be called by framework when command is clicked.
 
-{% code-snippet { file-name: ~Extension\CommandsManager\CommandsAddIn.*, regions: [CommandGroup] } %}
+<<< @/_src/Extension/CommandsManager/CommandsAddIn.cs#CommandGroup
+<<< @/_src/Extension/CommandsManager/CommandsAddIn.cs#CommandGroup2
 
 ### Menu
 
@@ -42,7 +43,7 @@ Command item can be added to tab box by setting the *showInCmdTabBox* parameter 
 * Text below icon (TextBelow)
 * Text to the right to icon, aligned horizontally (TextHorizontal)
 
-{% code-snippet { file-name: ~Extension\CommandsManager\CommandTabBox.* } %}
+<<< @/_src/Extension/CommandsManager/CommandTabBox.cs
 
 ## Context Menu
 
@@ -54,6 +55,5 @@ It is required to provide the void handler function with a parameter of enumerat
 
 It is optionally required to specify the selection type of where this menu should be displayed.
 
-{% code-snippet { file-name: ~Extension\CommandsManager\CommandsAddIn.*, regions: [ContextMenu] } %}
-
-
+<<< @/_src/Extension/CommandsManager/CommandsAddIn.cs#ContextMenu
+<<< @/_src/Extension/CommandsManager/CommandsAddIn.cs#ContextMenu2

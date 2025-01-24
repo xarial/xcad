@@ -54,14 +54,14 @@ namespace Xarial.XCad.SwDocumentManager
         public IXObjectTracker CreateObjectTracker(string name) => throw new NotSupportedException();
         public IXApplicationOptions Options => throw new NotSupportedException();
         public IXMaterialsDatabaseRepository MaterialDatabases => throw new NotSupportedException();
-        #endregion
+        #endregion Not Supported
 
         IXDocumentRepository IXApplication.Documents => Documents;
 
         IXVersion IXApplication.Version
         {
             get => Version;
-            set => throw new Exception("This property is read-only"); 
+            set => throw new Exception("This property is read-only");
         }
 
         public ISwDmVersion Version => SwDmApplicationFactory.CreateVersion((SwDmVersion_e)SwDocMgr.GetLatestSupportedFileVersion());
@@ -72,26 +72,26 @@ namespace Xarial.XCad.SwDocumentManager
 
         public ISwDMApplication SwDocMgr => m_Creator.Element;
 
-        public SecureString LicenseKey 
+        public SecureString LicenseKey
         {
-            get 
+            get
             {
                 if (!IsCommitted)
                 {
                     return m_Creator.CachedProperties.Get<SecureString>();
                 }
-                else 
+                else
                 {
                     throw new NotSupportedException("This property is only available on creation of application");
                 }
             }
-            set 
+            set
             {
                 if (!IsCommitted)
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
-                else 
+                else
                 {
                     throw new NotSupportedException("");
                 }
@@ -103,7 +103,7 @@ namespace Xarial.XCad.SwDocumentManager
 
         private readonly IElementCreator<ISwDMApplication> m_Creator;
 
-        internal SwDmApplication(ISwDMApplication dmApp, bool isCreated) 
+        internal SwDmApplication(ISwDMApplication dmApp, bool isCreated)
         {
             m_Creator = new ElementCreator<ISwDMApplication>(CreateApplication, dmApp, isCreated);
             Documents = new SwDmDocumentCollection(this);
@@ -155,13 +155,13 @@ namespace Xarial.XCad.SwDocumentManager
             }
         }
 
-        public void Commit(CancellationToken cancellationToken) 
+        public void Commit(CancellationToken cancellationToken)
             => m_Creator.Create(cancellationToken);
     }
 
     public static class SwDmApplicationExtension
     {
-        public static bool IsVersionNewerOrEqual(this ISwDmApplication app, SwDmVersion_e version) 
+        public static bool IsVersionNewerOrEqual(this ISwDmApplication app, SwDmVersion_e version)
             => app.Version.IsVersionNewerOrEqual(version);
     }
 }

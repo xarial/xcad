@@ -13,9 +13,9 @@ namespace Xarial.XCad.Documentation
 {
     [Title("Document Manager Add-In")]
     [ComVisible(true), Guid("37728E73-BB74-4430-9FEB-AEC2B97DF861")]
-    public class DocMgrAddIn : SwAddInEx    
+    public class DocMgrAddIn : SwAddInEx
     {
-        //--- DocHandlerDefinition
+        #region DocHandlerDefinition
         public class MyDocHandler : SwDocumentHandler
         {
             protected override void AttachPartEvents(PartDoc part)
@@ -34,13 +34,13 @@ namespace Xarial.XCad.Documentation
                 return 0;
             }
         }
-        //---
+        #endregion DocHandlerDefinition
 
-        //--- DocHandlerInit
+        #region DocHandlerInit
         public override void OnConnect()
         {
             this.Application.Documents.RegisterHandler<MyDocHandler>();
         }
-        //---
+        #endregion DocHandlerInit
     }
 }

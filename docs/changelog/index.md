@@ -14,10 +14,10 @@ Breaking change is marked with &#x26A0; symbol
 * &#x26A0; Removed **OptionBoxStyle_e** and **OptionBoxOptionsAttribute::Style**
 * &#x26A0; SelectType_e enumeration is removed. Use Type to specify the selection filter for the SelectionBoxOptionsAttribute::Filters or use SwSelectionBoxOptionsAttribute::Filters to specify SOLIDWORKS specific filters via swSelectionType_e. Use ContextMenuCommandItemInfoAttribute::Owner to set the Type of the owner entity or use SwContextMenuCommandItemInfoAttribute::Owner to set the SOLIDWORKS specific owner via swSelectionType_e
 * &#x26A0; Point::Scale/Vector::Scale are not do not modify the values of the original object rather return new scaled result
-* &#x26A0; IXCustomFeatureDefinition\<TParams, TPage\>::OnPageParametersChanged renamed to IXCustomFeatureDefinition\<TParams, TPage\>::OnPreviewUpdated
-* &#x26A0; IXCustomFeatureDefinition\<TParams, TPage\>::CreateGeometry is split to IXCustomFeatureDefinition\<TParams, TPage\>.CreatePreviewGeometry.
+* &#x26A0; IXCustomFeatureDefinition\`<TParams, TPage\>`::OnPageParametersChanged renamed to IXCustomFeatureDefinition\`<TParams, TPage\>`::OnPreviewUpdated
+* &#x26A0; IXCustomFeatureDefinition\`<TParams, TPage\>`::CreateGeometry is split to IXCustomFeatureDefinition\`<TParams, TPage\>`.CreatePreviewGeometry.
 * &#x26A0; ISwMacroFeatureDefinition::ShouldUpdatePreview changed the signature (added the pointer to TPage)
-* &#x26A0; ISwMacroFeatureDefinition::ShouldHidePreviewEditBody, ISwMacroFeatureDefinition::AssignPreviewBodyColor replaced with the delegates of IXCustomFeatureDefinition\<TParams, TPage\>.
+* &#x26A0; ISwMacroFeatureDefinition::ShouldHidePreviewEditBody, ISwMacroFeatureDefinition::AssignPreviewBodyColor replaced with the delegates of IXCustomFeatureDefinition\`<TParams, TPage\>`.
 CreatePreviewGeometry
 * &#x26A0; ISwMacroFeatureDefinition::ConvertParamsToPage added additional parameter for current data
 * &#x26A0; IXDocument3D::PreCreateBoundingBox, IXDocument3D::PreCreateMassProperty moved to IXDocumentEvaluation
@@ -88,7 +88,7 @@ CreatePreviewGeometry
 ## 0.7.0 - May 2, 2021
 
 * &#x26A0; IXPropertyRepository::GetOrPreCreate moved to extension method
-* &#x26A0; IXObject::IsSame replaced with IEquatable<IXObject>.Equals
+* &#x26A0; IXObject::IsSame replaced with IEquatable`<IXObject>`.Equals
 * &#x26A0; IXCustomControl::DataContextChanged replaced with IXCustomControl::ValueChanged
 * &#x26A0; IXCustomControl::DataContext replaced with IXCustomControl::Value
 * &#x26A0; ResourceHelper::FromBytes replaced with BaseImage class
@@ -189,7 +189,7 @@ CreatePreviewGeometry
 
 ## 0.6.0 - September 13, 2020
 
-* Implemented [#5 - Updating Combobox based on another comboBox selection change](https://github.com/xarial/xcad/issues/5). Refer [help documentation](/property-pages/controls/combo-box#dynamic-items-provider) for more information
+* Implemented [#5 - Updating Combobox based on another comboBox selection change](https://github.com/xarial/xcad/issues/5). Refer [help documentation](../property-pages/controls/combo-box/index#dynamic-items-provider) for more information
 
 * Implemented [#6 - Add Support to Bitmap Button](https://github.com/xarial/xcad/issues/6)
 

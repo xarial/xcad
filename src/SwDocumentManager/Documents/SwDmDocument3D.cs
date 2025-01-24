@@ -31,7 +31,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXDocumentEvaluation Evaluation => throw new NotSupportedException();
         public IXDocumentGraphics Graphics => throw new NotSupportedException();
 
-        #endregion
+        #endregion Not Supported
 
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
 
@@ -55,7 +55,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 return fileName.Substring(PREFIX.Length);
             }
-            else 
+            else
             {
                 return fileName;
             }

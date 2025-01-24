@@ -6,11 +6,11 @@ order: 4
 ---
 Dimensions is an additional source of input for macro feature. Dimensions can be defined in the following way:
 
-{% code-snippet { file-name: ~CustomFeature\DimensionsParameters.* } %}
+<<< @/_src/CustomFeature/DimensionsParameters.cs
 
-It is required to arrange the dimensions within rebuild by specifying the *alignDim* delegate. Use **IXCustomFeatureDefinition<TParams>.AlignDimension** and extension helper methods to align the dimension.
+It is required to arrange the dimensions within rebuild by specifying the *alignDim* delegate. Use **IXCustomFeatureDefinition`<TParams>`.AlignDimension** and extension helper methods to align the dimension.
 
-{% code-snippet { file-name: ~CustomFeature\SetDimensions.* } %}
+<<< @/_src/CustomFeature/SetDimensions.cs
 
 *Origin* is a starting point of the dimension.
 
