@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2024 Xarial Pty Limited
+//Copyright(C) 2025 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -45,6 +45,11 @@ namespace Xarial.XCad.UI.PropertyPage
         /// Raised when undo or redo action is clicked
         /// </summary>
         event PageUndoDelegate Undo;
+
+        /// <summary>
+        /// Raised when navigation button is clicked
+        /// </summary>
+        event PageNavigationDelegate Navigate;
 
         /// <summary>
         /// Checks if page is pinned

@@ -621,12 +621,14 @@ namespace SwAddInExample
                     case Commands_e.ShowPmPage:
                         if (m_Page != null) 
                         {
+                            m_Page.Navigate -= OnNavigate;
                             m_Page.KeystrokeHook -= OnPageKeystrokeHook;
                             m_Page.Preview -= OnPagePreview;
                             m_Page.Closed -= OnPageClosed;
                         }
                         m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
                         m_Page.Closed += OnPageClosed;
+                        m_Page.Navigate += OnNavigate;
                         m_Page.KeystrokeHook += OnPageKeystrokeHook;
                         m_Page.Preview += OnPagePreview;
                         m_Data = new PmpData()
@@ -884,6 +886,11 @@ namespace SwAddInExample
             {
                 Debug.Assert(false);
             }
+        }
+
+        private void OnNavigate(PageNavigationAction_e action, Xarial.XCad.UI.PropertyPage.Structures.PageNavigationArg arg)
+        {
+            arg.Cancel = true;
         }
 
         private void OnPagePreview(bool enabled, ref bool cancel)

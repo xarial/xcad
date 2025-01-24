@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2024 Xarial Pty Limited
+//Copyright(C) 2025 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 using Xarial.XCad.Base.Attributes;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
@@ -54,6 +55,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         private IImageCollection m_PageIcon;
 
         private readonly Dictionary<int, bool> m_GroupExpandStates;
+
+        private readonly bool m_HasNavigation;
 
         internal PropertyManagerPagePage(SwApplication app, IAttributeSet atts, IIconsCreator iconsConv, SwPropertyManagerPageHandler handler) 
         {
@@ -146,6 +149,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 {
                     opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_RedoButton;
                 }
+
+                if (buttonsAtt.Buttons.HasFlag(PageButtons_e.Navigation))
+                {
+                    opts |= swPropertyManagerPageOptions_e.swPropertyManagerOptions_MultiplePages;
+                    m_HasNavigation = true;
+                }
             }
             else
             {
@@ -192,8 +201,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
 
             Page = m_App.Sw.CreatePropertyManagerPage(atts.Name,
-                (int)opts,
-                Handler, ref err) as IPropertyManagerPage2;
+                (int)opts, Handler, ref err) as IPropertyManagerPage2;
 
             if (titleIcon != null)
             {
@@ -234,6 +242,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             if (string.IsNullOrEmpty(m_HelpLink))
             {
                 Page.EnableButton((int)swPropertyManagerPageButtons_e.swPropertyManagerPageButton_Help, false);
+            }
+
+            if (m_HasNavigation)
+            {
+                Page.EnableButton((int)swPropertyManagerPageButtons_e.swPropertyManagerPageButton_Back, true);
+                Page.EnableButton((int)swPropertyManagerPageButtons_e.swPropertyManagerPageButton_Next, true);
             }
         }
 

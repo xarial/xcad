@@ -1,4 +1,11 @@
-﻿using System.Reflection;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2025 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 

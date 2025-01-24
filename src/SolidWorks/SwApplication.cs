@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2024 Xarial Pty Limited
+//Copyright(C) 2025 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -517,11 +517,29 @@ namespace Xarial.XCad.SolidWorks
 
         private int OnLoadFirstIdleNotify()
         {
-            Debug.Assert(!m_IsStartupNotified, "This event shoud only be fired once");
+            Debug.Assert(!m_IsStartupNotified, "This event should only be fired once");
             
             if (!m_IsStartupNotified)
             {
-                if (Sw?.StartupProcessCompleted == true)
+                bool isStartupCompleted;
+
+                if (Sw != null)
+                {
+                    if (Sw.IsVersionNewerOrEqual(SwVersion_e.Sw2015))
+                    {
+                        isStartupCompleted = Sw.StartupProcessCompleted;
+                    }
+                    else
+                    {
+                        isStartupCompleted = true;
+                    }
+                }
+                else 
+                {
+                    isStartupCompleted = false;
+                }
+
+                if (isStartupCompleted)
                 {
                     if (m_HideOnStartup)
                     {

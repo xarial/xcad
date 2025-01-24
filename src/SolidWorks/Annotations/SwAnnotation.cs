@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2024 Xarial Pty Limited
+//Copyright(C) 2025 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -23,8 +23,14 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
+    /// <summary>
+    /// SOLIDWORKS specific annotation
+    /// </summary>
     public interface ISwAnnotation : IXAnnotation, ISwSelObject
     {
+        /// <summary>
+        /// Pointer to the annotation
+        /// </summary>
         IAnnotation Annotation { get; }
     }
 

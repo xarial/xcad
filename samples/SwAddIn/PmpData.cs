@@ -258,7 +258,7 @@ namespace SwAddInExample
     [ComVisible(true)]
     [Help("https://xcad.net/")]
     [PageOptions(PageOptions_e.HandleKeystrokes)]
-    [PageButtons(PageButtons_e.Okay | PageButtons_e.Cancel | PageButtons_e.Pushpin | PageButtons_e.Preview)]
+    [PageButtons(PageButtons_e.Okay | PageButtons_e.Cancel | PageButtons_e.Pushpin | PageButtons_e.Preview | PageButtons_e.Navigation)]
     [LockedPage(LockPageStrategy_e.Restorable)]
     public class PmpData : SwPropertyManagerPageHandler, INotifyPropertyChanged
     {

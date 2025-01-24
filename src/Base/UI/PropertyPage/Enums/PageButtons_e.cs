@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2024 Xarial Pty Limited
+//Copyright(C) 2025 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -48,6 +48,11 @@ namespace Xarial.XCad.UI.PropertyPage.Enums
         /// <summary>
         /// Redu button
         /// </summary>
-        Redo = 32
+        Redo = 32,
+
+        /// <summary>
+        /// Next and Previous buttons
+        /// </summary>
+        Navigation = 64
     }
 }

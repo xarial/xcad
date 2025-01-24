@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2024 Xarial Pty Limited
+//Copyright(C) 2025 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -53,6 +53,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         internal event Func<bool> Preview;
         internal event Action Undo;
         internal event Action Redo;
+        internal event Func<bool> PreviousPage;
+        internal event Func<bool> NextPage;
 
         /// <inheritdoc/>
         internal event PropertyManagerPageClosingDelegate Closing;
@@ -239,10 +241,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool OnNextPage()
-        {
-            return true;
-        }
+        public bool OnNextPage() => NextPage?.Invoke() ?? false;
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -278,10 +277,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool OnPreviousPage()
-        {
-            return true;
-        }
+        public bool OnPreviousPage() => PreviousPage?.Invoke() ?? false;
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]

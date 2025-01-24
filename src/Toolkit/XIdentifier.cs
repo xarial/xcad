@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2025 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,7 +22,6 @@ namespace Xarial.XCad.Toolkit
     {
         private enum XIdentifierType_e
         {
-            Object,
             DateTime,
             Long,
             Int,
@@ -43,18 +49,6 @@ namespace Xarial.XCad.Toolkit
             {
                 switch (m_Type)
                 {
-                    case XIdentifierType_e.Object:
-                        {
-                            var bf = new BinaryFormatter();
-                            using (var memStr = new MemoryStream())
-                            {
-#pragma warning disable SYSLIB0011
-                                bf.Serialize(memStr, m_Object);
-#pragma warning restore SYSLIB0011
-                                memStr.Seek(0, SeekOrigin.Begin);
-                                return memStr.ToArray();
-                            }
-                        }
                     case XIdentifierType_e.DateTime:
                         return BitConverter.GetBytes(m_UtcDate.Ticks);
                     case XIdentifierType_e.Long:
@@ -92,16 +86,6 @@ namespace Xarial.XCad.Toolkit
                 }
             }
 
-        }
-
-        /// <summary>
-        /// Constructor of object-based identifier
-        /// </summary>
-        /// <param name="id">Object value</param>
-        public XIdentifier(object id)
-        {
-            m_Type = XIdentifierType_e.Object;
-            m_Object = id;
         }
 
         /// <summary>
@@ -185,8 +169,6 @@ namespace Xarial.XCad.Toolkit
                 {
                     switch (m_Type)
                     {
-                        case XIdentifierType_e.Object:
-                            return m_Object == otherId.m_Object;
                         case XIdentifierType_e.DateTime:
                             return m_UtcDate.Ticks == otherId.m_UtcDate.Ticks;
                         case XIdentifierType_e.Long:

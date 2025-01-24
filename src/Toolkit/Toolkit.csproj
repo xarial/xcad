@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>Xarial.XCad.Toolkit</AssemblyName>
     <RootNamespace>Xarial.XCad.Toolkit</RootNamespace>
-    <TargetFrameworks>net7.0;net6.0;netstandard2.1;net461</TargetFrameworks>
+    <TargetFrameworks>net9.0;net8.0;net7.0;net6.0;netstandard2.1;net461</TargetFrameworks>
     <PackageId>Xarial.XCad.Toolkit</PackageId>
     <PackageTags>cad,solidworks</PackageTags>
     <Description>Utility classes for implementing xCAD.NET - Framework for developing CAD applications</Description>
@@ -37,7 +37,7 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' Or '$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'net7.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' Or '$(TargetFramework)' == 'net6.0' Or '$(TargetFramework)' == 'net7.0' Or '$(TargetFramework)' == 'net8.0' Or '$(TargetFramework)' == 'net9.0'">
     <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
   </ItemGroup>
   

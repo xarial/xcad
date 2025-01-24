@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2024 Xarial Pty Limited
+//Copyright(C) 2025 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -72,9 +72,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         /// <inheritdoc/>
         public event PageUndoDelegate Undo;
 
+        public event PageNavigationDelegate Navigate;
+
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public event Action<IAutoDisposable> Disposed;
-
+        
         private readonly ISwApplication m_App;
         private readonly IIconsCreator m_IconsConv;
         private readonly PropertyManagerPagePage m_Page;
@@ -139,6 +141,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             Handler.Preview += OnPreview;
             Handler.Undo += OnUndo;
             Handler.Redo += OnRedo;
+            Handler.PreviousPage += OnPreviousPage;
+            Handler.NextPage += OnNextPage;
             Handler.Closed += OnClosed;
             Handler.Closing += OnClosing;
             m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, Handler, pageSpec, m_Logger);
@@ -161,6 +165,30 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             m_Controls = ctrls;
 
             m_IsShown = false;
+        }
+
+        private bool OnPreviousPage()
+        {
+            var arg = new PageNavigationArg()
+            {
+                Cancel = false
+            };
+
+            Navigate?.Invoke(PageNavigationAction_e.Previous, arg);
+
+            return !arg.Cancel;
+        }
+
+        private bool OnNextPage()
+        {
+            var arg = new PageNavigationArg()
+            {
+                Cancel = false
+            };
+
+            Navigate?.Invoke(PageNavigationAction_e.Next, arg);
+
+            return !arg.Cancel;
         }
 
         private void ValidateHandler(SwPropertyManagerPageHandler handler)
@@ -215,6 +243,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
                 Handler.Preview -= OnPreview;
                 Handler.Undo -= OnUndo;
                 Handler.Redo -= OnRedo;
+                Handler.PreviousPage -= OnPreviousPage;
+                Handler.NextPage -= OnNextPage;
                 Handler.Closed -= OnClosed;
                 Handler.Closing -= OnClosing;
 
