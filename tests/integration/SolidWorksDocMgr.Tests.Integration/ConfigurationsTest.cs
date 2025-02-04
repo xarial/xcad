@@ -104,24 +104,45 @@ namespace SolidWorksDocMgr.Tests.Integration
         [Test]
         public void PartNumberTest()
         {
-            string p1;
-            string p2;
-            string p3;
-            string p4;
+            string v1;
+            string v2;
+            string v3;
+            string v4;
+
+            PartNumberSourceType_e s1;
+            PartNumberSourceType_e s2;
+            PartNumberSourceType_e s3;
+            PartNumberSourceType_e s4;
 
             using (var doc = OpenDataDocument("PartNumber1.SLDPRT"))
             {
                 var confs = (m_App.Documents.Active as ISwDmDocument3D).Configurations;
-                p1 = confs["Default"].PartNumber;
-                p2 = confs["Conf1"].PartNumber;
-                p3 = confs["Conf4"].PartNumber;
-                p4 = confs["Conf5"].PartNumber;
+
+                var p1 = confs["Default"].PartNumber;
+                var p2 = confs["Conf1"].PartNumber;
+                var p3 = confs["Conf4"].PartNumber;
+                var p4 = confs["Conf5"].PartNumber;
+
+                v1 = p1.Value;
+                v2 = p2.Value;
+                v3 = p3.Value;
+                v4 = p4.Value;
+
+                s1 = p1.Type;
+                s2 = p2.Type;
+                s3 = p3.Type;
+                s4 = p4.Type;
             }
 
-            Assert.AreEqual("PartNumber1", p1);
-            Assert.AreEqual("Conf1", p2);
-            Assert.AreEqual("Conf3", p3);
-            Assert.AreEqual("ABC", p4);
+            Assert.AreEqual("PartNumber1", v1);
+            Assert.AreEqual("Conf1", v2);
+            Assert.AreEqual("Conf3", v3);
+            Assert.AreEqual("ABC", v4);
+
+            Assert.AreEqual(PartNumberSourceType_e.DocumentName, s1);
+            Assert.AreEqual(PartNumberSourceType_e.ConfigurationName, s2);
+            Assert.AreEqual(PartNumberSourceType_e.ParentName, s3);
+            Assert.AreEqual(PartNumberSourceType_e.Custom, s4);
         }
 
         [Test]

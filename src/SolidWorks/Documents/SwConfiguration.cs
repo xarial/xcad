@@ -151,6 +151,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly IElementCreator<IConfiguration> m_Creator;
 
+        private readonly SwPartNumber m_PartNumber;
+
         internal SwConfiguration(IConfiguration conf, SwDocument3D doc, SwApplication app, bool created) : base(conf, doc, app)
         {
             m_Doc = doc;
@@ -161,6 +163,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 () => new SwConfigurationCustomPropertiesCollection(this, m_Doc, OwnerApplication));
 
             m_DimensionsLazy = new Lazy<SwDimensionsCollection>(CreateDimensions);
+
+            m_PartNumber = new SwPartNumber(this);
         }
 
         public override object Dispatch => Configuration;
@@ -180,7 +184,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public string PartNumber => GetPartNumber(Configuration);
+        public IPartNumber PartNumber => m_PartNumber;
 
         public double Quantity
         {
@@ -456,23 +460,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             return resVal;
         }
 
-        private string GetPartNumber(IConfiguration conf) 
-        {
-            switch ((swBOMPartNumberSource_e)conf.BOMPartNoSource)
-            {
-                case swBOMPartNumberSource_e.swBOMPartNumber_ConfigurationName:
-                    return conf.Name;
-                case swBOMPartNumberSource_e.swBOMPartNumber_DocumentName:
-                    return Path.GetFileNameWithoutExtension(m_Doc.Title);
-                case swBOMPartNumberSource_e.swBOMPartNumber_ParentName:
-                    return GetPartNumber(conf.GetParent());
-                case swBOMPartNumberSource_e.swBOMPartNumber_UserSpecified:
-                    return conf.AlternateName;
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
         private void OnCreated(IConfiguration conf, CancellationToken cancellationToken)
         {
             if (m_DimensionsLazy.IsValueCreated) 
@@ -484,6 +471,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 m_PropertiesLazy.Value.CommitCache(cancellationToken);
             }
+
+            m_PartNumber.Commit();
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);

@@ -994,25 +994,13 @@ namespace SwAddInExample
 
         private void Custom()
         {
-            var doc = (ISwDocument3D)Application.Documents.Active;
+            var doc = (ISwPart)Application.Documents.Active;
 
-            var handler = Application.Documents.GetHandler<ISwDocHandler>(doc);
-
-            var feat = doc.Features["Sketch1"];
-            var d1 = feat.Dimensions["D1@Sketch1"];
-            var d2 = feat.Dimensions["D1"];
-
-            var v1 = d1.Value;
-            var v2 = d2.Value;
-
-            var dim = (ISwDimension)doc.Configurations.Active.Dimensions["D1@Sketch1"];
-            var val = dim.Value;
-
-            var swDispDim = dim.DisplayDimension;
-            var swDim = dim.Dimension;
-            var swAnn = dim.Annotation;
-
-            //m_DynamicSketchBasedObjectPage.Show(new DynamicSketchBasedObjectData(Application));
+            var newConf = doc.Configurations.PreCreate();
+            newConf.Name = "ABC";
+            newConf.PartNumber.Type = PartNumberSourceType_e.Custom;
+            newConf.PartNumber.Value = "AAA";
+            newConf.Commit();
         }
 
         private void HandleAddEvents()

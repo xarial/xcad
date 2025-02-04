@@ -48,7 +48,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Returns part number of this configuration
         /// </summary>
-        string PartNumber { get; }
+        IPartNumber PartNumber { get; }
 
         /// <summary>
         /// Collection of properties

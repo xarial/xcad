@@ -53,7 +53,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public double Quantity => throw new NotSupportedException();
 
-        public string PartNumber => throw new NotSupportedException();
+        public IPartNumber PartNumber => throw new NotSupportedException();
 
         public IXConfiguration Parent { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 

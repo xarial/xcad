@@ -17,6 +17,7 @@ using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents.EventHandlers;
+using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.Utils.Diagnostics;
 
@@ -76,7 +77,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else
             {
-                Part.SetMaterialPropertyName2(confName, "", "");
+                if (string.IsNullOrEmpty(confName))
+                {
+                    Part.SetMaterialPropertyName2(confName, "", "");
+                }
+                else 
+                {
+                    throw new Exception($"Material cannot be removed for the configuration. Remove material on part level instead via {nameof(IXPart)}::{nameof(IXPart.Material)}");
+                }
             }
         }
 

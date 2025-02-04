@@ -19,6 +19,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Features;
 using Xarial.XCad.Reflection;
+using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SwDocumentManager.Data;
 using Xarial.XCad.SwDocumentManager.Exceptions;
 using Xarial.XCad.SwDocumentManager.Features;
@@ -62,6 +63,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
             m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(
                 () => new SwDmConfigurationCustomPropertiesCollection(this));
+
+            PartNumber = new SwDmPartNumber(this);
         }
 
         public virtual string Name
@@ -76,7 +79,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public override bool IsCommitted => true;
 
-        public string PartNumber => GetPartNumber(this);
+        public IPartNumber PartNumber { get; }
 
         internal protected virtual SwDmDocument3D Document { get; }
 
@@ -292,23 +295,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             catch 
             {
                 return "";
-            }
-        }
-
-        private string GetPartNumber(ISwDmConfiguration conf) 
-        {
-            switch ((swDmBOMPartNumberSource)((ISwDMConfiguration11)(conf.Configuration)).BOMPartNoSource)
-            {
-                case swDmBOMPartNumberSource.swDmBOMPartNumber_ConfigurationName:
-                    return conf.Name;
-                case swDmBOMPartNumberSource.swDmBOMPartNumber_DocumentName:
-                    return Path.GetFileNameWithoutExtension(Document.Title);
-                case swDmBOMPartNumberSource.swDmBOMPartNumber_ParentName:
-                    return GetPartNumber(Document.Configurations[conf.Configuration.GetParentConfigurationName()]);
-                case swDmBOMPartNumberSource.swDmBOMPartNumber_UserSpecified:
-                    return ((ISwDMConfiguration7)conf.Configuration).AlternateName2;
-                default:
-                    throw new NotSupportedException();
             }
         }
 
