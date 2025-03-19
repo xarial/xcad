@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Features
@@ -28,5 +29,11 @@ namespace Xarial.XCad.Features
         /// Entity which is used as a fixed face
         /// </summary>
         IXEntity FixedEntity { get; }
+
+        /// <summary>
+        /// Pre-creates save-as operation
+        /// </summary>
+        /// <param name="filePath">Output file path</param>
+        IFlatPatternSaveOperation PreCreateSaveAsOperation(string filePath);
     }
 }

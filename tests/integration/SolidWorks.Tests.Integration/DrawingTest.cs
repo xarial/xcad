@@ -502,7 +502,7 @@ namespace SolidWorks.Tests.Integration
 
                 var drwView2 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
                 drwView2.ReferencedDocument = refDoc1;
-                drwView2.Options = FlatPatternViewOptions_e.None;
+                drwView2.Options = FlatPatternViewOptions_e.Default;
                 drwView2.Commit();
 
                 var refDoc2 = m_App.Documents.PreCreate<IXPart>();
@@ -520,7 +520,7 @@ namespace SolidWorks.Tests.Integration
 
                 var drwView5 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
                 drwView5.ReferencedDocument = refDoc2;
-                drwView5.Options = FlatPatternViewOptions_e.None;
+                drwView5.Options = FlatPatternViewOptions_e.Default;
                 drwView5.Commit();
 
                 view1IsFlatPattern = drwView1.DrawingView.IsFlatPatternView();
@@ -1350,7 +1350,7 @@ namespace SolidWorks.Tests.Integration
 
                 var view1 = (ISwFlatPatternDrawingView)sheet.DrawingViews["Drawing View1"];
                 opts1 = view1.Options;
-                view1.Options = FlatPatternViewOptions_e.None;
+                view1.Options = FlatPatternViewOptions_e.Default;
                 view1BendLines = view1.DrawingView.GetBendLineCount();
                 view1BendNotes = view1.DrawingView.ShowSheetMetalBendNotes;
 
@@ -1371,11 +1371,11 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(0, view1BendLines);
             Assert.AreEqual(false, view1BendNotes);
 
-            Assert.AreEqual(FlatPatternViewOptions_e.None, opts2);
+            Assert.AreEqual(FlatPatternViewOptions_e.Default, opts2);
             Assert.AreEqual(2, view2BendLines);
             Assert.AreEqual(true, view2BendNotes);
 
-            Assert.AreEqual(FlatPatternViewOptions_e.None, opts3);
+            Assert.AreEqual(FlatPatternViewOptions_e.Default, opts3);
             Assert.AreEqual(1, view3BendLines);
             Assert.AreEqual(false, view3BendNotes);
         }

@@ -34,7 +34,10 @@ namespace Xarial.XCad.Inventor.Documents
     {
         public event PropertyValueChangedDelegate ValueChanged;
 
-        internal AiProperty (Property prp, AiDocument doc, AiApplication app) : base(prp, doc, app)
+        internal static AiProperty New(Property prp, AiDocument doc, AiApplication app) 
+            => new AiProperty(prp, doc, app);
+
+        protected AiProperty (Property prp, AiDocument doc, AiApplication app) : base(prp, doc, app)
         {
             Property = prp;
         }

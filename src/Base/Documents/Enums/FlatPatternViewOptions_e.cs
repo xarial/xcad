@@ -20,9 +20,9 @@ namespace Xarial.XCad.Documents.Enums
     public enum FlatPatternViewOptions_e
     {
         /// <summary>
-        /// Empty flat pattern view
+        /// Default flat pattern view
         /// </summary>
-        None = 0,
+        Default = 0,
 
         /// <summary>
         /// Shows the bend lines in the drawing view

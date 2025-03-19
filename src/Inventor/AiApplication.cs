@@ -40,6 +40,16 @@ namespace Xarial.XCad.Inventor
         StartApplicationConnectStrategy_e StartApplicationConnectStrategy { get; set; }
 
         IXServiceCollection CustomServices { get; set; }
+
+        /// <summary>
+        /// Creates xCAD object from a Autodesk Inventor dispatch object
+        /// </summary>
+        /// <typeparam name="TObj">Type of xCAD object</typeparam>
+        /// <param name="disp">Autodesk Inventor specific COM object instance</param>
+        /// <param name="doc">Pointer to document or null if object belongs to application</param>
+        /// <returns>xCAD object</returns>
+        TObj CreateObjectFromDispatch<TObj>(object disp, IAiDocument doc)
+            where TObj : IAiObject;
     }
 
     internal class AiApplication : IAiApplication, IXServiceConsumer
@@ -60,7 +70,31 @@ namespace Xarial.XCad.Inventor
             {
                 if (IsCommitted)
                 {
-                    return ApplicationState_e.Default;
+                    var state = ApplicationState_e.Default;
+
+                    if (Application.SilentOperation) 
+                    {
+                        state |= ApplicationState_e.Silent;
+                    }
+
+                    if (!Application.Visible) 
+                    {
+                        state |= ApplicationState_e.Hidden;
+                    }
+
+                    var prcFilePath = Process.MainModule?.FileName;
+
+                    if (!string.IsNullOrEmpty(prcFilePath)) 
+                    {
+                        var fileName = System.IO.Path.GetFileName(prcFilePath);
+
+                        if (string.Equals(fileName, AiApplicationFactory.INVENTOR_READ_ONLY_EXE_FILE_NAME, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            state |= ApplicationState_e.ReadOnly;
+                        }
+                    }
+
+                    return state;
                 }
                 else 
                 {
@@ -71,6 +105,7 @@ namespace Xarial.XCad.Inventor
             {
                 if (IsCommitted)
                 {
+                    throw new NotSupportedException();
                 }
                 else 
                 {
@@ -283,6 +318,10 @@ namespace Xarial.XCad.Inventor
                 Debug.Assert(false, "App has been already initialized. Must be only once");
             }
         }
+
+        public TObj CreateObjectFromDispatch<TObj>(object disp, IAiDocument doc)
+            where TObj : IAiObject
+            => AiObjectFactory.FromDispatch<TObj>(disp, (AiDocument)doc, this);
 
         public void Close()
         {

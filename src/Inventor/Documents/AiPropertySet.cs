@@ -94,7 +94,7 @@ namespace Xarial.XCad.Inventor.Documents
         {
             foreach (Property prp in PropertySet) 
             {
-                yield return new AiProperty(prp, m_Doc, m_Doc.OwnerApplication);
+                yield return m_Doc.OwnerApplication.CreateObjectFromDispatch<AiProperty>(prp, m_Doc);
             }
         }
     }

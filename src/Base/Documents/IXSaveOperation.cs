@@ -5,7 +5,9 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using Xarial.XCad.Base;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Documents
@@ -118,7 +120,12 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Exports splines as polylines
         /// </summary>
-        Polylines
+        Polylines,
+
+        /// <summary>
+        /// Exports splines as tangent arcs
+        /// </summary>
+        TangentArcs
     }
 
     /// <summary>
@@ -134,11 +141,27 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// True to include hidden layers, False to only export visible layers
         /// </summary>
-        bool ExportHiddentLayers { get; set; }
+        bool ExportHiddenLayers { get; set; }
 
         /// <summary>
         /// Options to export splines
         /// </summary>
         SplineExportOptions_e SplineExportOptions { get; set; }
+    }
+
+    /// <summary>
+    /// Save options for <see cref="Features.IXFlatPattern"/>
+    /// </summary>
+    public interface IFlatPatternSaveOperation : IXSaveOperation 
+    {
+        /// <summary>
+        /// Options to export splines
+        /// </summary>
+        SplineExportOptions_e SplineExportOptions { get; set; }
+
+        /// <summary>
+        /// Flat pattern view options
+        /// </summary>
+        FlatPatternViewOptions_e ViewOptions { get; set; }
     }
 }

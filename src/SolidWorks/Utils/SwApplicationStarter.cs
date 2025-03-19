@@ -46,6 +46,11 @@ namespace Xarial.XCad.SolidWorks.Utils
 
             var args = new List<string>();
 
+            if (m_State.HasFlag(ApplicationState_e.ReadOnly)) 
+            {
+                throw new NotSupportedException("Read-only state is not supported");
+            }
+
             if (m_State.HasFlag(ApplicationState_e.Safe))
             {
                 args.Add(SwApplicationFactory.CommandLineArguments.SafeMode);

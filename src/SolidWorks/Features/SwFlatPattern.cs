@@ -16,9 +16,13 @@ using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using SolidWorks.Interop.swconst;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
+    /// <summary>
+    /// SOLIDWORKS-specific flat pattern feature
+    /// </summary>
     public interface ISwFlatPattern : IXFlatPattern, ISwFeature
     {
     }
@@ -62,5 +66,17 @@ namespace Xarial.XCad.SolidWorks.Features
         }
 
         public override ISwBody Body => (ISwBody)FixedEntity.Body;
+
+        public IFlatPatternSaveOperation PreCreateSaveAsOperation(string filePath)
+        {
+            if (OwnerDocument is SwPart)
+            {
+                return new SwFlatPatternSaveOperation((SwPart)OwnerDocument, this, filePath);
+            }
+            else 
+            {
+                throw new NotSupportedException($"Operation can be created for features in the part context only");
+            }
+        }
     }
 }

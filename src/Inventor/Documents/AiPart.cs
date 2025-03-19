@@ -12,7 +12,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.Inventor.Features;
+using Xarial.XCad.Inventor.Geometry;
 
 namespace Xarial.XCad.Inventor.Documents
 {
@@ -31,9 +34,13 @@ namespace Xarial.XCad.Inventor.Documents
         {
             Part = part;
             m_iPartTable = new AiPartTable(this);
+            Features = new AiPartFeaturesCollection(this);
+            Bodies = new AiBodyCollection(this);
         }
 
-        public IXBodyRepository Bodies => throw new NotImplementedException();
+        public override IXFeatureRepository Features { get; }
+
+        public IXBodyRepository Bodies { get; }
 
         IXModelView3DRepository IXDocument3D.ModelViews => throw new NotImplementedException();
 

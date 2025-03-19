@@ -25,6 +25,7 @@ using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Documents.Services;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
+using Xarial.XCad.Inventor.Features;
 using Xarial.XCad.Inventor.Utils;
 using Xarial.XCad.Services;
 using Xarial.XCad.Toolkit;
@@ -40,6 +41,15 @@ namespace Xarial.XCad.Inventor.Documents
         /// Pointer to a document
         /// </summary>
         Document Document { get; }
+
+        /// <summary>
+        /// Creates xCAD object from a Autodesk Inventor dispatch object
+        /// </summary>
+        /// <typeparam name="TObj">Type of xCAD object</typeparam>
+        /// <param name="disp">Autodesk Inventor specific COM object instance</param>
+        /// <returns>xCAD object</returns>
+        TObj CreateObjectFromDispatch<TObj>(object disp)
+            where TObj : IAiObject;
     }
 
     [DebuggerDisplay("{" + nameof(Title) + "}")]
@@ -164,9 +174,9 @@ namespace Xarial.XCad.Inventor.Documents
 
         public IXAnnotationRepository Annotations => throw new NotImplementedException();
 
-        public IXFeatureRepository Features => throw new NotImplementedException();
+        public virtual IXFeatureRepository Features { get; }
 
-        public IXSelectionRepository Selections => throw new NotImplementedException();
+        public IXSelectionRepository Selections { get; }
 
         public IXDocumentDependencies Dependencies => throw new NotImplementedException();
 
@@ -192,6 +202,8 @@ namespace Xarial.XCad.Inventor.Documents
             m_Id = doc?.InternalName;
 
             Properties = new AiDocumentPropertySet(this);
+
+            Selections = new AiSelectionSet(this);
 
             m_Creator = new ElementCreator<Document>(CreateDocument, doc, doc != null);
 
@@ -317,6 +329,9 @@ namespace Xarial.XCad.Inventor.Documents
                 Dispose(true);
             }
         }
+
+        public TObj CreateObjectFromDispatch<TObj>(object disp) where TObj : IAiObject
+            => AiObjectFactory.FromDispatch<TObj>(disp, this, OwnerApplication);
 
         protected virtual void Dispose(bool disposing)
         {

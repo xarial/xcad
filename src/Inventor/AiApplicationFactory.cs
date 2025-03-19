@@ -21,7 +21,6 @@ using System.Linq;
 using Xarial.XCad.Inventor.Utils;
 using Xarial.XCad.Base;
 using Xarial.XCad.Inventor.Services;
-using static Xarial.XCad.Inventor.AiApplicationFactory;
 
 namespace Xarial.XCad.Inventor
 {
@@ -33,13 +32,15 @@ namespace Xarial.XCad.Inventor
         internal class AiVersionInfo
         {
             internal string ExePath { get; }
+            internal string ReadOnlyExePath { get; }
             internal int Major { get; }
             internal int Minor { get; }
             internal AiVersion_e Version { get; }
 
-            internal AiVersionInfo(string exePath, AiVersion_e vers, int major, int minor)
+            internal AiVersionInfo(string exePath, string readOnlyExePath, AiVersion_e vers, int major, int minor)
             {
                 ExePath = exePath;
+                ReadOnlyExePath = readOnlyExePath;
                 Version = vers;
                 Major = major;
                 Minor = minor;
@@ -48,9 +49,12 @@ namespace Xarial.XCad.Inventor
 
         internal const string APP_MONIKER_NAME = "!{B6B5DC40-96E3-11D2-B774-0060B0F159EF}";
 
+        internal const string INVENTOR_EXE_FILE_NAME = "Inventor.exe";
+        internal const string INVENTOR_READ_ONLY_EXE_FILE_NAME = "InvRO.exe";
+
         private const string REG_PATH = @"SOFTWARE\Autodesk\Inventor";
         private const string REG_KEY_BASE = "RegistryVersion";
-
+        
         private static readonly AiVersionMapper m_VersionMapper;
 
         static AiApplicationFactory() 
@@ -58,7 +62,7 @@ namespace Xarial.XCad.Inventor
             m_VersionMapper = new AiVersionMapper();
         }
 
-        private static string GetApplicationPathFromRegistryVersionKey(RegistryKey regVersKey)
+        private static string GetApplicationPathFromRegistryVersionKey(RegistryKey regVersKey, out string readOnlyExePath)
         {
             var path = (string)regVersKey.GetValue("InventorLocation");
 
@@ -67,7 +71,9 @@ namespace Xarial.XCad.Inventor
                 throw new Exception("Inventor location path is empty");
             }
 
-            var exeLoc = System.IO.Path.Combine(path, "Inventor.exe");
+            var exeLoc = System.IO.Path.Combine(path, INVENTOR_EXE_FILE_NAME);
+
+            readOnlyExePath = System.IO.Path.Combine(path, INVENTOR_READ_ONLY_EXE_FILE_NAME);
 
             if (System.IO.File.Exists(exeLoc))
             {
@@ -80,7 +86,7 @@ namespace Xarial.XCad.Inventor
         }
 
         /// <summary>
-        /// Returns all installed SOLIDWORKS versions
+        /// Returns all installed Autodesk Inventor versions
         /// </summary>
         /// <returns>Enumerates versions</returns>
         public static IEnumerable<IAiVersion> GetInstalledVersions()
@@ -102,8 +108,9 @@ namespace Xarial.XCad.Inventor
 
                         int major;
                         int minor;
-                        string path;
-                        
+                        string exePath;
+                        string readOnlyExePath;
+
                         try
                         {
                             var version = verRegKeyName.Substring(REG_KEY_BASE.Length).Split('.');
@@ -119,9 +126,9 @@ namespace Xarial.XCad.Inventor
                                 minor = 0;
                             }
 
-                            path = GetApplicationPathFromRegistryVersionKey(verRegKey);
+                            exePath = GetApplicationPathFromRegistryVersionKey(verRegKey, out readOnlyExePath);
 
-                            if (!System.IO.File.Exists(path))
+                            if (!System.IO.File.Exists(exePath))
                             {
                                 throw new Exception("Installation path is not found");
                             }
@@ -132,7 +139,8 @@ namespace Xarial.XCad.Inventor
                         {
                             major = -1;
                             minor = -1;
-                            path = "";
+                            exePath = "";
+                            readOnlyExePath = "";
                         }
 
                         if (isInstalled)
@@ -148,7 +156,7 @@ namespace Xarial.XCad.Inventor
                                 vers = m_VersionMapper.FromApplicationRevision(major);
                             }
 
-                            yield return new AiVersionInfo(path, vers, major, minor);
+                            yield return new AiVersionInfo(exePath, readOnlyExePath, vers, major, minor);
                         }
                     }
                 }
@@ -160,47 +168,6 @@ namespace Xarial.XCad.Inventor
         /// </summary>
         /// <returns></returns>
         public static IAiApplication PreCreate() => new AiApplication();
-
-        /// <summary>
-        /// Returns all installed Inventor versions
-        /// </summary>
-        /// <returns></returns>
-        //public static IEnumerable<IAiVersion> GetInstalledVersions()
-        //{
-        //    var invRegKey = Registry.LocalMachine.OpenSubKey(REG_PATH, false);
-
-        //    if (invRegKey != null) 
-        //    {
-        //        foreach (var verRegKeyName in invRegKey.GetSubKeyNames().Where(k => k.StartsWith(REG_KEY_BASE, StringComparison.CurrentCultureIgnoreCase))) 
-        //        {
-        //            var verRegKey = invRegKey.OpenSubKey(verRegKeyName, false);
-        //        }
-        //    }
-
-        //    foreach (var versCand in Enum.GetValues(typeof(AiVersion_e)).Cast<AiVersion_e>())
-        //    {
-        //        var regKey = OpenRegistryVersionKey(versCand);
-
-        //        if (regKey != null)
-        //        {
-        //            var isInstalled = false;
-
-        //            try
-        //            {
-        //                GetApplicationPathFromRegistryVersionKey(regKey);
-        //                isInstalled = true;
-        //            }
-        //            catch
-        //            {
-        //            }
-
-        //            if (isInstalled)
-        //            {
-        //                yield return CreateVersion(versCand);
-        //            }
-        //        }
-        //    }
-        //}
 
         /// <summary>
         /// Creates <see cref="IAiApplication"/> from Inventor pointer

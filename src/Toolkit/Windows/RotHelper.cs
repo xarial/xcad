@@ -66,7 +66,7 @@ namespace Xarial.XCad.Toolkit.Windows
                                 {
                                     if (predicate == null || predicate.Invoke((TComObj)app))
                                     {
-                                        return (TComObj)app;
+                                        return (TComObj)app;    
                                     }
                                 }
                             }

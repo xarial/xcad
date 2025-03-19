@@ -1635,7 +1635,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    var opts = FlatPatternViewOptions_e.None;
+                    var opts = FlatPatternViewOptions_e.Default;
 
                     if (DrawingView.ShowSheetMetalBendNotes) 
                     {

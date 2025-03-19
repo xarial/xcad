@@ -43,6 +43,9 @@ using Xarial.XCad.Toolkit.Data;
 
 namespace Xarial.XCad.SolidWorks
 {
+    /// <summary>
+    /// SOLIDWORKS-specific application
+    /// </summary>
     public interface ISwApplication : IXApplication, IDisposable
     {
         ISldWorks Sw { get; }
@@ -54,6 +57,13 @@ namespace Xarial.XCad.SolidWorks
         new ISwMemoryGeometryBuilder MemoryGeometryBuilder { get; }
         new ISwMacro OpenMacro(string path);
 
+        /// <summary>
+        /// Creates xCAD object from a SOLIDWORKS dispatch object
+        /// </summary>
+        /// <typeparam name="TObj">Type of xCAD object</typeparam>
+        /// <param name="disp">SOLIDWORKS specific COM object instance</param>
+        /// <param name="doc">Pointer to document or null if object belongs to application</param>
+        /// <returns>xCAD object</returns>
         TObj CreateObjectFromDispatch<TObj>(object disp, ISwDocument doc)
             where TObj : ISwObject;
     }

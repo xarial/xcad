@@ -16,11 +16,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Markup;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Exceptions;
 using Xarial.XCad.Exceptions;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Enums;
+using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
 
@@ -458,6 +460,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                     exportSplinesAsSplines = false;
                     break;
 
+                case SplineExportOptions_e.TangentArcs:
+                    throw new NotSupportedException("This option is not supported");
+
                 default:
                     throw new NotSupportedException($"Only {nameof(SplineExportOptions_e.Splines)} and {nameof(SplineExportOptions_e.Polylines)} are supported in {nameof(SplineExportOptions)}");
             }
@@ -465,7 +470,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfExportSplinesAsSplines, exportSplinesAsSplines);
 
             m_OrigExportHiddenLayers = m_Doc.OwnerApplication.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDXFExportHiddenLayersOn);
-            m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDXFExportHiddenLayersOn, ExportHiddentLayers);
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDXFExportHiddenLayersOn, ExportHiddenLayers);
 
             if (Sheets?.Length == 1)
             {
@@ -515,7 +520,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public bool ExportHiddentLayers
+        public bool ExportHiddenLayers
         {
             get => m_Creator.CachedProperties.Get<bool>();
             set
@@ -543,6 +548,105 @@ namespace Xarial.XCad.SolidWorks.Documents
                 else
                 {
                     throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+    }
+
+    internal class SwFlatPatternSaveOperation : IFlatPatternSaveOperation
+    {
+        private enum SheetMetalOptions_e
+        {
+            ExportFlatPatternGeometry = 1,
+            IncludeHiddenEdges = 2,
+            ExportBendLines = 4,
+            IncludeSketches = 8,
+            MergeCoplanarFaces = 16,
+            ExportLibraryFeatures = 32,
+            ExportFormingTools = 64,
+            ExportBoundingBox = 2048
+        }
+
+        private readonly ElementCreator<bool?> m_Creator;
+
+        private readonly SwPart m_Part;
+        private readonly SwFlatPattern m_FlatPattern;
+
+        public SwFlatPatternSaveOperation(SwPart part, SwFlatPattern flatPattern, string filePath)
+        {
+            m_Part = part;
+            m_FlatPattern = flatPattern;
+            FilePath = filePath;
+
+            m_Creator = new ElementCreator<bool?>(ExportFlatPattern, null, false);
+        }
+
+        public SplineExportOptions_e SplineExportOptions
+        {
+            get => m_Creator.CachedProperties.Get<SplineExportOptions_e>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        public FlatPatternViewOptions_e ViewOptions
+        {
+            get => m_Creator.CachedProperties.Get<FlatPatternViewOptions_e>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        public string FilePath { get; }
+
+        public bool IsCommitted => m_Creator.IsCreated;
+
+        public void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+
+        private bool? ExportFlatPattern(CancellationToken token)
+        {
+            using (new UiFreeze(m_Part))
+            {
+                using (var selGrp = new SelectionGroup(m_Part, true))
+                {
+                    selGrp.Add(m_FlatPattern.Feature);
+
+                    var opts = SheetMetalOptions_e.ExportFlatPatternGeometry;
+
+                    if (ViewOptions.HasFlag(FlatPatternViewOptions_e.BendLines))
+                    {
+                        opts |= SheetMetalOptions_e.ExportBendLines;
+                    }
+
+                    if (ViewOptions.HasFlag(FlatPatternViewOptions_e.BendNotes))
+                    {
+                        throw new SaveDocumentFailedException(-1, "Bend notes option is not supported");
+                    }
+
+                    if (m_Part.Part.ExportToDWG2(FilePath, m_Part.Path, (int)swExportToDWG_e.swExportToDWG_ExportSheetMetal, true, null, false, false, (int)opts, null))
+                    {
+                        return true;
+                    }
+                    else 
+                    {
+                        throw new SaveDocumentFailedException(-1, "Failed to export flat pattern");
+                    }
                 }
             }
         }

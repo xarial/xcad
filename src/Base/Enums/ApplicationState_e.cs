@@ -40,6 +40,11 @@ namespace Xarial.XCad.Enums
         /// <summary>
         /// Application runs in the safe mode
         /// </summary>
-        Safe = 8
+        Safe = 8,
+
+        /// <summary>
+        /// Application ruins in the read-only mode
+        /// </summary>
+        ReadOnly = 16
     }
 }

@@ -10,6 +10,7 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -121,7 +122,12 @@ namespace Xarial.XCad.Inventor.Utils
                 //TODO: handle background mode
             }
 
-            var inventorAppPath = FindInventorAppPath(vers);
+            var inventorAppPath = FindInventorAppPath(vers, m_State.HasFlag(ApplicationState_e.ReadOnly));
+
+            if (!System.IO.File.Exists(inventorAppPath)) 
+            {
+                throw new FileNotFoundException("Inventor executable is not found");
+            }
 
             using (var tempTokenFile = new LazyTempTokenFile(m_Logger))
             {
@@ -215,7 +221,7 @@ namespace Xarial.XCad.Inventor.Utils
             }
         }
 
-        private string FindInventorAppPath(AiVersion_e? vers)
+        private string FindInventorAppPath(AiVersion_e? vers, bool readOnly)
         {
             if (vers.HasValue)
             {
@@ -233,7 +239,7 @@ namespace Xarial.XCad.Inventor.Utils
                             }
                         }
 
-                        return instVers.ExePath;
+                        return !readOnly ? instVers.ExePath : instVers.ReadOnlyExePath;
                     }
                 }
 
@@ -245,7 +251,7 @@ namespace Xarial.XCad.Inventor.Utils
 
                 if (newestVersion != null)
                 {
-                    return newestVersion.ExePath;
+                    return !readOnly ? newestVersion.ExePath : newestVersion.ReadOnlyExePath;
                 }
                 else
                 {

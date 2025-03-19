@@ -134,7 +134,7 @@ namespace Xarial.XCad.Documents
         /// <summary>
         /// Pre-creates save-as operation
         /// </summary>
-        /// <param name="filePath"></param>
+        /// <param name="filePath">Output file path</param>
         IXSaveOperation PreCreateSaveAsOperation(string filePath);
 
         /// <summary>

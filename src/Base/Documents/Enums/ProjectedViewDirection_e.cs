@@ -18,13 +18,44 @@ namespace Xarial.XCad.Documents.Enums
     /// </summary>
     public enum ProjectedViewDirection_e
     {
+        /// <summary>
+        /// Left
+        /// </summary>
         Left,
+
+        /// <summary>
+        /// Top
+        /// </summary>
         Top,
+
+        /// <summary>
+        /// Right
+        /// </summary>
         Right,
+
+        /// <summary>
+        /// Bottom
+        /// </summary>
         Bottom,
+
+        /// <summary>
+        /// Isometric Top Left
+        /// </summary>
         IsoTopLeft,
+
+        /// <summary>
+        /// Isometric Top Right
+        /// </summary>
         IsoTopRight,
+
+        /// <summary>
+        /// Isometric Bottom Left
+        /// </summary>
         IsoBottomLeft,
+
+        /// <summary>
+        /// Isolmetric Bottom Right
+        /// </summary>
         IsoBottomRight
     }
 }
