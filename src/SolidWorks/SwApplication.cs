@@ -374,9 +374,10 @@ namespace Xarial.XCad.SolidWorks
                 customServices.Add<IMemoryGeometryBuilderToleranceProvider, DefaultMemoryGeometryBuilderToleranceProvider>(ServiceLifetimeScope_e.Singleton, false);
                 customServices.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, false);
                 customServices.Add<ISwVersionMapper, SwVersionMapper>(ServiceLifetimeScope_e.Singleton, false);
-                customServices.Add<IMacroFeatureTypeProvider, ComMacroFeatureTypeProvider>(ServiceLifetimeScope_e.Singleton);
-                customServices.Add<IInterferencesProvider, InterferencesProvider>(ServiceLifetimeScope_e.Singleton);
-                customServices.Add<ICustomGraphicsContextProvider, OglCustomGraphicsContextProvider>(ServiceLifetimeScope_e.Singleton);
+                customServices.Add<IMacroFeatureTypeProvider, ComMacroFeatureTypeProvider>(ServiceLifetimeScope_e.Singleton, false);
+                customServices.Add<IInterferencesProvider, InterferencesProvider>(ServiceLifetimeScope_e.Singleton, false);
+                customServices.Add<ICustomGraphicsContextProvider, OglCustomGraphicsContextProvider>(ServiceLifetimeScope_e.Singleton, false);
+                customServices.Add<IProgressUserCancellationHandler>(() => new DefaultProgressUserCancellationHandler(Logger), ServiceLifetimeScope_e.Singleton, false);
 
                 ConfigureServices?.Invoke(this, customServices);
             }
@@ -587,7 +588,7 @@ namespace Xarial.XCad.SolidWorks
         {
             if (Sw.GetUserProgressBar(out UserProgressBar prgBar))
             {
-                return new SwProgress(prgBar);
+                return new SwProgress(prgBar, Services.GetService<IProgressUserCancellationHandler>());
             }
             else 
             {

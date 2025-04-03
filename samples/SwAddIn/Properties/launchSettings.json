@@ -2,7 +2,7 @@
   "profiles": {
     "Attach To SOLIDWORKS 2024": {
       "commandName": "Executable",
-      "executablePath": "C:\\Program Files\\SOLIDWORKS Corp\\SOLIDWORKS (5)\\sldworks.exe"
+      "executablePath": "C:\\Program Files\\SOLIDWORKS 2024\\SOLIDWORKS\\sldworks.exe"
     },
     "Attach To SOLIDWORKS 2023": {
       "commandName": "Executable",

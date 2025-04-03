@@ -994,13 +994,6 @@ namespace SwAddInExample
 
         private void Custom()
         {
-            var doc = (ISwPart)Application.Documents.Active;
-
-            var newConf = doc.Configurations.PreCreate();
-            newConf.Name = "ABC";
-            newConf.PartNumber.Type = PartNumberSourceType_e.Custom;
-            newConf.PartNumber.Value = "AAA";
-            newConf.Commit();
         }
 
         private void HandleAddEvents()
