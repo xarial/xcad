@@ -82,6 +82,9 @@ namespace Xarial.XCad.SolidWorks.Documents
                 case ".stp":
                     return new SwStepSaveOperation(this, filePath);
 
+                case ".ifc":
+                    return new SwIfcSaveOperation(this, filePath);
+
                 default:
                     return new SwDocument3DSaveOperation(this, filePath);
             }

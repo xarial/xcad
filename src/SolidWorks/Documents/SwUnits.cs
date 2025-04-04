@@ -25,6 +25,68 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("{" + nameof(Length) + "} - {" + nameof(Mass) + "} - {" + nameof(Angle) + "} - {" + nameof(Time) + "}")]
     internal class SwUnits : ISwUnits
     {
+        internal static swLengthUnit_e ConvertToLengthUnit(Length_e value)
+        {
+            switch (value)
+            {
+                case Length_e.Angstroms:
+                    return swLengthUnit_e.swANGSTROM;
+                case Length_e.Centimeters:
+                    return swLengthUnit_e.swCM;
+                case Length_e.Feet:
+                    return swLengthUnit_e.swFEET;
+                case Length_e.FeetInches:
+                    return swLengthUnit_e.swFEETINCHES;
+                case Length_e.Inches:
+                    return swLengthUnit_e.swINCHES;
+                case Length_e.Meters:
+                    return swLengthUnit_e.swMETER;
+                case Length_e.Microns:
+                    return swLengthUnit_e.swMICRON;
+                case Length_e.Mils:
+                    return swLengthUnit_e.swMIL;
+                case Length_e.Millimeters:
+                    return swLengthUnit_e.swMM;
+                case Length_e.Nanometers:
+                    return swLengthUnit_e.swNANOMETER;
+                case Length_e.Microinches:
+                    return swLengthUnit_e.swUIN;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        internal static Length_e ConvertLengthUnits(swLengthUnit_e lengthUnits)
+        {
+            switch (lengthUnits)
+            {
+                case swLengthUnit_e.swANGSTROM:
+                    return Length_e.Angstroms;
+                case swLengthUnit_e.swCM:
+                    return Length_e.Centimeters;
+                case swLengthUnit_e.swFEET:
+                    return Length_e.Feet;
+                case swLengthUnit_e.swFEETINCHES:
+                    return Length_e.FeetInches;
+                case swLengthUnit_e.swINCHES:
+                    return Length_e.Inches;
+                case swLengthUnit_e.swMETER:
+                    return Length_e.Meters;
+                case swLengthUnit_e.swMICRON:
+                    return Length_e.Microns;
+                case swLengthUnit_e.swMIL:
+                    return Length_e.Mils;
+                case swLengthUnit_e.swMM:
+                    return Length_e.Millimeters;
+                case swLengthUnit_e.swNANOMETER:
+                    return Length_e.Nanometers;
+                case swLengthUnit_e.swUIN:
+                    return Length_e.Microinches;
+                default:
+                    throw new Exception($"Specified custom length unit is not supported: {lengthUnits}");
+            }
+        }
+
         public UnitSystem_e System 
         {
             get
@@ -843,68 +905,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwUnits(ISwDocument document) 
         {
             m_Document = document;
-        }
-
-        private swLengthUnit_e ConvertToLengthUnit(Length_e value)
-        {
-            switch (value)
-            {
-                case Length_e.Angstroms:
-                    return swLengthUnit_e.swANGSTROM;
-                case Length_e.Centimeters:
-                    return swLengthUnit_e.swCM;
-                case Length_e.Feet:
-                    return swLengthUnit_e.swFEET;
-                case Length_e.FeetInches:
-                    return swLengthUnit_e.swFEETINCHES;
-                case Length_e.Inches:
-                    return swLengthUnit_e.swINCHES;
-                case Length_e.Meters:
-                    return swLengthUnit_e.swMETER;
-                case Length_e.Microns:
-                    return swLengthUnit_e.swMICRON;
-                case Length_e.Mils:
-                    return swLengthUnit_e.swMIL;
-                case Length_e.Millimeters:
-                    return swLengthUnit_e.swMM;
-                case Length_e.Nanometers:
-                    return swLengthUnit_e.swNANOMETER;
-                case Length_e.Microinches:
-                    return swLengthUnit_e.swUIN;
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
-        private Length_e ConvertLengthUnits(swLengthUnit_e lengthUnits)
-        {
-            switch (lengthUnits)
-            {
-                case swLengthUnit_e.swANGSTROM:
-                    return Length_e.Angstroms;
-                case swLengthUnit_e.swCM:
-                    return Length_e.Centimeters;
-                case swLengthUnit_e.swFEET:
-                    return Length_e.Feet;
-                case swLengthUnit_e.swFEETINCHES:
-                    return Length_e.FeetInches;
-                case swLengthUnit_e.swINCHES:
-                    return Length_e.Inches;
-                case swLengthUnit_e.swMETER:
-                    return Length_e.Meters;
-                case swLengthUnit_e.swMICRON:
-                    return Length_e.Microns;
-                case swLengthUnit_e.swMIL:
-                    return Length_e.Mils;
-                case swLengthUnit_e.swMM:
-                    return Length_e.Millimeters;
-                case swLengthUnit_e.swNANOMETER:
-                    return Length_e.Nanometers;
-                case swLengthUnit_e.swUIN:
-                    return Length_e.Microinches;
-                default:
-                    throw new Exception($"Specified custom length unit is not supported: {lengthUnits}");
-            }
         }
     }
 }

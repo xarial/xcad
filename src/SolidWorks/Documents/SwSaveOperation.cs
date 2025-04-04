@@ -335,6 +335,117 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
+    internal class SwIfcSaveOperation : SwDocument3DSaveOperation, IXIfcSaveOperation
+    {
+        private int m_OriginalFormat;
+        private swLengthUnit_e m_OriginalUnits;
+
+        internal SwIfcSaveOperation(SwDocument3D doc, string filePath) : base(doc, filePath)
+        {
+            var format = m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swSaveIFCFormat);
+
+            IfcFormat_e curFormat;
+
+            switch (format)
+            {
+                case 23:
+                    curFormat = IfcFormat_e.Ifc2x3;
+                    break;
+
+                case 4:
+                    curFormat = IfcFormat_e.Ifc4;
+                    break;
+
+                default:
+                    curFormat = IfcFormat_e.Ifc2x3;
+                    break;
+            }
+
+            Format = curFormat;
+
+            var units = (swLengthUnit_e)m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swExportIFCUnits);
+            Units = SwUnits.ConvertLengthUnits(units);
+        }
+
+        protected override void SetSaveOptions(out object exportData)
+        {
+            base.SetSaveOptions(out exportData);
+
+            m_OriginalFormat = m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swSaveIFCFormat);
+            m_OriginalUnits = (swLengthUnit_e)m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swExportIFCUnits);
+
+            exportData = null;
+
+            int format;
+
+            switch (Format)
+            {
+                case IfcFormat_e.Ifc2x3:
+                    format = 23;
+                    break;
+
+                case IfcFormat_e.Ifc4:
+                    format = 4;
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+
+            if (!m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swSaveIFCFormat, format))
+            {
+                throw new Exception("Failed to set IFC format the option");
+            }
+
+            var units = SwUnits.ConvertToLengthUnit(Units);
+
+            if (!m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swExportIFCUnits, (int)units))
+            {
+                throw new Exception("Failed to set IFC units option");
+            }
+        }
+
+        protected override void RestoreSaveOptions()
+        {
+            base.RestoreSaveOptions();
+
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swSaveIFCFormat, m_OriginalFormat);
+            m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swExportIFCUnits, (int)m_OriginalUnits);
+        }
+
+        public IfcFormat_e Format
+        {
+            get => m_Creator.CachedProperties.Get<IfcFormat_e>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
+        public Length_e Units
+        {
+            get => m_Creator.CachedProperties.Get<Length_e>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+    }
+
     internal class SwDocument3DPdfSaveOperation : SwDocument3DSaveOperation, IXDocument3DPdfSaveOperation
     {
         internal SwDocument3DPdfSaveOperation(SwDocument3D doc, string filePath) : base(doc, filePath)

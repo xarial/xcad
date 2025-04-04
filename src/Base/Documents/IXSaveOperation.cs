@@ -82,6 +82,38 @@ namespace Xarial.XCad.Documents
     }
 
     /// <summary>
+    /// IFC file format
+    /// </summary>
+    public enum IfcFormat_e
+    {
+        /// <summary>
+        /// IFC 2x3
+        /// </summary>
+        Ifc2x3,
+
+        /// <summary>
+        /// IFC 4
+        /// </summary>
+        Ifc4
+    }
+
+    /// <summary>
+    /// Save options of step format
+    /// </summary>
+    public interface IXIfcSaveOperation : IXDocument3DSaveOperation
+    {
+        /// <summary>
+        /// IFC format
+        /// </summary>
+        IfcFormat_e Format { get; set; }
+
+        /// <summary>
+        /// Export units
+        /// </summary>
+        Length_e Units { get; set; }
+    }
+
+    /// <summary>
     /// Save options for PDF format
     /// </summary>
     public interface IXPdfSaveOperation : IXSaveOperation
