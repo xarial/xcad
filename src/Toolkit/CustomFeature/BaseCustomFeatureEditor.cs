@@ -382,37 +382,61 @@ namespace Xarial.XCad.Utils.CustomFeature
 
         private bool AreParametersChanged(TData oldParams, TData newParams) 
         {
-            bool AreArraysEqual<T>(T[] oldArr, T[] newArr, Func<T, T, bool> comparer)
-            {
-                if (oldArr == null && newArr == null)
-                {
-                    return true;
-                }
-                else if (oldArr == null || newArr == null)
-                {
-                    return false;
-                }
-                else 
-                {
-                    for (int i = 0; i < oldArr.Length; i++) 
-                    {
-                        if (!comparer.Invoke(oldArr[i], newArr[i])) 
-                        {
-                            return false;
-                        }
-                    }
-                }
-
-                return true;
-            }
-
             m_ParamsParser.Parse(oldParams, out CustomFeatureAttribute[] oldAtts, out IXSelObject[] oldSels, out _, out double[] oldDimVals, out IXBody[] oldEditBodies);
             m_ParamsParser.Parse(newParams, out CustomFeatureAttribute[] newAtts, out IXSelObject[] newSels, out _, out double[] newDimVals, out IXBody[] newEditBodies);
 
-            return !(AreArraysEqual(oldAtts, newAtts, (o, n) => string.Equals(o.Name, n.Name) && object.Equals(o.Value, n.Value) && Type.Equals(o.Type, n.Type))
-                    && AreArraysEqual(oldSels, newSels, (o, n) => o.Equals(n))
+            return !(AreArraysEqual(oldAtts, newAtts, (o, n) => string.Equals(o?.Name, n?.Name) && object.Equals(o?.Value, n?.Value) && Type.Equals(o?.Type, n?.Type))
+                    && AreArraysEqual(oldSels, newSels, CompareObjects)
                     && AreArraysEqual(oldDimVals, newDimVals, (o, n) => double.Equals(o, n))
-                    && AreArraysEqual(oldEditBodies, newEditBodies, (o, n) => o.Equals(n)));
+                    && AreArraysEqual(oldEditBodies, newEditBodies, CompareObjects));
+        }
+
+        private bool AreArraysEqual<T>(T[] oldArr, T[] newArr, Func<T, T, bool> comparer)
+        {
+            if (oldArr == null && newArr == null)
+            {
+                return true;
+            }
+            else if (oldArr == null || newArr == null)
+            {
+                return false;
+            }
+            else
+            {
+                for (int i = 0; i < oldArr.Length; i++)
+                {
+                    if (!comparer.Invoke(oldArr[i], newArr[i]))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private bool CompareObjects(IXObject firstObj, IXObject secondObj)
+        {
+            if (firstObj is IFaultObject || secondObj is IFaultObject)
+            {
+                return object.ReferenceEquals(firstObj, secondObj);
+            }
+            else if (firstObj == null || secondObj == null) 
+            {
+                return object.ReferenceEquals(firstObj, secondObj);
+            }
+            else
+            {
+                try
+                {
+                    return firstObj.Equals(secondObj);
+                }
+                catch (Exception ex)
+                {
+                    m_Logger.Log(ex);
+                    return false;
+                }
+            }
         }
 
         private void OnPageClosed(PageCloseReasons_e reason)
