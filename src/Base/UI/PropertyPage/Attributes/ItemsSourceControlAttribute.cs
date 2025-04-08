@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
@@ -45,6 +46,12 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// Property path of the item name to display in the source control
         /// </summary>
         public string DisplayMemberPath { get; set; }
+
+        /// <summary>
+        /// Custom equality comparer of items or null for default
+        /// </summary>
+        /// <remarks>Type must implement <see cref="IEqualityComparer"/> or <see cref="IEqualityComparer{T}"/></remarks>
+        public Type EqualityComparer { get; set; }
 
         /// <inheritdoc/>
         public bool HasMetadata => ItemsSource != null;

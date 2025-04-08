@@ -159,7 +159,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 var item = Items[i];
 
-                if (object.Equals(item.Value, value)) 
+                if (m_EqualityComparer.Equals(item.Value, value)) 
                 {
                     index = i;
                     break;

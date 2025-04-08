@@ -22,12 +22,45 @@ using Xarial.XCad.Utils.PageBuilder.PageElements;
 using Xarial.XCad.Utils.Reflection;
 using System.ComponentModel;
 using Xarial.XCad.Reflection;
+using System.Diagnostics.CodeAnalysis;
+using Xarial.XCad.Services;
+using Xarial.XCad.Documents;
+using System.Runtime.InteropServices;
+using System.Reflection;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
     internal abstract class PropertyManagerPageItemsSourceControl<TVal, TSwCtrl> : PropertyManagerPageBaseControl<TVal, TSwCtrl>, IItemsControl
         where TSwCtrl : class
     {
+        private class WrappedGenericEqualityComparer : IEqualityComparer
+        {
+            private object m_Instance;
+            private readonly MethodInfo m_EqualsMethod;
+            private readonly MethodInfo m_GetHashCodeMethod;
+
+            internal WrappedGenericEqualityComparer(Type eqCompType) 
+            {
+                var eqObjType = eqCompType.GetArgumentsOfGenericType(typeof(IEqualityComparer<>)).First();
+
+                m_Instance = Activator.CreateInstance(eqCompType);
+
+                m_EqualsMethod = eqCompType.GetMethod(nameof(IEqualityComparer<object>.Equals), new Type[] { eqObjType, eqObjType });
+                m_GetHashCodeMethod = eqCompType.GetMethod(nameof(IEqualityComparer<object>.GetHashCode), new Type[] { eqObjType });
+            }
+
+            public new bool Equals(object x, object y) => (bool)m_EqualsMethod.Invoke(m_Instance, new object[] { x, y });
+
+            public int GetHashCode(object obj) => (int)m_EqualsMethod.Invoke(m_Instance, new object[] { obj });
+        }
+
+        private class DefaultEqualityComparer : IEqualityComparer
+        {
+            public new bool Equals(object x, object y) => object.Equals(x, y);
+
+            public int GetHashCode(object obj) => 0;
+        }
+
         protected override event ControlValueChangedDelegate<TVal> ValueChanged;
 
         private ItemsControlItem[] m_Items;
@@ -65,6 +98,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         private readonly Type m_SpecificItemType;
 
         private readonly string m_DispMembPath;
+        protected readonly IEqualityComparer m_EqualityComparer;
 
         private object m_CurMetadataValue;
 
@@ -75,7 +109,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             m_SpecificItemType = atts.ContextType;
 
             ParseItems(app, atts, metadata, out bool isStatic, out ItemsControlItem[] staticItems,
-                out m_SrcMetadata, out m_DispMembPath);
+                out m_SrcMetadata, out m_DispMembPath, out m_EqualityComparer);
 
             if (isStatic)
             {
@@ -153,8 +187,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private void ParseItems(IXApplication app, IAttributeSet atts, IMetadata[] metadata,
             out bool isStatic, out ItemsControlItem[] staticItems, out IMetadata itemsSourceMetadata,
-            out string dispMembPath)
-        {
+            out string dispMembPath, out IEqualityComparer eqComparer)
+        {   
             if (atts.ContextType.IsEnum)
             {
                 staticItems = CreateEnumItems(atts.ContextType);
@@ -162,11 +196,34 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 isStatic = true;
                 itemsSourceMetadata = null;
                 dispMembPath = "";
+                eqComparer = new DefaultEqualityComparer();
             }
             else
             {
                 var customItemsAtt = atts.Get<ItemsSourceControlAttribute>();
                 dispMembPath = customItemsAtt.DisplayMemberPath;
+
+                var eqCompType = customItemsAtt.EqualityComparer;
+
+                if (eqCompType != null)
+                {
+                    if (typeof(IEqualityComparer).IsAssignableFrom(eqCompType))
+                    {
+                        eqComparer = (IEqualityComparer)Activator.CreateInstance(eqCompType);
+                    }
+                    if (eqCompType.IsAssignableToGenericType(typeof(IEqualityComparer<>)))
+                    {
+                        eqComparer = new WrappedGenericEqualityComparer(eqCompType);
+                    }
+                    else
+                    {
+                        throw new Exception($"{eqCompType} does not implement {typeof(IEqualityComparer)}");
+                    }
+                }
+                else 
+                {
+                    eqComparer = new DefaultEqualityComparer();
+                }
 
                 if (customItemsAtt.StaticItems?.Any() == true)
                 {
@@ -183,7 +240,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     if (customItemsAtt.Dependencies?.Any() != true)
                     {
                         var provider = customItemsAtt.CustomItemsProvider;
-                        staticItems = provider.ProvideItems(app, this, new IControl[0], customItemsAtt.Parameter)
+                        staticItems = provider.ProvideItems(app, this, Array.Empty<IControl>(), customItemsAtt.Parameter)
                             .Select(i => new ItemsControlItem(i, customItemsAtt.DisplayMemberPath)).ToArray();
                         isStatic = true;
                     }
@@ -274,7 +331,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 for (int i = 0; i < Items.Length; i++)
                 {
-                    if (object.Equals(Items[i].Value, value))
+                    if (m_EqualityComparer.Equals(Items[i].Value, value))
                     {
                         index = (short)i;
                         break;

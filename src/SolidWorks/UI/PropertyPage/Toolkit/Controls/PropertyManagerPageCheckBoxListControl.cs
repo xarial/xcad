@@ -338,7 +338,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                             m_Value = enumVal;
                         }
 
-                        //enum value migth have groups which affect otehr enums, need to resolve other checkboxes as well
+                        //enum value migth have groups which affect other enums, need to resolve other checkboxes as well
                         SetSpecificValue(m_Value);
                     }
                     else 
@@ -356,7 +356,16 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                         }
                         else 
                         {
-                            list.Remove(checkedItem.Value);
+                            var index = FindIndex(list, checkedItem.Value);
+                            
+                            if (index != -1)
+                            {
+                                list.RemoveAt(index);
+                            }
+                            else 
+                            {
+                                System.Diagnostics.Debug.Assert(false, "Item is not found");
+                            }
                         }
 
                         m_Value = list;
@@ -448,8 +457,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     else 
                     {
                         var list = (IList)m_Value;
-
-                        checkBox.Checked = list?.Contains(item.Value) == true;
+                        
+                        checkBox.Checked = FindIndex(list, item.Value) != -1;
                     }
                 }
             }
@@ -457,6 +466,24 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 m_IsSettingValues = false;
             }
+        }
+
+        private int FindIndex(IList list, object val) 
+        {
+            if (list != null)
+            {
+                for(int i = 0; i < list.Count; i++)
+                {
+                    var elem = list[i];
+
+                    if (m_EqualityComparer.Equals(elem, val))
+                    {
+                        return i;
+                    }
+                }
+            }
+
+            return -1;
         }
 
         private bool IsNone(Enum val) => Convert.ToInt32(val) == 0;

@@ -124,12 +124,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     SwSpecificControl.AddItems(newItems.Select(x => x.DisplayName).ToArray());
                 }
 
-                if (newItems?.Any(i => object.Equals(i.Value, m_CurrentValueCached)) != true)
+                if (newItems?.Any(i => m_EqualityComparer.Equals(i.Value, m_CurrentValueCached)) != true)
                 {
                     //if items source changed dynamically previously cached value might not fit new source
                     var defVal = GetDefaultItemValue();
 
-                    if (!object.Equals(m_CurrentValueCached, defVal))
+                    if (!m_EqualityComparer.Equals(m_CurrentValueCached, defVal))
                     {
                         m_CurrentValueCached = defVal;
                         ValueChanged?.Invoke(this, m_CurrentValueCached);
