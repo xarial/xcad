@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.SolidWorks.UI.PropertyPage.Exceptions;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
@@ -88,6 +89,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         private delegate IPropertyManagerPageOption ControlCreatorDelegate(int id, short controlType, string caption, short leftAlign, int options, string tip);
 
         protected override event ControlValueChangedDelegate<object> ValueChanged;
+
+        private ItemsControlItem[] m_InitialItemsCopy;
 
         public PropertyManagerPageOptionBoxControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
@@ -181,15 +184,17 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected override ItemsControlItem[] LoadInitialItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] items)
         {
+            m_InitialItemsCopy = items?.ToArray();
+
             SwSpecificControl.CreateControls(items);
             return items;
         }
 
         protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
         {
-            if (Items != newItems) 
+            if (Items != newItems || !CompareItems(m_InitialItemsCopy, newItems))
             {
-                throw new Exception("Cannot create the control for changed items. OptionBox control does not allow dynamic changing of the items. For the dynamic items use the static items source property");
+                throw new DynamicControlsNotSupportedException();
             }
         }
 

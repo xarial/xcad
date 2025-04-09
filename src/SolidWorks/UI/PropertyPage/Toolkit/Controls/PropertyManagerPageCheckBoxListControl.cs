@@ -19,6 +19,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.SolidWorks.UI.PropertyPage.Exceptions;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
@@ -523,37 +524,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
         {
-            if (Items != newItems || !CompareToInitialItems(newItems))
+            if (Items != newItems || !CompareItems(m_InitialItemsCopy, newItems))
             {
-                throw new Exception("Cannot create the control for changed items. CheckBoxList control does not allow dynamic changing of the items. For the dynamic items use the static items source property and initiate it with items");
-            }
-        }
-
-        private bool CompareToInitialItems(ItemsControlItem[] newItems) 
-        {
-            if (newItems == null && m_InitialItemsCopy == null)
-            {
-                return true;
-            }
-            else if (newItems == null || m_InitialItemsCopy == null)
-            {
-                return false;
-            }
-            else if (newItems.Length != m_InitialItemsCopy.Length)
-            {
-                return false;
-            }
-            else 
-            {
-                for (int i = 0; i < m_InitialItemsCopy.Length; i++) 
-                {
-                    if (!m_EqualityComparer.Equals(m_InitialItemsCopy[i].Value, newItems[i].Value)) 
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+                throw new DynamicControlsNotSupportedException();
             }
         }
 

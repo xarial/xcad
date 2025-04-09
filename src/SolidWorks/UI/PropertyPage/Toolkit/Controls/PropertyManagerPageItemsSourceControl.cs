@@ -137,10 +137,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
         }
 
-        protected virtual ItemsControlItem[] LoadInitialItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] items) 
-        {
-            return items;
-        }
+        protected virtual ItemsControlItem[] LoadInitialItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] items) => items;
 
         public override void Update()
         {
@@ -340,6 +337,34 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
 
             return index;
+        }
+
+        protected bool CompareItems(ItemsControlItem[] oldItems, ItemsControlItem[] newItems)
+        {
+            if (newItems == null && oldItems == null)
+            {
+                return true;
+            }
+            else if (newItems == null || oldItems == null)
+            {
+                return false;
+            }
+            else if (newItems.Length != oldItems.Length)
+            {
+                return false;
+            }
+            else
+            {
+                for (int i = 0; i < oldItems.Length; i++)
+                {
+                    if (!m_EqualityComparer.Equals(oldItems[i].Value, newItems[i].Value))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
     }
 }

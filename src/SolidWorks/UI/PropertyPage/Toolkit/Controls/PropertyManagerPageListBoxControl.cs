@@ -31,6 +31,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         private bool m_IsMultiSelect;
         private bool m_SuspendHandlingChanged;
 
+        private object m_CurrentValueCached;
+
         public PropertyManagerPageListBoxControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
             : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_Listbox, ref numberOfUsedIds)
@@ -112,11 +114,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             var selIndexes = SwSpecificControl.GetSelectedItems() as short[];
 
+            object curVal;
+
             if (selIndexes?.Any() == true)
             {
                 if (!m_IsMultiSelect)
                 {
-                    return GetItem(selIndexes.First());
+                    curVal = GetItem(selIndexes.First());
                 }
                 else 
                 {
@@ -124,7 +128,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
                     if (m_TargetType.IsEnum)
                     {
-                        return Enum.ToObject(m_TargetType, values.Sum(v => Convert.ToInt32(v)));
+                        curVal = Enum.ToObject(m_TargetType, values.Sum(Convert.ToInt32));
                     }
                     else
                     {
@@ -134,24 +138,25 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                         {
                             list.Add(val);
                         }
-                        
-                        return list;
+
+                        curVal = list;
                     }
                 }
             }
             else 
             {
-                if (m_TargetType.IsValueType)
-                {
-                    return Activator.CreateInstance(m_TargetType);
-                }
-
-                return null;
+                curVal = GetDefaultItemValue();
             }
+
+            m_CurrentValueCached = curVal;
+
+            return curVal;
         }
 
         protected override void SetSpecificValue(object value)
         {
+            m_CurrentValueCached = value;
+
             var selIndices = new List<int>();
 
             if (m_IsMultiSelect)
@@ -192,6 +197,59 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             if (newItems?.Any() == true)
             {
                 SwSpecificControl.AddItems(newItems.Select(i => i.DisplayName).ToArray());
+            }
+
+            var oldCachedValue = m_CurrentValueCached;
+
+            SetSpecificValue(m_CurrentValueCached);
+
+            var curVal = GetSpecificValue();
+
+            if (IsValueChanged(curVal, oldCachedValue)) 
+            {
+                ValueChanged?.Invoke(this, curVal);
+            }
+        }
+
+        private bool IsValueChanged(object oldVal, object newVal) 
+        {
+            if (oldVal == null && newVal == null) 
+            {
+                return false;
+            }
+
+            if (m_IsMultiSelect && !m_TargetType.IsEnum)
+            {
+                if (oldVal is IList && newVal is IList)
+                {
+                    var oldList = (IList)oldVal;
+                    var newList = (IList)newVal;
+
+                    if (oldList.Count == newList.Count)
+                    {
+                        for (int i = 0; i < oldList.Count; i++)
+                        {
+                            if (!m_EqualityComparer.Equals(oldList[i], newList[i]))
+                            {
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    }
+                    else 
+                    {
+                        return true;
+                    }
+                }
+                else 
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return !m_EqualityComparer.Equals(oldVal, newVal);
             }
         }
 
