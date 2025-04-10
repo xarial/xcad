@@ -156,14 +156,28 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IComponent2 Component => m_Creator.Element;
 
-        internal SwAssembly RootAssembly { get; }
+        internal SwAssembly RootAssembly 
+        {
+            get 
+            {
+                if (m_RootDoc is SwAssembly)
+                {
+                    return (SwAssembly)m_RootDoc;
+                }
+                else 
+                {
+                    throw new NotSupportedException("Root document of the component is not an assembly");
+                }
+            }
+        }
 
-        public ISwComponentCollection Children { get; }
+        public ISwComponentCollection Children => m_ChildrenLazy.Value;
 
         private readonly IFilePathResolver m_FilePathResolver;
 
         private readonly Lazy<SwFeatureManager> m_FeaturesLazy;
         private readonly Lazy<ISwDimensionsCollection> m_DimensionsLazy;
+        private readonly Lazy<ISwComponentCollection> m_ChildrenLazy;
 
         public override object Dispatch => Component;
 
@@ -179,19 +193,22 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly ComponentMovedEventsHandler m_ComponentMovedEventsHandler;
 
-        internal SwComponent(IComponent2 comp, SwAssembly rootAssembly, SwApplication app) : base(comp, rootAssembly, app)
+        private readonly SwDocument3D m_RootDoc;
+
+        internal SwComponent(IComponent2 comp, SwDocument3D rootDoc, SwApplication app) : base(comp, rootDoc, app)
         {
-            RootAssembly = rootAssembly;
+            m_RootDoc = rootDoc;
+
             m_Creator = new ElementCreator<IComponent2>(CreateComponent, comp, comp != null);
-            Children = new SwChildComponentsCollection(rootAssembly, this);
-            m_FeaturesLazy = new Lazy<SwFeatureManager>(() => new SwComponentFeatureManager(this, rootAssembly, app, new Context(this)));
+            m_ChildrenLazy = new Lazy<ISwComponentCollection>(() => new SwChildComponentsCollection(RootAssembly, this));
+            m_FeaturesLazy = new Lazy<SwFeatureManager>(() => new SwComponentFeatureManager(this, RootAssembly, app, new Context(this)));
             m_DimensionsLazy = new Lazy<ISwDimensionsCollection>(() => new SwFeatureManagerDimensionsCollection(m_FeaturesLazy.Value, new Context(this)));
 
-            m_ComponentMovedEventsHandler = new ComponentMovedEventsHandler(this, rootAssembly, app);
+            m_ComponentMovedEventsHandler = new ComponentMovedEventsHandler(this, rootDoc, app);
 
             m_MathUtils = app.Sw.IGetMathUtility();
 
-            Bodies = new SwComponentBodyCollection(this, rootAssembly);
+            Bodies = new SwComponentBodyCollection(this, rootDoc);
 
             m_FilePathResolver = OwnerApplication.Services.GetService<IFilePathResolver>();
 
@@ -848,7 +865,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXPart IXPartComponent.ReferencedDocument { get => (IXPart)base.ReferencedDocument; set => base.ReferencedDocument = (ISwDocument3D)value; }
         IXPartConfiguration IXPartComponent.ReferencedConfiguration { get => (IXPartConfiguration)base.ReferencedConfiguration; set => base.ReferencedConfiguration = value; }
 
-        internal SwPartComponent(IComponent2 comp, SwAssembly rootAssembly, SwApplication app) : base(comp, rootAssembly, app)
+        internal SwPartComponent(IComponent2 comp, SwDocument3D rootDoc, SwApplication app) : base(comp, rootDoc, app)
         {
         }
 
@@ -863,7 +880,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXAssembly IXAssemblyComponent.ReferencedDocument { get => (IXAssembly)base.ReferencedDocument; set => base.ReferencedDocument = (ISwDocument3D)value; }
         IXAssemblyConfiguration IXAssemblyComponent.ReferencedConfiguration { get => (IXAssemblyConfiguration)base.ReferencedConfiguration; set => base.ReferencedConfiguration = value; }
 
-        internal SwAssemblyComponent(IComponent2 comp, SwAssembly rootAssembly, SwApplication app) : base(comp, rootAssembly, app)
+        internal SwAssemblyComponent(IComponent2 comp, SwDocument3D rootDoc, SwApplication app) : base(comp, rootDoc, app)
         {
         }
 

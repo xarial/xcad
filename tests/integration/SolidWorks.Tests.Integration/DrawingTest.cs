@@ -1380,6 +1380,7 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(false, view3BendNotes);
         }
 
+        //NOTE: this test may stuck on the sheet properties dialog opened and needs to be closed manually by the user
         [Test]
         public void SheetCreatedEventTest() 
         {

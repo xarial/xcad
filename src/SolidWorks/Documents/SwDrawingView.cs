@@ -1378,7 +1378,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected override IView CreateDrawingView(CancellationToken cancellationToken)
         {
             var drwModel = m_Drawing.Model;
-            var skMgr = drwModel.SketchManager;
+                        
             var mathUtils = OwnerApplication.Sw.IGetMathUtility();
 
             var srcView = ((ISwDrawingView)BaseView).DrawingView;
@@ -1398,7 +1398,24 @@ namespace Xarial.XCad.SolidWorks.Documents
                 var startCoord = (double[])startPt.ArrayData;
                 var endCoord = (double[])endPt.ArrayData;
 
-                var sectionLine = skMgr.CreateLine(startCoord[0], startCoord[1], startCoord[2], endCoord[0], endCoord[1], endCoord[2]);
+                var skMgr = drwModel.SketchManager;
+                var addToDb = skMgr.AddToDB;
+                skMgr.AddToDB = true;
+                SketchSegment sectionLine;
+
+                try
+                {
+                    sectionLine = skMgr.CreateLine(startCoord[0], startCoord[1], startCoord[2], endCoord[0], endCoord[1], endCoord[2]);
+
+                    if (sectionLine == null)
+                    {
+                        throw new NullReferenceException("Failed to create section line");
+                    }
+                }
+                finally 
+                {
+                    skMgr.AddToDB = addToDb;
+                }
 
                 using (var selGrp = new SelectionGroup(m_Drawing, false))
                 {

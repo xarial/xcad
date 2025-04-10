@@ -21,7 +21,7 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
     {
         private readonly SwComponent m_Comp;
 
-        internal ComponentMovedEventsHandler(SwComponent comp, SwAssembly assm, ISwApplication app) : base(assm, app)
+        internal ComponentMovedEventsHandler(SwComponent comp, SwDocument3D doc, ISwApplication app) : base(doc, app)
         {
             m_Comp = comp;
         }
@@ -48,38 +48,5 @@ namespace Xarial.XCad.SolidWorks.Documents.EventHandlers
             
             return HResult.S_OK;
         }
-
-        //protected override void SubscribeDrawingEvents(DrawingDoc drw)
-        //{
-        //    drw.ActivateSheetPostNotify += OnActivateSheetPostNotify;
-        //    drw.AddItemNotify += OnAddItemNotify;
-        //}
-
-        //protected override void UnsubscribeDrawingEvents(DrawingDoc drw)
-        //{
-        //    drw.ActivateSheetPostNotify -= OnActivateSheetPostNotify;
-        //    drw.AddItemNotify -= OnAddItemNotify;
-        //}
-
-        //private int OnActivateSheetPostNotify(string sheetName)
-        //{
-        //    Delegate?.Invoke(m_Drw, m_Drw.Sheets[sheetName]);
-        //    return HResult.S_OK;
-        //}
-
-        //private int OnAddItemNotify(int entityType, string itemName)
-        //{
-        //    if (entityType == (int)swNotifyEntityType_e.swNotifyDrawingSheet)
-        //    {
-        //        var sheet = m_Drw.Sheets[itemName];
-
-        //        if (m_Drw.Sheets.Active.Equals(sheet))
-        //        {
-        //            Delegate?.Invoke(m_Drw, sheet);
-        //        }
-        //    }
-
-        //    return HResult.S_OK;
-        //}
     }
 }

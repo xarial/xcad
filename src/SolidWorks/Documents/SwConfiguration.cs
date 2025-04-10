@@ -45,6 +45,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         /// </summary>
         IConfiguration Configuration { get; }
 
+        /// <summary>
+        /// Accesses root component of the configuration
+        /// </summary>
+        ISwComponent RootComponent { get; }
+
         /// <inheritdoc/>
         new ISwCustomPropertiesCollection Properties { get; }
     }
@@ -366,6 +371,15 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
+            }
+        }
+
+        public ISwComponent RootComponent
+        { 
+            get 
+            {
+                var rootComp = Configuration.GetRootComponent3(false);
+                return OwnerDocument.CreateObjectFromDispatch<ISwComponent>(rootComp);
             }
         }
 

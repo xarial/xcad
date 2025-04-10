@@ -80,10 +80,18 @@ namespace Xarial.XCad.SolidWorks.Documents
                 if (string.IsNullOrEmpty(confName))
                 {
                     Part.SetMaterialPropertyName2(confName, "", "");
+
+                    //NOTE: sometimes material cannot be removed for the specific configuration, but in some cases it is removed. To make it consistent only allow removing all configurations
+                    var partConfNames = (string[])((IModelDoc2)Part).GetConfigurationNames();
+
+                    foreach (var partConfName in partConfNames) 
+                    {
+                        Part.SetMaterialPropertyName2(partConfName, "", "");
+                    }
                 }
                 else 
                 {
-                    throw new Exception($"Material cannot be removed for the configuration. Remove material on part level instead via {nameof(IXPart)}::{nameof(IXPart.Material)}");
+                    throw new ConfigurationMaterialRemoveException();
                 }
             }
         }

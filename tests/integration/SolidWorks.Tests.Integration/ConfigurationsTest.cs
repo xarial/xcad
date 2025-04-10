@@ -638,6 +638,9 @@ namespace SolidWorks.Tests.Integration
             string mat4;
             string db4;
 
+            string mat5;
+            string db5;
+
             using (var doc = OpenDataDocument(@"Material1.SLDPRT"))
             {
                 var part = (ISwPart)m_App.Documents.Active;
@@ -652,8 +655,12 @@ namespace SolidWorks.Tests.Integration
                 part.Configurations["Conf1"].Material = mat;
                 mat3 = part.Part.GetMaterialPropertyName2("Conf1", out db3);
 
-                part.Configurations["Default"].Material = null;
+                Assert.Throws<ConfigurationMaterialRemoveException>(() => part.Configurations["Default"].Material = null);
+
+                part.Material = null;
+
                 mat4 = part.Part.GetMaterialPropertyName2("Default", out db4);
+                mat5 = part.Part.GetMaterialPropertyName2("Conf1", out db5);
             }
 
             Assert.AreEqual("ABS PC", mat1);
@@ -664,6 +671,8 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual("SOLIDWORKS Materials", db3);
             Assert.AreEqual("", mat4);
             Assert.AreEqual("", db4);
+            Assert.AreEqual("", mat5);
+            Assert.AreEqual("", db5);
         }
     }
 }

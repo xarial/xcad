@@ -289,10 +289,10 @@ namespace Xarial.XCad.SolidWorks
                         switch (compRefModel)
                         {
                             case IPartDoc _:
-                                return new SwPartComponent(comp, (SwAssembly)doc, app);
+                                return new SwPartComponent(comp, (SwDocument3D)doc, app);
 
                             case IAssemblyDoc _:
-                                return new SwAssemblyComponent(comp, (SwAssembly)doc, app);
+                                return new SwAssemblyComponent(comp, (SwDocument3D)doc, app);
 
                             default:
                                 throw new NotSupportedException($"Unrecognized component type of '{comp.Name2}'");
@@ -306,9 +306,9 @@ namespace Xarial.XCad.SolidWorks
                         switch (ext.ToLower())
                         {
                             case ".sldprt":
-                                return new SwPartComponent(comp, (SwAssembly)doc, app);
+                                return new SwPartComponent(comp, (SwDocument3D)doc, app);
                             case ".sldasm":
-                                return new SwAssemblyComponent(comp, (SwAssembly)doc, app);
+                                return new SwAssemblyComponent(comp, (SwDocument3D)doc, app);
                             default:
                                 throw new NotSupportedException($"Component '{comp.Name2}' file '{compFilePath}' is not recognized");
                         }

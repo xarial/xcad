@@ -110,7 +110,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwAssembly RootAssembly { get; }
 
         public IEnumerable<ISwComponent> Unordered => IterateChildren(false)
-            .Select(c => RootAssembly.CreateObjectFromDispatch<SwComponent>(c));
+            .Select(RootAssembly.CreateObjectFromDispatch<SwComponent>);
 
         private readonly EntityCache<IXComponent> m_Cache;
 
