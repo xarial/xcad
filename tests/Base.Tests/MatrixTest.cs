@@ -12,14 +12,34 @@ namespace Base.Tests
     public class MatrixTest
     {
         [Test]
+        public void AnglesTest()
+        {
+            var matrix = new TransformMatrix(0, -1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, 0, 1);
+
+            matrix.GetEulerAngles(out var yaw, out var pitch, out var roll);
+
+            var quat = Quaternion.FromMatrix(matrix);
+
+            quat.GetEulerAngles(out var yaw1, out var pitch1, out var roll1);
+
+            Assert.That(Math.PI / 2, Is.EqualTo(yaw).Within(0.00001));
+            Assert.That(0, Is.EqualTo(roll).Within(0.00001));
+            Assert.That(Math.PI / 2, Is.EqualTo(pitch).Within(0.00001));
+
+            //Assert.That(Math.PI / 2, Is.EqualTo(yaw1).Within(0.00001));
+            //Assert.That(0, Is.EqualTo(roll1).Within(0.00001));
+            //Assert.That(Math.PI / 2, Is.EqualTo(pitch1).Within(0.00001));
+        }
+
+        [Test]
         public void CreateFromRotationAroundAxisTest() 
         {
             //sw transform data: 0.900202513118371, -0.424567507790233, -0.096839386120319, 0.383554841948467, 0.878329091336096, -0.285348366966756, 0.206206495031693, 0.219728101619931, 0.953518978712666, 0, 0, 0, 1, 0, 0, 0
-            var matrix = new TransformMatrix(0.900202513118371, -0.424567507790233, -0.096839386120319, 0, 0.383554841948467, 0.878329091336096, -0.285348366966756, 0, 0.206206495031693, 0.219728101619931, 0.953518978712666, 0, 0, 0, 0, 1);
+            var matrix = new double[] { 0.900202513118371, -0.424567507790233, -0.096839386120319, 0, 0.383554841948467, 0.878329091336096, -0.285348366966756, 0, 0.206206495031693, 0.219728101619931, 0.953518978712666, 0, 0, 0, 0, 1 };
 
             var rotMatrix = TransformMatrix.CreateFromRotationAroundAxis(new Vector(-0.5, 0.3, -0.8), 0.523599, new Point(0, 0, 0));
 
-            CollectionAssert.AreEqual(matrix.ToArray(), rotMatrix.ToArray(), new DoubleComparer());
+            CollectionAssert.AreEqual(matrix, rotMatrix.ToArray(), new DoubleComparer());
         }
 
         [Test]
@@ -70,17 +90,15 @@ namespace Base.Tests
         }
 
         [Test]
-        public void AngleTest() 
+        public void CreateFromRotationTest() 
         {
             var matrix1 = TransformMatrix.CreateFromRotation(20 * Math.PI / 180, -15 * Math.PI / 180, 60 * Math.PI / 180);
-            
-            var yaw1 = matrix1.Yaw;
-            var pitch1 = matrix1.Pitch;
-            var roll1 = matrix1.Roll;
 
-            Assert.That(yaw1, Is.EqualTo(20 * Math.PI / 180).Within(0.00000000001).Percent);
-            Assert.That(pitch1, Is.EqualTo(-15 * Math.PI / 180).Within(0.00000000001).Percent);
-            Assert.That(roll1, Is.EqualTo(60 * Math.PI / 180).Within(0.00000000001).Percent);
+            matrix1.GetEulerAngles(out var yaw, out var pitch, out var roll);
+
+            Assert.That(yaw, Is.EqualTo(20 * Math.PI / 180).Within(0.00000000001).Percent);
+            Assert.That(pitch, Is.EqualTo(-15 * Math.PI / 180).Within(0.00000000001).Percent);
+            Assert.That(roll, Is.EqualTo(60 * Math.PI / 180).Within(0.00000000001).Percent);
         }
 
         public class DoubleComparer : IComparer

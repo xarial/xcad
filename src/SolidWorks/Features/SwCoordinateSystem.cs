@@ -364,13 +364,15 @@ namespace Xarial.XCad.SolidWorks.Features
                 {
                     var translation = transform.Translation;
 
+                    transform.GetEulerAngles(out var yaw, out var pitch, out var roll);
+
                     feat = OwnerDocument.Model.FeatureManager.CreateCoordinateSystemUsingNumericalValues(true,
                         translation.X, translation.Y, translation.Z,
-                        true, transform.Roll, transform.Pitch, transform.Yaw);
+                        true, roll, pitch, yaw);
                 }
                 else 
                 {
-                    throw new NotSupportedException("Value based coordinate system is supported in SOLIDWORKS 2022 adn newer");
+                    throw new NotSupportedException("Value based coordinate system is supported in SOLIDWORKS 2022 and newer");
                 }
             }
 

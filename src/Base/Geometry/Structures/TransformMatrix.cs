@@ -6,6 +6,8 @@
 //*********************************************************************
 
 using System;
+using System.Drawing.Drawing2D;
+using System.Numerics;
 
 namespace Xarial.XCad.Geometry.Structures
 {
@@ -14,6 +16,21 @@ namespace Xarial.XCad.Geometry.Structures
     /// </summary>
     public class TransformMatrix
     {
+        private static double GetMaterixElementAtIndex(double[] matrix, int index)
+        {
+            if (matrix == null)
+            {
+                throw new ArgumentNullException(nameof(matrix));
+            }
+
+            if (matrix.Length != 16)
+            {
+                throw new ArgumentException("Invalid matrix format. Array must have 16 elements for 4x4 matrix");
+            }
+
+            return matrix[index];
+        }
+
         private static readonly double[] m_Identity
             = new double[]
             {
@@ -62,7 +79,7 @@ namespace Xarial.XCad.Geometry.Structures
 
             if (Math.Abs(point.X) > double.Epsilon
                 || Math.Abs(point.Y) > double.Epsilon
-                || Math.Abs(point.Z) > double.Epsilon) 
+                || Math.Abs(point.Z) > double.Epsilon)
             {
                 var translateMatrix = CreateFromTranslation(point.ToVector());
 
@@ -72,6 +89,33 @@ namespace Xarial.XCad.Geometry.Structures
             }
 
             return matrix;
+        }
+
+        /// <summary>
+        /// Creates matrix from quaternion and translation
+        /// </summary>
+        /// <param name="quaternion">Transformation component</param>
+        /// <param name="translation">Rotation component</param>
+        /// <returns>Matrix</returns>
+        public static TransformMatrix CreateFromQuaternionAndTranslation(Quaternion quaternion, Vector translation)
+        {
+            quaternion = quaternion.Normalize();
+
+            var xx = quaternion.X * quaternion.X;
+            var yy = quaternion.Y * quaternion.Y;
+            var zz = quaternion.Z * quaternion.Z;
+            var xy = quaternion.X * quaternion.Y;
+            var xz = quaternion.X * quaternion.Z;
+            var yz = quaternion.Y * quaternion.Z;
+            var wx = quaternion.W * quaternion.X;
+            var wy = quaternion.W * quaternion.Y;
+            var wz = quaternion.W * quaternion.Z;
+
+            return new TransformMatrix(
+                1 - 2 * (yy + zz), 2 * (xy + wz), 2 * (xz - wy), 0,
+                2 * (xy - wz), 1 - 2 * (xx + zz), 2 * (yz + wx), 0,
+                2 * (xz + wy), 2 * (yz - wx), 1 - 2 * (xx + yy), 0,
+                translation.X, translation.Y, translation.Z, 1);
         }
 
         /// <summary>
@@ -113,7 +157,7 @@ namespace Xarial.XCad.Geometry.Structures
         /// </summary>
         /// <param name="plane">Reflection plane</param>
         /// <returns>Transformation matrix</returns>
-        public static TransformMatrix CreateFromReflection(Plane plane) 
+        public static TransformMatrix CreateFromReflection(Plane plane)
         {
             var planeNormal = plane.Normal.Normalize();
 
@@ -165,7 +209,7 @@ namespace Xarial.XCad.Geometry.Structures
 
             return new TransformMatrix(
                 axisX.X, axisX.Y, axisX.Z, 0.0,
-                axisY.X, axisY.Y, axisY.Z, 0.0f,
+                axisY.X, axisY.Y, axisY.Z, 0.0,
                 axisZ.X, axisZ.Y, axisZ.Z, 0.0,
                 position.X, position.Y, position.Z, 1.0);
         }
@@ -200,89 +244,89 @@ namespace Xarial.XCad.Geometry.Structures
         /// <summary>
         /// X-Axis Rotation (X)
         /// </summary>
-        public double M11 { get; set; }
+        public double M11 { get; }
 
         /// <summary>
         /// X-Axis Rotation (Y)
         /// </summary>
-        public double M12 { get; set; }
+        public double M12 { get; }
 
         /// <summary>
         /// X-Axis Rotation (Z)
         /// </summary>
-        public double M13 { get; set; }
+        public double M13 { get; }
 
         /// <summary>
         /// 0 - Not Used
         /// </summary>
-        public double M14 { get; set; }
+        public double M14 { get; }
 
         /// <summary>
         /// Y-Axis Rotation (X)
         /// </summary>
-        public double M21 { get; set; }
+        public double M21 { get; }
 
         /// <summary>
         /// Y-Axis Rotation (Y)
         /// </summary>
-        public double M22 { get; set; }
+        public double M22 { get; }
 
         /// <summary>
         /// Y-Axis Rotation (Z)
         /// </summary>
-        public double M23 { get; set; }
+        public double M23 { get; }
 
         /// <summary>
         /// 0 - Not Used
         /// </summary>
-        public double M24 { get; set; }
+        public double M24 { get; }
 
         /// <summary>
         /// Z-Axis Rotation (X)
         /// </summary>
-        public double M31 { get; set; }
+        public double M31 { get; }
 
         /// <summary>
         /// Z-Axis Rotation (Y)
         /// </summary>
-        public double M32 { get; set; }
+        public double M32 { get; }
 
         /// <summary>
         /// Z-Axis Rotation (Z)
         /// </summary>
-        public double M33 { get; set; }
+        public double M33 { get; }
 
         /// <summary>
         /// 0 - Not Used
         /// </summary>
-        public double M34 { get; set; }
+        public double M34 { get; }
 
         /// <summary>
         /// X-Translation
         /// </summary>
-        public double M41 { get; set; }
+        public double M41 { get; }
 
         /// <summary>
         /// Y-Translation
         /// </summary>
-        public double M42 { get; set; }
+        public double M42 { get; }
 
         /// <summary>
         /// Z-Translation
         /// </summary>
-        public double M43 { get; set; }
+        public double M43 { get; }
 
         /// <summary>
         /// 1
         /// </summary>
-        public double M44 { get; set; }
+        public double M44 { get; }
 
         /// <summary>
         /// Creates identity transformation matrix
         /// </summary>
         public TransformMatrix()
             : this(m_Identity)
-        { 
+        {
         }
 
         /// <summary>
@@ -292,28 +336,38 @@ namespace Xarial.XCad.Geometry.Structures
             double m21, double m22, double m23, double m24,
             double m31, double m32, double m33, double m34,
             double m41, double m42, double m43, double m44)
-            => Set(m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44);
+        {
+            M11 = m11;
+            M12 = m12;
+            M13 = m13;
+            M14 = m14;
+
+            M21 = m21;
+            M22 = m22;
+            M23 = m23;
+            M24 = m24;
+
+            M31 = m31;
+            M32 = m32;
+            M33 = m33;
+            M34 = m34;
+
+            M41 = m41;
+            M42 = m42;
+            M43 = m43;
+            M44 = m44;
+        }
 
         /// <summary>
         /// Creates transform matrix from an array
         /// </summary>
         /// <param name="matrix">Array of 16 elements</param>
-        public TransformMatrix(double[] matrix)
+        public TransformMatrix(double[] matrix) :
+            this(GetMaterixElementAtIndex(matrix, 0), GetMaterixElementAtIndex(matrix, 1), GetMaterixElementAtIndex(matrix, 2), GetMaterixElementAtIndex(matrix, 3),
+                GetMaterixElementAtIndex(matrix, 4), GetMaterixElementAtIndex(matrix, 5), GetMaterixElementAtIndex(matrix, 6), GetMaterixElementAtIndex(matrix, 7),
+                GetMaterixElementAtIndex(matrix, 8), GetMaterixElementAtIndex(matrix, 9), GetMaterixElementAtIndex(matrix, 10), GetMaterixElementAtIndex(matrix, 11),
+                GetMaterixElementAtIndex(matrix, 12), GetMaterixElementAtIndex(matrix, 13), GetMaterixElementAtIndex(matrix, 14), GetMaterixElementAtIndex(matrix, 15))
         {
-            if (matrix == null) 
-            {
-                throw new ArgumentNullException(nameof(matrix));
-            }
-
-            if (matrix.Length != 16) 
-            {
-                throw new ArgumentException("Invalid matrix format. Array must have 16 elements for 4x4 matrix");
-            }
-
-            Set(matrix[0], matrix[1], matrix[2], matrix[3],
-                matrix[4], matrix[5], matrix[6], matrix[7],
-                matrix[8], matrix[9], matrix[10], matrix[11],
-                matrix[12], matrix[13], matrix[14], matrix[15]);
         }
 
         /// <summary>
@@ -326,21 +380,6 @@ namespace Xarial.XCad.Geometry.Structures
                + M13 * M24 * M31 * M42 - M13 * M24 * M32 * M41 + M13 * M21 * M32 * M44 - M13 * M21 * M34 * M42
                + M13 * M22 * M34 * M41 - M13 * M22 * M31 * M44 - M14 * M21 * M32 * M43 + M14 * M21 * M33 * M42
                - M14 * M22 * M33 * M41 + M14 * M22 * M31 * M43 - M14 * M23 * M31 * M42 + M14 * M23 * M32 * M41;
-
-        /// <summary>
-        /// Counterclockwise rotation about z-axis
-        /// </summary>
-        public double Yaw => Math.Atan2(M21, M11);
-
-        /// <summary>
-        /// Counterclockwise rotation about y-axis
-        /// </summary>
-        public double Pitch => Math.Atan2(-M31, Math.Sqrt(Math.Pow(M32, 2) + Math.Pow(M33, 2)));
-
-        /// <summary>
-        /// Counterclockwise rotation about x-axis
-        /// </summary>
-        public double Roll => Math.Atan2(M32, M33);
 
         /// <summary>
         /// Translation component of the matrix
@@ -407,11 +446,11 @@ namespace Xarial.XCad.Geometry.Structures
         /// Inverses this matrix
         /// </summary>
         /// <returns>Inversed matrix</returns>
-        public TransformMatrix Inverse() 
+        public TransformMatrix Inverse()
         {
             var det = Determinant;
 
-            if (Math.Abs(det) < double.Epsilon) 
+            if (Math.Abs(det) < double.Epsilon)
             {
                 throw new Exception("Singular matrix cannot be inverted");
             }
@@ -436,7 +475,7 @@ namespace Xarial.XCad.Geometry.Structures
             var m21342431 = M21 * M34 - M24 * M31;
             var m21332331 = M21 * M33 - M23 * M31;
             var m21322231 = M21 * M32 - M22 * M31;
-            
+
             var a1 = +(M22 * m33443443 - M23 * m32443442 + M24 * m32433342);
             var a2 = -(M21 * m33443443 - M23 * m31443441 + M24 * m31433341);
             var a3 = +(M21 * m32443442 - M22 * m31443441 + M24 * m31423241);
@@ -504,35 +543,42 @@ namespace Xarial.XCad.Geometry.Structures
         public static TransformMatrix operator -(TransformMatrix srcMatrix, TransformMatrix other)
             => srcMatrix.Subtract(other);
 
-        private void Set(double m11, double m12, double m13, double m14,
-            double m21, double m22, double m23, double m24,
-            double m31, double m32, double m33, double m34,
-            double m41, double m42, double m43, double m44)
-        {
-            M11 = m11;
-            M12 = m12;
-            M13 = m13;
-            M14 = m14;
-
-            M21 = m21;
-            M22 = m22;
-            M23 = m23;
-            M24 = m24;
-
-            M31 = m31;
-            M32 = m32;
-            M33 = m33;
-            M34 = m34;
-
-            M41 = m41;
-            M42 = m42;
-            M43 = m43;
-            M44 = m44;
-        }
-
         /// <summary>
         /// Converts to string
         /// </summary>
         public override string ToString() => string.Join(", ", ToArray());
+    }
+
+    /// <summary>
+    /// Additional methods of <see cref="TransformMatrix"/>
+    /// </summary>
+    public static class TransformMatrixExtension 
+    {
+        ///<summary>Returns angles of this matrix</summary>
+        /// <param name="matrix">Input matrix</param>
+        /// <param name="yaw">Counterclockwise rotation about z-axis</param>
+        /// <param name="pitch">Counterclockwise rotation about y-axis</param>
+        /// <param name="roll">Counterclockwise rotation about x-axis</param>
+        /// <param name="gimbalLockTol">Tolerance for Gimbal lock check</param>
+        public static void GetEulerAngles(this TransformMatrix matrix, out double yaw, out double pitch, out double roll, double gimbalLockTol = 1e-6)
+        {
+            var xAxis = new Vector(matrix.M11, matrix.M12, matrix.M13).Normalize();
+            var yAxis = new Vector(matrix.M21, matrix.M22, matrix.M23).Normalize();
+            var zAxis = new Vector(matrix.M31, matrix.M32, matrix.M33).Normalize();
+
+            pitch = Math.Asin(-zAxis.X);
+
+            //Gimbal lock check
+            if (Math.Cos(pitch) > gimbalLockTol)
+            {
+                yaw = Math.Atan2(yAxis.X, xAxis.X);
+                roll = Math.Atan2(zAxis.Y, zAxis.Z);
+            }
+            else
+            {
+                yaw = Math.Atan2(-xAxis.Y, yAxis.Y);
+                roll = 0;
+            }
+        }
     }
 }
