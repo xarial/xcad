@@ -32,6 +32,8 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Attributes;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.SolidWorks.Annotations;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
@@ -307,11 +309,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 {
                     foreach (var item in (IList)value)
                     {
-                        if (item != null && !(item is IFaultObject))
+                        if (TryCreateSelectableDispatchWrapper(item, out var disp))
                         {
-                            disps.Add(new DispatchWrapper(((SwSelObject)item).Dispatch));
+                            disps.Add(disp);
                         }
-                        else
+                        else 
                         {
                             m_HasMissingItems = true;
                         }
@@ -319,13 +321,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 }
                 else
                 {
-                    if (!(value is IFaultObject))
+                    if (TryCreateSelectableDispatchWrapper(value, out var disp))
                     {
-                        disps.Add(new DispatchWrapper((value as SwSelObject).Dispatch));
+                        disps.Add(disp);
                     }
-                    else
+                    else 
                     {
-                        value = null;
                         m_HasMissingItems = true;
                     }
                 }
@@ -376,7 +377,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
                 if (m_App.Sw.IActiveDoc2.Extension.MultiSelect2(disps.ToArray(), true, selData) != disps.Count) 
                 {
-                    m_Logger.Log($"Failed to select {disps.Count} items");
+                    m_Logger.Log($"Failed to select {disps.Count} item(s) while updated the selection box");
                 }
             }
 
@@ -384,6 +385,45 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 ProcessMissingItems();
             }
+        }
+
+        /// <summary>
+        /// Extracts selectable object from the item
+        /// </summary>
+        /// <param name="item">Input item</param>
+        /// <param name="dispWrapper">Selectable dispatch wrapper</param>
+        /// <returns>True if dispatch extracted</returns>
+        /// <exception cref="NotSupportedException"></exception>
+        /// <remarks>This method will return selectable object (in some cases instances of <see cref="SwFeature"/>, <see cref="SwAnnotation"/> can have specific object as a dispatch which may fail while selection</remarks>
+        private bool TryCreateSelectableDispatchWrapper(object item, out DispatchWrapper dispWrapper)
+        {
+            object disp = null;
+
+            switch (item)
+            {
+                case IFaultObject _:
+                    dispWrapper = null;
+                    return false;
+
+                case SwFeature feat:
+                    disp = feat.Feature;
+                    break;
+
+                case SwAnnotation ann:
+                    disp = ann.Annotation;
+                    break;
+
+                case SwObject swObj:
+                    disp = swObj.Dispatch;
+                    break;
+
+                default:
+                    dispWrapper = null;
+                    return false;
+            }
+
+            dispWrapper = new DispatchWrapper(disp);
+            return true;
         }
 
         private void ProcessMissingItems()
