@@ -13,7 +13,7 @@ namespace Xarial.XCad.Documents.Services
     /// <summary>
     /// Group of operations (commands)
     /// </summary>
-    /// <remarks>This allows to group APi command under as single command for undo-redo purposes</remarks>
+    /// <remarks>This allows to group API command under as single command for undo-redo purposes</remarks>
     public interface IOperationGroup : IXTransaction, IDisposable
     {
         /// <summary>
