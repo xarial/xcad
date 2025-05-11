@@ -15,13 +15,19 @@ using Xarial.XCad.Exceptions;
 namespace Xarial.XCad.SolidWorks.Documents.Exceptions
 {
     /// <summary>
-    /// Inidicatest that flat pattern view does not refer the correct configuration
+    /// Indicates that flat pattern view does not refer the correct configuration
     /// </summary>
     public class InvalidFlatPatternConfigurationException : Exception, IUserException
     {
-        internal InvalidFlatPatternConfigurationException(Exception innerException) 
-            : base("The flat pattern drawing view is invalid as it does not contain the flat pattern feature in the flattened state. This is usually caused by an invalid SM-FLAT-PATTERN configuration in the part file. Try removing this configuration", innerException) 
+        /// <summary>
+        /// Failed drawing view
+        /// </summary>
+        public ISwDrawingView View { get; }
+
+        internal InvalidFlatPatternConfigurationException(Exception innerException, ISwDrawingView view)
+            : base("The flat pattern drawing view is invalid as it does not contain the flat pattern feature in the flattened state. This is usually caused by an invalid SM-FLAT-PATTERN configuration in the part file. Try removing this configuration", innerException)
         {
+            View = view;
         }
     }
 }

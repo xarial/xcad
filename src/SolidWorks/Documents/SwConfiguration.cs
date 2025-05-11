@@ -340,7 +340,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 new SwComponentFeatureManager(m_Comp, m_Comp.RootAssembly, OwnerApplication, new Context(this)), new Context(this));
     }
 
-    internal class SwPartComponentConfiguration : SwComponentConfiguration, IXPartConfiguration
+    internal class SwPartComponentConfiguration : SwComponentConfiguration, ISwPartConfiguration
     {
         public SwPartComponentConfiguration(SwPartComponent comp, SwApplication app, string confName) : base(comp, app, confName)
         {
@@ -357,7 +357,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (!string.IsNullOrEmpty(materialName))
                 {
-                    return new SwMaterial(materialName, OwnerApplication.MaterialDatabases[database]);
+                    return new SwMaterial(materialName, OwnerApplication.MaterialDatabases.GetOrTemp(database));
                 }
                 else
                 {

@@ -1459,57 +1459,49 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwFlatPatternDrawingView : SwDrawingView, ISwFlatPatternDrawingView
     {
-        /// <summary>
-        /// This helper service allows to handle flat pattern creation of mutli-body sheet metal parts
-        /// </summary>
-        /// <remarks>SOLIDWORKS API does not support this directly</remarks>
-        private class MultiBodyFlatPatternActivator : IDisposable
+        private class SheetMetalBodyActivator : IDisposable
         {
-            private readonly SwPart m_SheetMetalPart;
+            private readonly IXPart m_Part;
 
-            private ISwConfiguration m_OrigConf;
+            private readonly SwPartConfiguration m_ActiveConf;
+            private readonly SelectionGroup m_SelGrp;
 
-            internal MultiBodyFlatPatternActivator(SwDrawing drw, SwSolidBody sheetMetalBody, SwPart sheetMetalPart, ref ISwConfiguration conf, ref string viewName)
+            internal SheetMetalBodyActivator(SwPart part, IXPartConfiguration conf, IXSolidBody body)
             {
-                m_SheetMetalPart = sheetMetalPart;
-                m_OrigConf = m_SheetMetalPart.Configurations.Active;
+                m_Part = part;
 
-                if (sheetMetalBody.Component != null) 
+                m_ActiveConf = (SwPartConfiguration)part.Configurations.Active;
+
+                if (conf != null)
                 {
-                    sheetMetalBody = sheetMetalPart.ConvertObject(sheetMetalBody);
+                    if (!string.Equals(m_ActiveConf.Name, conf.Name, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        m_Part.Configurations.Active = (IXPartConfiguration)m_Part.Configurations[conf.Name];
+                    }
                 }
 
-                //creating a temp view to generate a sheet metal configuration
-                var tempView = drw.Sheets.Active.DrawingViews.PreCreate<ISwModelBasedDrawingView>();
-                tempView.Bodies = new IXBody[] { sheetMetalBody };
-                tempView.SourceModelView = ((IXModelView3DRepository)sheetMetalPart.ModelViews)[StandardViewType_e.Front];
-                tempView.ReferencedConfiguration = conf;
-                tempView.Commit();
-
-                tempView.Select(false);
-
-                //generating sheet metal configuration
-                if (drw.Drawing.ChangeRefConfigurationOfFlatPatternView(sheetMetalPart.Path, (conf ?? sheetMetalPart.Configurations.Active).Name))
+                if (part.Bodies.TryGet(body.Name, out var corrBody))
                 {
-                    conf = (ISwConfiguration)tempView.ReferencedConfiguration;
-
-                    m_SheetMetalPart.Configurations.Active = conf;
-
-                    //remembering view name, it is important as the temp view will be deleted and flat pattern view
-                    //needs to be renamed to the temp view name and this will reset the default view counter
-                    viewName = tempView.Name;
-
-                    tempView.Delete();
+                    m_SelGrp = new SelectionGroup(part, true);
+                    m_SelGrp.Add(((ISwBody)corrBody).Body);
                 }
-                else 
+                else
                 {
-                    throw new Exception("Failed to create a flat pattern view configuration");
+                    throw new Exception("Failed to find corresponding shete metal body in the configuration");
                 }
             }
 
             public void Dispose()
             {
-                m_SheetMetalPart.Configurations.Active = m_OrigConf;
+                if (m_SelGrp != null)
+                {
+                    m_SelGrp.Dispose();
+                }
+
+                if (!string.Equals(m_Part.Configurations.Active.Name, m_ActiveConf.Name, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    m_Part.Configurations.Active = (IXPartConfiguration)m_Part.Configurations[m_ActiveConf.Name];
+                }
             }
         }
 
@@ -1524,16 +1516,16 @@ namespace Xarial.XCad.SolidWorks.Documents
                 FlatPatternViewOptions_e.BendLines | FlatPatternViewOptions_e.BendNotes, nameof(Options));
         }
 
-        public override IXBody[] Bodies 
+        public override IXBody[] Bodies
         {
             get => new IXBody[] { SheetMetalBody };
-            set 
+            set
             {
                 if (value?.Length == 1)
                 {
                     SheetMetalBody = (IXSolidBody)value[0];
                 }
-                else 
+                else
                 {
                     throw new Exception("Only single body is supported");
                 }
@@ -1567,38 +1559,38 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public FlatPatternViewOptions_e Options 
+        public FlatPatternViewOptions_e Options
         {
-            get 
+            get
             {
                 if (IsCommitted)
                 {
                     var opts = FlatPatternViewOptions_e.None;
 
-                    if (DrawingView.ShowSheetMetalBendNotes) 
+                    if (DrawingView.ShowSheetMetalBendNotes)
                     {
                         opts |= FlatPatternViewOptions_e.BendNotes;
                     }
 
-                    if (DrawingView.GetBendLineCount() > 0) 
+                    if (DrawingView.GetBendLineCount() > 0)
                     {
                         opts |= FlatPatternViewOptions_e.BendLines;
                     }
 
                     return opts;
                 }
-                else 
+                else
                 {
                     return m_Creator.CachedProperties.Get<FlatPatternViewOptions_e>();
                 }
             }
-            set 
+            set
             {
                 if (IsCommitted)
                 {
                     SetViewOptions(DrawingView, value, GetViewFlatPattern(DrawingView));
                 }
-                else 
+                else
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
@@ -1622,25 +1614,25 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     sheetMetalPart = (SwPart)sheetMetalBody.OwnerDocument;
                 }
-                else 
+                else
                 {
                     //NOTE: by some reasons GetComponent for the body returns null, otherwise it should be the component's reference document
                     sheetMetalPart = (SwPart)ReferencedDocument;
                 }
             }
-            else 
+            else
             {
                 sheetMetalPart = (SwPart)ReferencedDocument;
             }
 
-            if (sheetMetalPart == null) 
+            if (sheetMetalPart == null)
             {
                 throw new NotSupportedException($"Sheet metal part is not specified. Either set the {nameof(SheetMetalBody)} or {nameof(ReferencedDocument)}");
             }
 
             if (!sheetMetalPart.IsCommitted)
             {
-                if (!sheetMetalPart.State.HasFlag(DocumentState_e.Hidden)) 
+                if (!sheetMetalPart.State.HasFlag(DocumentState_e.Hidden))
                 {
                     sheetMetalPart.State |= DocumentState_e.Hidden;
                 }
@@ -1648,58 +1640,44 @@ namespace Xarial.XCad.SolidWorks.Documents
                 sheetMetalPart.Commit(cancellationToken);
             }
 
-            var bodies = sheetMetalPart.Bodies.ToArray();
+            var bodiesScope = sheetMetalBody?.Component?.Bodies ?? sheetMetalPart.Bodies;
 
-            var sheetMetalBodiesCount = bodies.Count(b => ((ISwBody)b).Body.IsSheetMetal());
+            var sheetMetalBodiesCount = bodiesScope.Count(b => ((ISwBody)b).Body.IsSheetMetal());
 
             if (sheetMetalBodiesCount > 0)
             {
-                if (sheetMetalBodiesCount > 1 && sheetMetalBody == null) 
+                if (sheetMetalBodiesCount > 1 && sheetMetalBody == null)
                 {
                     throw new Exception($"Set the body to create flat pattern for via {nameof(SheetMetalBody)} for multi body sheet metal part");
                 }
 
-                var refConf = (ISwConfiguration)ReferencedConfiguration;
-                var viewName = "";
+                var refConf = (ISwPartConfiguration)ReferencedConfiguration;
 
-                var isMultiBody = bodies.Length > 1;
-
-                using (isMultiBody ? new MultiBodyFlatPatternActivator(m_Drawing, sheetMetalBody, sheetMetalPart, ref refConf, ref viewName) : null)
+                using (bodiesScope.Count > 1 ? new SheetMetalBodyActivator(sheetMetalPart, refConf, sheetMetalBody) : null)
                 {
-                    return CreateFlatPatternView(sheetMetalPart, refConf, viewName);
+                    return CreateFlatPatternView(sheetMetalPart, refConf, cancellationToken);
                 }
             }
-            else 
+            else
             {
                 throw new Exception("No sheet metal bodies found in the part");
             }
         }
 
-        private IView CreateFlatPatternView(SwPart sheetMetalPart, ISwConfiguration refConf, string viewName)
+        private IView CreateFlatPatternView(SwPart sheetMetalPart, ISwConfiguration refConf, CancellationToken cancellationToken)
         {
-            var confName = "";
+            cancellationToken.ThrowIfCancellationRequested();
 
-            if (refConf != null) 
-            {
-                confName = refConf.Name;
-            }
+            var confName = refConf?.Name ?? "";
 
-            var loc = Location;
+            var loc = Location ?? new Point(0, 0, 0);
 
-            if (loc == null) 
-            {
-                loc = new Point(0, 0, 0);
-            }
-
-            var view = m_Drawing.Drawing.CreateFlatPatternViewFromModelView3(sheetMetalPart.Path, confName, loc.X, loc.Y, loc.Z, 
+            var view = m_Drawing.Drawing.CreateFlatPatternViewFromModelView3(sheetMetalPart.Path, confName, loc.X, loc.Y, loc.Z,
                 !Options.HasFlag(FlatPatternViewOptions_e.BendLines), false);
 
-            if (view != null) 
+            if (view != null)
             {
-                if (!string.IsNullOrEmpty(viewName)) 
-                {
-                    view.SetName2(viewName);
-                }
+                cancellationToken.ThrowIfCancellationRequested();
 
                 if (!IsFlatPatternView(view))
                 {
@@ -1713,16 +1691,19 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 try
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     flatPattern = GetViewFlatPattern(view);
                 }
                 catch (Exception ex)
                 {
-                    throw new InvalidFlatPatternConfigurationException(ex);
+                    throw new InvalidFlatPatternConfigurationException(ex, OwnerDocument.CreateObjectFromDispatch<ISwDrawingView>(view));
                 }
+
+                cancellationToken.ThrowIfCancellationRequested();
 
                 SetViewOptions(view, Options, flatPattern);
 
-                if (ReferencedConfiguration != null) 
+                if (ReferencedConfiguration != null)
                 {
                     //NOTE: flat pattern view creates sub configuration based on the active configuration and it was activated already while creation of the view
                     ReferencedConfiguration = null;
@@ -1732,7 +1713,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             return view;
         }
 
-        private void SetViewOptions(IView view, FlatPatternViewOptions_e opts, ISwFlatPattern flatPattern) 
+        private void SetViewOptions(IView view, FlatPatternViewOptions_e opts, ISwFlatPattern flatPattern)
         {
             var hasBendLines = view.GetBendLineCount() > 0;
 
@@ -1743,7 +1724,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 view.ShowSheetMetalBendNotes = opts.HasFlag(FlatPatternViewOptions_e.BendNotes);
 
-                if (view.ShowSheetMetalBendNotes) 
+                if (view.ShowSheetMetalBendNotes)
                 {
                     throw new Exception("Bend notes cannot be displayed if bend lines are hidden");
                 }
@@ -1810,9 +1791,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private ISwFlatPattern GetViewFlatPattern(IView view) 
+        private ISwFlatPattern GetViewFlatPattern(IView view)
         {
-            //Note, in some sheet metal files (probably corrupted as the result of the upgrade)
+            //NOTE, in some sheet metal files (probably corrupted as the result of the upgrade)
             //this can return the hidden sheet metal flat pattern feature, not the actual one,
             //so only using this as a fallback function
 
@@ -1828,13 +1809,13 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     flatPatternFeat = feat;
                 }
-                else 
+                else
                 {
                     var childrenFeats = (object[])feat.GetChildren();
 
-                    if (childrenFeats != null) 
+                    if (childrenFeats != null)
                     {
-                        foreach (IFeature childFeat in childrenFeats) 
+                        foreach (IFeature childFeat in childrenFeats)
                         {
                             if (childFeat.GetTypeName2() == SwFlatPattern.TypeName)
                             {
@@ -1849,7 +1830,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(flatPatternFeat);
                 }
-                else 
+                else
                 {
                     throw new Exception("Failed to find the flat pattern feature from the face");
                 }
@@ -1891,7 +1872,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                         throw new Exception("No flat patterns found");
                     }
                 }
-                else 
+                else
                 {
                     //NOTE: legacy sheet metal flat patterns are not placed in the sheet metal folders
                     return GetFlatPatternFromFace();

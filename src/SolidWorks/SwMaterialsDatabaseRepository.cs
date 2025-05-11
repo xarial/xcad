@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using Xarial.XCad.Base;
 using Xarial.XCad.Toolkit.Utils;
 
@@ -20,8 +21,37 @@ namespace Xarial.XCad.SolidWorks
 {
     internal class SwMaterialsDatabaseRepository : IXMaterialsDatabaseRepository
     {
+        private class SwTempMaterialsDatabase : SwMaterialsDatabase
+        {
+            private static XmlDocument LoadTempDbXml(string name)
+                => throw new Exception("Content of the temp material database is not available");
+
+            public override string FilePath => throw new Exception("Temp material database is not stored on a disk");
+
+            internal SwTempMaterialsDatabase(SwApplication app, string name)
+                : base(app, name, new Lazy<XmlDocument>(() => LoadTempDbXml(name)))
+            {
+            }
+        }
+
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         IXMaterialsDatabase IXRepository<IXMaterialsDatabase>.this[string name] => this[name];
+        bool IXRepository<IXMaterialsDatabase>.TryGet(string name, out IXMaterialsDatabase ent)
+        {
+            var res = TryGet(name, out var db);
+            ent = db;
+            return res;
+        }
+
+        internal SwMaterialsDatabase GetOrTemp(string name)
+        {
+            if (!TryGet(name, out var db))
+            {
+                db = new SwTempMaterialsDatabase(m_App, name);
+            }
+
+            return db;
+        }
 
         public void AddRange(IEnumerable<IXMaterialsDatabase> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXMaterialsDatabase => throw new NotSupportedException();
@@ -43,7 +73,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        public bool TryGet(string name, out IXMaterialsDatabase ent)
+        public bool TryGet(string name, out SwMaterialsDatabase ent)
         {
             if (string.IsNullOrEmpty(name)) 
             {
