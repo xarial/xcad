@@ -56,12 +56,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (!string.IsNullOrEmpty(materialName))
             {
-                if (!OwnerApplication.MaterialDatabases.TryGet(database, out var db))
-                {
-                    db = null;
-                }
+                var db = OwnerApplication.MaterialDatabases.GetOrTemp(database);
 
-                return new SwMaterial(materialName, (SwMaterialsDatabase)db);
+                return new SwMaterial(materialName, db);
             }
             else
             {

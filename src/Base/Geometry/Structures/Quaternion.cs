@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System;
+using System.Diagnostics;
 using System.Numerics;
 
 namespace Xarial.XCad.Geometry.Structures
@@ -13,6 +14,7 @@ namespace Xarial.XCad.Geometry.Structures
     /// <summary>
     /// Represents rotation in 3D space
     /// </summary>
+    [DebuggerDisplay("{" + nameof(X) + "}, {" + nameof(Y) + "}, {" + nameof(Z) + "}, {" + nameof(W) + "}")]
     public class Quaternion
     {
         /// <summary>

@@ -178,7 +178,7 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
                 if (!string.IsNullOrEmpty(materialName))
                 {
-                    return new SwMaterial(materialName, OwnerApplication.MaterialDatabases[database]);
+                    return new SwMaterial(materialName, OwnerApplication.MaterialDatabases.GetOrTemp(database));
                 }
                 else
                 {
