@@ -28,7 +28,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         #region Not Supported
         public IXSheet Clone(IXDrawing targetDrawing) => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
-        #endregion
+        #endregion Not Supported
 
         public string Name
         {
@@ -38,9 +38,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IXDrawingViewRepository DrawingViews => m_DrawingViewsLazy.Value;
 
-        public Scale Scale 
+        public Scale Scale
         {
-            get 
+            get
             {
                 if (((ISwDMDocument13)m_Drawing.Document).GetSheetProperties(Name, out object prps) == (int)swSheetPropertiesResult.swSheetProperties_TRUE)
                 {
@@ -48,15 +48,15 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                     return new Scale(prpsArr[3], prpsArr[4]);
                 }
-                else 
+                else
                 {
                     throw new Exception("Failed to read sheet properties");
                 }
             }
-            set => throw new NotSupportedException(); 
+            set => throw new NotSupportedException();
         }
-        
-        public PaperSize PaperSize 
+
+        public PaperSize PaperSize
         {
             get
             {
@@ -77,12 +77,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     throw new Exception("Failed to read sheet properties");
                 }
             }
-            set => throw new NotSupportedException(); 
+            set => throw new NotSupportedException();
         }
 
-        public IXImage Preview 
+        public IXImage Preview
         {
-            get 
+            get
             {
                 SwDmPreviewError previewErr;
                 var imgBytes = ((ISwDMSheet2)Sheet).GetPreviewPNGBitmapBytes(out previewErr) as byte[];
@@ -99,7 +99,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         public ISwDMSheet Sheet { get; }
-        
+
         private readonly Lazy<SwDmDrawingViewsCollection> m_DrawingViewsLazy;
 
         private readonly SwDmDrawing m_Drawing;

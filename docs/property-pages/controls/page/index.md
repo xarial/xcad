@@ -18,7 +18,7 @@ Property manager page style can be customized by applying the **PageOptionsAttri
 
 ![Property page with OK and Cancel button options](pmpage-options.png)
 
-{% code-snippet { file-name: ~PropertyPage\Controls\Page.*, regions: [Options] } %}
+<<< @/_src/PropertyPage/Controls/Page.cs#Options
 
 Attributes allow to customize the buttons and behaviour of the page
 
@@ -32,7 +32,7 @@ Icon can be set via overloaded constructor of **PageOptionsAttribute**
 
 Custom user message to provide additional information can be set via **MessageAttribute**
 
-{% code-snippet { file-name: ~PropertyPage\Controls\Page.*, regions: [Attribution] } %}
+<<< @/_src/PropertyPage/Controls/Page.cs#Attribution
 
 ## Help Links
 
@@ -40,4 +40,4 @@ Custom user message to provide additional information can be set via **MessageAt
 
 **HelpAttribute** allows providing links to help resources for your add-in. Framework will automatically open the specified url when user clicks corresponding help buttons in the property manager page:
 
-{% code-snippet { file-name: ~PropertyPage\Controls\Page.*, regions: [HelpLinks] } %}
+<<< @/_src/PropertyPage/Controls/Page.cs#HelpLinks

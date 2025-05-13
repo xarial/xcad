@@ -50,19 +50,19 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXEntityRepository VisibleEntities => throw new NotSupportedException();
         public ViewPolylineData[] Polylines => throw new NotSupportedException();
         public ViewDisplayMode_e? DisplayMode { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-        #endregion
+        #endregion Not Supported
 
         public ISwDMView DrawingView { get; }
 
-        public string Name 
+        public string Name
         {
             get => DrawingView.Name;
-            set => throw new NotSupportedException(); 
+            set => throw new NotSupportedException();
         }
 
-        public IXDocument3D ReferencedDocument 
+        public IXDocument3D ReferencedDocument
         {
-            get 
+            get
             {
                 if (m_CachedDocument == null || !m_CachedDocument.IsAlive)
                 {
@@ -72,11 +72,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     {
                         var refDoc = m_Drw.Dependencies.First(d => string.Equals(Path.GetFileName(d.Path), fileName, StringComparison.CurrentCultureIgnoreCase));
 
-                        if (!refDoc.IsCommitted) 
+                        if (!refDoc.IsCommitted)
                         {
                             var isReadOnly = m_Drw.State.HasFlag(DocumentState_e.ReadOnly);
 
-                            if (isReadOnly) 
+                            if (isReadOnly)
                             {
                                 refDoc.State = DocumentState_e.ReadOnly;
                             }
@@ -91,9 +91,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             set => throw new NotSupportedException();
         }
 
-        public IXConfiguration ReferencedConfiguration 
+        public IXConfiguration ReferencedConfiguration
         {
-            get 
+            get
             {
                 var confName = DrawingView.ReferencedConfiguration;
 
@@ -107,7 +107,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                     return ReferencedDocument.Configurations.FirstOrDefault(
                         c => string.Equals(c.Name, confName, StringComparison.CurrentCultureIgnoreCase));
                 }
-                else 
+                else
                 {
                     return null;
                 }

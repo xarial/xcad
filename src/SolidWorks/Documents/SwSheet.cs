@@ -81,13 +81,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXImage Preview
         {
-            get 
+            get
             {
                 if (OwnerApplication.IsInProcess())
                 {
                     return PictureDispUtils.PictureDispToXImage(OwnerApplication.Sw.GetPreviewBitmap(m_Drawing.Path, Name));
                 }
-                else 
+                else
                 {
                     return new XDrawingImage(m_Drawing.GetThumbnailImage());
                 }
@@ -134,9 +134,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public PaperSize PaperSize 
+        public PaperSize PaperSize
         {
-            get 
+            get
             {
                 if (IsCommitted)
                 {
@@ -149,12 +149,12 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     return new PaperSize(standardPaperSize, width, height);
                 }
-                else 
+                else
                 {
                     return m_Creator.CachedProperties.Get<PaperSize>();
                 }
             }
-            set 
+            set
             {
                 if (IsCommitted)
                 {
@@ -168,9 +168,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public IXSketch2D Sketch 
+        public IXSketch2D Sketch
         {
-            get 
+            get
             {
                 foreach (object[] sheet in m_Drawing.Drawing.GetViews() as object[])
                 {
@@ -217,7 +217,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     throw new Exception("Failed to create new sheet");
                 }
             }
-            else 
+            else
             {
                 if (!m_Drawing.Drawing.NewSheet3(Name, (int)paperSize, (int)paperSize, scale.Numerator, scale.Denominator, true,
                     "", paperWidth, paperHeight, ""))
@@ -242,7 +242,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 sheet.SetName(name);
 
-                if (!string.Equals(sheet.GetName(), name, StringComparison.CurrentCultureIgnoreCase)) 
+                if (!string.Equals(sheet.GetName(), name, StringComparison.CurrentCultureIgnoreCase))
                 {
                     throw new Exception("Failed to change sheet name");
                 }
@@ -323,7 +323,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     throw new Exception("Failed to get the cloned sheet");
                 }
             }
-            else 
+            else
             {
                 throw new Exception("Failed to select the sheet for cloning");
             }
@@ -335,7 +335,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             var curSheetsCount = targetDrawing.Sheets.Count;
 
-            for (int i = 0; i < MAX_ATTEMPTS; i++) 
+            for (int i = 0; i < MAX_ATTEMPTS; i++)
             {
                 if (((ISwDrawing)targetDrawing).Drawing.PasteSheet(
                     (int)swInsertOptions_e.swInsertOption_MoveToEnd,
@@ -345,12 +345,12 @@ namespace Xarial.XCad.SolidWorks.Documents
                     {
                         return;
                     }
-                    else 
+                    else
                     {
                         throw new Exception($"Paste sheet has succeeded, but number of sheets has not changed");
                     }
                 }
-                else 
+                else
                 {
                     //NOTE: it was observed that in some cases paste command fails on the first attempt
                     if (targetDrawing.Sheets.Count != curSheetsCount)
@@ -421,11 +421,11 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected internal override IEditor<IXSketchBase> CreateSketchEditor(ISketch sketch) => new SwSheetSketchEditor(this, m_Sheet);
     }
 
-    internal static class PaperSizeHelper 
+    internal static class PaperSizeHelper
     {
-        internal static void ParsePaperSize(PaperSize paperSize, out swDwgPaperSizes_e dwgPaperSize, out swDwgTemplates_e dwgTemplate, out double dwpPaperWidth, out double dwpPaperHeight) 
+        internal static void ParsePaperSize(PaperSize paperSize, out swDwgPaperSizes_e dwgPaperSize, out swDwgTemplates_e dwgTemplate, out double dwpPaperWidth, out double dwpPaperHeight)
         {
-            if (paperSize == null) 
+            if (paperSize == null)
             {
                 paperSize = new PaperSize(0.1, 0.1);
             }
@@ -437,7 +437,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    internal class UncommittedPreviewOnlySheet : ISwSelObject, ISwSheet 
+    internal class UncommittedPreviewOnlySheet : ISwSelObject, ISwSheet
     {
         #region Not Supported
         public string Name { get => throw new UnloadedDocumentPreviewOnlySheetException(); set => throw new UnloadedDocumentPreviewOnlySheetException(); }
@@ -458,12 +458,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IXSheet Clone(IXDrawing targetDrawing) => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
         public void Delete() => throw new UnloadedDocumentPreviewOnlySheetException();
-        #endregion
+        #endregion  Not Supported
 
         private readonly ISwApplication m_App;
         private readonly SwDrawing m_Drw;
 
-        internal UncommittedPreviewOnlySheet(SwDrawing drw, ISwApplication app) 
+        internal UncommittedPreviewOnlySheet(SwDrawing drw, ISwApplication app)
         {
             m_Drw = drw;
             m_App = app;

@@ -9,9 +9,9 @@ using Xarial.XCad.UI.Commands;
 [ComVisible(true), Guid("37854E10-C3F8-41AA-AB46-614EC712DF42")]
 public class SubMenuAndSpacerAddIn : SwAddInEx
 {
-    //--- SpacerAndSubMenu
+    #region SpacerAndSubMenu
     [Title("AddInEx Commands")]
-    //--- Spacer
+    #region Spacer
     public enum Commands_e
     {
         Command1,
@@ -19,17 +19,17 @@ public class SubMenuAndSpacerAddIn : SwAddInEx
         [CommandSpacer]
         Command2
     }
-    //---
+    #endregion Spacer
 
     [Title("Sub Menu Commands")]
-    //--- SubMenu
+    #region SubMenu
     [CommandGroupParent(typeof(Commands_e))]
     public enum SubCommands_e
     {
         SubCommand1,
         SubCommand2
     }
-    //---
+    #endregion SubMenu
 
     public override void OnConnect()
     {
@@ -44,6 +44,6 @@ public class SubMenuAndSpacerAddIn : SwAddInEx
     private void OnButtonClick(SubCommands_e cmd)
     {
     }
-    //---
+    #endregion SpacerAndSubMenu
 }
 

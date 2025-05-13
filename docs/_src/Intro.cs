@@ -88,7 +88,7 @@ namespace Xarial.XCad.Documentation
     }
 
     [ComVisible(true)]
-    public class IntroMacroFeatureAddIn : SwAddInEx 
+    public class IntroMacroFeatureAddIn : SwAddInEx
     {
         [ComVisible(true)]
         public class BoxData : SwPropertyManagerPageHandler
@@ -126,7 +126,7 @@ namespace Xarial.XCad.Documentation
 
         private void OnCommandsButtonClick(Commands_e cmd)
         {
-            switch (cmd) 
+            switch (cmd)
             {
                 case Commands_e.InsertMacroFeature:
                     Application.Documents.Active.Features.CreateCustomFeature<BoxMacroFeature, BoxData, BoxData>();
@@ -135,7 +135,7 @@ namespace Xarial.XCad.Documentation
         }
     }
 
-    public class InitStandAlone 
+    public class InitStandAlone
     {
         static void Main(string[] args)
         {
@@ -151,7 +151,7 @@ namespace Xarial.XCad.Documentation
         }
 
         //CAD-agnostic function to open assembly, print all components and close assembly
-        private static void PrintAssemblyComponents(IXApplication app, string filePath) 
+        private static void PrintAssemblyComponents(IXApplication app, string filePath)
         {
             using (var assm = app.Documents.Open(filePath, DocumentState_e.ReadOnly))
             {
@@ -159,7 +159,7 @@ namespace Xarial.XCad.Documentation
             }
         }
 
-        private static void IterateComponentsRecursively(IXComponentRepository compsRepo, int level) 
+        private static void IterateComponentsRecursively(IXComponentRepository compsRepo, int level)
         {
             foreach (var comp in compsRepo)
             {

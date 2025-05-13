@@ -8,6 +8,7 @@ xCAD framework provides event handlers for the data changes in the controls. Use
 
 ## Post data changed event
 
-**Xarial.XCad.SolidWorks.UI.PropertyPage.ISwPropertyManagerPage<TModel>.DataChanged** event is raised after the user changed the value in the control which has updated the data model. Refer the bound data model for new values.
+**Xarial.XCad.SolidWorks.UI.PropertyPage.ISwPropertyManagerPage`<TModel>`.DataChanged** event is raised after the user changed the value in the control which has updated the data model. Refer the bound data model for new values.
 
-{% code-snippet { file-name: ~PropertyPage\Events.*, regions: [DataChanged] } %}
+<<< @/_src/PropertyPage/Events.cs#DataChanged
+<<< @/_src/PropertyPage/Events.cs#DataChanged2

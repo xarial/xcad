@@ -50,22 +50,22 @@ using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks
 {
-    public interface ISwAddInEx : IXExtension 
+    public interface ISwAddInEx : IXExtension
     {
         new ISwApplication Application { get; }
         new ISwCommandManager CommandManager { get; }
 
         new ISwPropertyManagerPage<TData> CreatePage<TData>(CreateDynamicControlsDelegate createDynCtrlHandler = null);
-        
+
         ISwPropertyManagerPage<TData> CreatePage<TData, THandler>(CreateDynamicControlsDelegate createDynCtrlHandler = null)
                 where THandler : SwPropertyManagerPageHandler, new();
-        
+
         ISwModelViewTab<TControl> CreateDocumentTab<TControl>(ISwDocument doc);
-        
+
         new ISwPopupWindow<TWindow> CreatePopupWindow<TWindow>(TWindow window);
-        
+
         ISwTaskPane<TControl> CreateTaskPane<TControl>();
-        
+
         new ISwTaskPane<TControl> CreateTaskPane<TControl>(TaskPaneSpec spec);
 
         ISwFeatureMgrTab<TControl> CreateFeatureManagerTab<TControl>(ISwDocument doc);
@@ -125,7 +125,7 @@ namespace Xarial.XCad.SolidWorks
             => CreatePopupWindow<TWindow>(window);
         IXTaskPane<TControl> IXExtension.CreateTaskPane<TControl>(TaskPaneSpec spec)
             => CreateTaskPane<TControl>(spec);
-        IXCustomPanel<TControl> IXExtension.CreateFeatureManagerTab<TControl>(IXDocument doc) 
+        IXCustomPanel<TControl> IXExtension.CreateFeatureManagerTab<TControl>(IXDocument doc)
             => CreateFeatureManagerTab<TControl>((SwDocument)doc);
 
         public ISwApplication Application => m_Application;
@@ -146,9 +146,9 @@ namespace Xarial.XCad.SolidWorks
         private readonly List<IDisposable> m_Disposables;
 
         protected IServiceProvider m_SvcProvider;
-        
+
         public SwAddInEx()
-        {   
+        {
             m_Disposables = new List<IDisposable>();
         }
 
@@ -213,7 +213,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        protected virtual void HandleException(Exception ex) 
+        protected virtual void HandleException(Exception ex)
         {
             var logger = Logger ?? CreateDefaultLogger();
             logger.Log(ex);
@@ -251,7 +251,7 @@ namespace Xarial.XCad.SolidWorks
             return svcCollection;
         }
 
-        protected IXLogger CreateDefaultLogger() 
+        protected IXLogger CreateDefaultLogger()
         {
             var addInType = this.GetType();
             var title = GetRegistrationHelper(addInType).GetTitle(addInType);
@@ -316,7 +316,7 @@ namespace Xarial.XCad.SolidWorks
             {
                 return m_CommandManager.HandleCommandEnable(cmdId);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 HandleException(ex);
                 return (int)CommandItemEnableState_e.DeselectDisable;
@@ -337,7 +337,7 @@ namespace Xarial.XCad.SolidWorks
         {
             if (disposing)
             {
-                foreach (var dispCtrl in m_Disposables.ToArray()) 
+                foreach (var dispCtrl in m_Disposables.ToArray())
                 {
                     try
                     {
@@ -385,7 +385,7 @@ namespace Xarial.XCad.SolidWorks
             where THandler : SwPropertyManagerPageHandler, new()
             => CreatePropertyManagerPage<TData>(typeof(THandler), createDynCtrlHandler);
 
-        private ISwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType, 
+        private ISwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType,
             CreateDynamicControlsDelegate createDynCtrlHandler)
         {
             var handler = m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application, handlerType);
@@ -401,17 +401,17 @@ namespace Xarial.XCad.SolidWorks
             var tab = new SwModelViewTab<TControl>(
                 new ModelViewTabCreator<TControl>(doc.Model.ModelViewManager, m_SvcProvider),
                 doc.Model.ModelViewManager, (SwDocument)doc, Application, Logger);
-            
+
             tab.InitControl();
-            
+
             tab.Disposed += OnItemDisposed;
 
             m_Disposables.Add(tab);
 
             return tab;
         }
-        
-        public ISwPopupWindow<TWindow> CreatePopupWindow<TWindow>(TWindow window) 
+
+        public ISwPopupWindow<TWindow> CreatePopupWindow<TWindow>(TWindow window)
         {
             var parent = (IntPtr)Application.Sw.IFrameObject().GetHWnd();
 
@@ -431,7 +431,7 @@ namespace Xarial.XCad.SolidWorks
 
         public ISwTaskPane<TControl> CreateTaskPane<TControl>() => CreateTaskPane<TControl>(new TaskPaneSpec());
 
-        public ISwTaskPane<TControl> CreateTaskPane<TControl>(TaskPaneSpec spec) 
+        public ISwTaskPane<TControl> CreateTaskPane<TControl>(TaskPaneSpec spec)
         {
             if (spec == null)
             {
@@ -458,7 +458,7 @@ namespace Xarial.XCad.SolidWorks
 
             return tab;
         }
-        
+
         protected virtual void OnConfigureServices(IXServiceCollection svcCollection)
         {
             ConfigureServices?.Invoke(this, svcCollection);
@@ -516,7 +516,7 @@ namespace Xarial.XCad.SolidWorks
         }
     }
 
-    public static class SwAddInExExtension 
+    public static class SwAddInExExtension
     {
         public static ISwModelViewTab<TControl> CreateDocumentTabWinForm<TControl>(this ISwAddInEx addIn, ISwDocument doc)
             where TControl : Control => addIn.CreateDocumentTab<TControl>(doc);

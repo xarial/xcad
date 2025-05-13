@@ -24,7 +24,7 @@ using Xarial.XCad.SwDocumentManager.Exceptions;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
-    public interface ISwDmComponentCollection : IXComponentRepository 
+    public interface ISwDmComponentCollection : IXComponentRepository
     {
     }
 
@@ -34,7 +34,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public void AddRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<IXComponent> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXComponent => throw new NotSupportedException();
-        #endregion
+        #endregion Not Supported
 
         private readonly ISwDmConfiguration m_Conf;
         private readonly SwDmAssembly m_ParentAssm;
@@ -63,9 +63,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        public int TotalCount 
+        public int TotalCount
         {
-            get 
+            get
             {
                 ValidateSpeedPak(m_Conf.Configuration);
 
@@ -79,21 +79,21 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        private object[] GetComponents(ISwDMConfiguration conf) 
+        private object[] GetComponents(ISwDMConfiguration conf)
         {
             ValidateSpeedPak(conf);
             return ((ISwDMConfiguration2)conf).GetComponents() as object[] ?? new object[0];
         }
 
-        private void ValidateSpeedPak(ISwDMConfiguration conf) 
+        private void ValidateSpeedPak(ISwDMConfiguration conf)
         {
             if (((ISwDMConfiguration11)conf).IsSpeedPak())
             {
                 throw new SpeedPakConfigurationComponentsException();
             }
         }
-        
-        private void CountComponents(ISwDMConfiguration conf, Dictionary<string, int> cachedCount, ref int totalCount) 
+
+        private void CountComponents(ISwDMConfiguration conf, Dictionary<string, int> cachedCount, ref int totalCount)
         {
             foreach (ISwDMComponent6 comp in GetComponents(conf))
             {
@@ -108,7 +108,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                         var confName = comp.ConfigurationName;
 
                         var cacheKey = $"{path}:{confName}";
-                        
+
                         if (cachedCount.TryGetValue(cacheKey, out int count))
                         {
                             totalCount += count;
@@ -137,7 +137,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                                     totalCount += subTotalCount;
                                     cachedCount.Add(cacheKey, subTotalCount);
                                 }
-                                finally 
+                                finally
                                 {
                                     subAssm?.CloseDoc();
                                 }
@@ -151,7 +151,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        private IEnumerable<ISwDMComponent> IterateDmComponents() 
+        private IEnumerable<ISwDMComponent> IterateDmComponents()
         {
             if (m_Conf.IsCommitted)
             {
@@ -171,7 +171,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
 
-        protected virtual SwDmComponent CreateComponentInstance(ISwDMComponent dmComp) 
+        protected virtual SwDmComponent CreateComponentInstance(ISwDMComponent dmComp)
         {
             var compName = ((ISwDMComponent7)dmComp).Name2;
 

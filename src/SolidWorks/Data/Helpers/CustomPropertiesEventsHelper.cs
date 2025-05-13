@@ -119,9 +119,9 @@ namespace Xarial.XCad.SolidWorks.Data.Helpers
             }
         }
 
-        public event CustomPropertyModifyDelegate CustomPropertiesModified 
+        public event CustomPropertyModifyDelegate CustomPropertiesModified
         {
-            add 
+            add
             {
                 Attach(value);
             }
@@ -151,7 +151,7 @@ namespace Xarial.XCad.SolidWorks.Data.Helpers
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool IsWindow(IntPtr hWnd);
 
-        #endregion
+        #endregion WinAPI
 
         private readonly SldWorks m_App;
         private readonly ISwDocument m_Doc;
@@ -291,7 +291,7 @@ namespace Xarial.XCad.SolidWorks.Data.Helpers
 
             return m_CurrentSummaryHandle;
         }
-        
+
         protected override void SubscribeEvents()
         {
             m_App.CommandCloseNotify += OnCommandCloseNotify;

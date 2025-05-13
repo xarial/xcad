@@ -39,7 +39,7 @@ namespace SolidWorks.Tests
             Cmd1,
         }
 
-        #endregion
+        #endregion Mocks
 
         private SwAddInEx CreateMockCommandGroup(string rev, Dictionary<CommandGroup, List<object[]>> grps)
         {
@@ -105,7 +105,7 @@ namespace SolidWorks.Tests
             //var cmds1 = new Dictionary<CommandGroup, List<object[]>>();
             //var addInMock1 = CreateMockCommandGroup("23.0.0", cmds1);
             //var grp1 = addInMock1.CommandManager.AddCommandGroup<CommandsMock_1>();
-            
+
             //var cmds2 = new Dictionary<CommandGroup, List<object[]>>();
             //var addInMock2 = CreateMockCommandGroup("24.0.0", cmds2);
             //var grp2 = addInMock2.CommandManager.AddCommandGroup<CommandsMock_1>();

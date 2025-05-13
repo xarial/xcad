@@ -9,7 +9,7 @@ order: 8
 
 Selection box will be generated for the public properties of **IXSelObject**
 
-{% code-snippet { file-name: ~PropertyPage\Controls\SelectionBox.*, regions: [Single] } %}
+<<< @/_src/PropertyPage/Controls/SelectionBox.cs#Single
 
 ## Multiple Selection
 
@@ -17,7 +17,7 @@ This attribute is also applicable to lists. In this case multiple selections wil
 
 ![Multiple entities selected in the selection box](selection-box-multiple.png)
 
-{% code-snippet { file-name: ~PropertyPage\Controls\SelectionBox.*, regions: [List] } %}
+<<< @/_src/PropertyPage/Controls/SelectionBox.cs#List
 
 Additional selection box options can be specified via **SelectionBoxOptionsAttribute**
 
@@ -29,4 +29,4 @@ Selection marks are used to differentiate the selection in the selection boxes. 
 
 To provide custom filtering logic for selection box it is required to implement the filter by inheriting the **ISelectionCustomFilter** interface and assign the filter via overloaded constructor of **SelectionBoxAttribute** attribute
 
-{% code-snippet { file-name: ~PropertyPage\Controls\SelectionBox.*, regions: [CustomFilter] } %}
+<<< @/_src/PropertyPage/Controls/SelectionBox.cs#CustomFilter

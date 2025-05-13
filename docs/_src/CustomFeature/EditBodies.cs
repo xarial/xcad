@@ -11,24 +11,24 @@ namespace Xarial.XCad.Documentation.CustomFeature
 {
     public class MacroFeatureEditBodiesParams
     {
-        //--- single
+        #region single
         public IXBody InputBody { get; set; }
-        //---
+        #endregion single
 
-        //--- multiple
+        #region multiple
         public IXBody EditBody1 { get; set; }
         public IXBody EditBody2 { get; set; }
-        //---
+        #endregion multiple
 
-        //--- list
+        #region list
         public List<IXBody> EditBodies { get; set; }
-        //---
+        #endregion list
     }
 
     [ComVisible(true)]
     public class EditBodiesMacroFeature : SwMacroFeatureDefinition<MacroFeatureEditBodiesParams>
     {
-        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, 
+        public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model,
             ISwMacroFeature<MacroFeatureEditBodiesParams> feature, out AlignDimensionDelegate<MacroFeatureEditBodiesParams> alignDim)
         {
             alignDim = null;

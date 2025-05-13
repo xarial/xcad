@@ -94,7 +94,7 @@ namespace Xarial.XCad.Features
         /// <typeparam name="TParams">Type of parameters managed by this custom feature</typeparam>
         /// <returns>Instance of custom feature</returns>
         public static IXCustomFeature<TParams> PreCreateCustomFeature<TParams>(this IXFeatureRepository feats)
-            where TParams : class
-            => feats.PreCreate<IXCustomFeature<TParams>>();
+                where TParams : class
+                => feats.PreCreate<IXCustomFeature<TParams>>();
     }
 }

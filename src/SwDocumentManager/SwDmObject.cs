@@ -25,14 +25,14 @@ namespace Xarial.XCad.SwDocumentManager
 
     internal class SwDmObject : ISwDmObject
     {
-        #region NotSuppoted
+        #region NotSupported
 
         public virtual bool IsAlive => throw new NotSupportedException();
 
         public virtual void Serialize(Stream stream)
             => throw new NotSupportedException();
 
-        #endregion
+        #endregion NotSupported
 
         IXApplication IXObject.OwnerApplication => OwnerApplication;
         IXDocument IXObject.OwnerDocument => OwnerDocument;
@@ -62,14 +62,14 @@ namespace Xarial.XCad.SwDocumentManager
             {
                 return (other as ISwDmObject).Dispatch == Dispatch;
             }
-            else 
+            else
             {
                 return false;
             }
         }
     }
 
-    public static class SwDmObjectFactory 
+    public static class SwDmObjectFactory
     {
         internal static TObj FromDispatch<TObj>(object disp, SwDmDocument doc)
             where TObj : ISwDmObject
@@ -79,10 +79,10 @@ namespace Xarial.XCad.SwDocumentManager
 
         private static ISwDmObject FromDispatch(object disp, SwDmDocument doc, SwDmApplication app)
         {
-            switch (disp) 
+            switch (disp)
             {
                 case ISwDMConfiguration conf:
-                    switch (doc) 
+                    switch (doc)
                     {
                         case SwDmAssembly assm:
                             return new SwDmAssemblyConfiguration(conf, assm);
@@ -99,7 +99,7 @@ namespace Xarial.XCad.SwDocumentManager
 
                 case ISwDMComponent comp:
                     var ext = Path.GetExtension(((ISwDMComponent6)comp).PathName);
-                    switch (ext.ToLower()) 
+                    switch (ext.ToLower())
                     {
                         case ".sldprt":
                             return new SwDmPartComponent((SwDmAssembly)doc, comp);
