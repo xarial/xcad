@@ -15,22 +15,73 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Xarial.XCad.Base;
+using Xarial.XCad.SolidWorks.Exceptions;
 using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks
 {
-    internal class SwMaterialsDatabaseRepository : IXMaterialsDatabaseRepository
+    internal partial class SwMaterialsDatabaseRepository : IXMaterialsDatabaseRepository
     {
-        private class SwTempMaterialsDatabase : SwMaterialsDatabase
+        private class SwTempMaterialsDatabase : SwMaterialsDatabase, ISwTempMaterialsDatabase
         {
-            private static XmlDocument LoadTempDbXml(string name)
-                => throw new Exception("Content of the temp material database is not available");
-
+            protected override XmlDocument MatDbXml => throw new Exception("Content of the temp material database is not available");
             public override string FilePath => throw new Exception("Temp material database is not stored on a disk");
 
+            public override string Name { get; }
+
             internal SwTempMaterialsDatabase(SwApplication app, string name)
-                : base(app, name, new Lazy<XmlDocument>(() => LoadTempDbXml(name)))
+                : base(app)
             {
+                Name = name;
+            }
+        }
+
+        private class SwAmbigiusMaterialsDatabase : SwMaterialsDatabase, ISwAmbigiusMaterialsDatabase
+        {
+            public override string FilePath
+            {
+                get
+                {
+                    if (MaterialDatabaseIndex.HasValue)
+                    {
+                        return FilePaths[MaterialDatabaseIndex.Value];
+                    }
+                    else 
+                    {
+                        throw new AmbigiusMaterialsDatabaseException();
+                    }
+                }
+            }
+
+            public override string Name { get; }
+
+            protected override XmlDocument MatDbXml
+            {
+                get
+                {
+                    if (MaterialDatabaseIndex.HasValue)
+                    {
+                        return m_MatDbXmlLazy[MaterialDatabaseIndex.Value].Value;
+                    }
+                    else
+                    {
+                        throw new AmbigiusMaterialsDatabaseException();
+                    }
+                }
+            }
+
+            public string[] FilePaths { get; }
+            
+            public int? MaterialDatabaseIndex { get; set; }
+
+            private Lazy<XmlDocument>[] m_MatDbXmlLazy;
+
+            internal SwAmbigiusMaterialsDatabase(SwApplication app, string[] dbFilePaths)
+                : base(app)
+            {
+                FilePaths = dbFilePaths;
+                Name = GetMaterialDbName(dbFilePaths.First());
+                m_MatDbXmlLazy = dbFilePaths.Select(x => new Lazy<XmlDocument>(() => LoadXmlFromFile(x))).ToArray();
             }
         }
 
@@ -89,15 +140,16 @@ namespace Xarial.XCad.SolidWorks
 
                 if (string.IsNullOrEmpty(matDbPath))
                 {
-                    var searchmatDbPaths = matDbPaths.Where(x => string.Equals(Path.GetFileNameWithoutExtension(x), name, StringComparison.CurrentCultureIgnoreCase)).ToArray();
+                    var searchMatDbPaths = matDbPaths.Where(x => string.Equals(Path.GetFileNameWithoutExtension(x), name, StringComparison.CurrentCultureIgnoreCase)).ToArray();
 
-                    if (searchmatDbPaths.Length == 1)
+                    if (searchMatDbPaths.Length == 1)
                     {
-                        matDbPath = searchmatDbPaths.First();
+                        matDbPath = searchMatDbPaths.First();
                     }
-                    else if (searchmatDbPaths.Length > 1)
+                    else if (searchMatDbPaths.Length > 1)
                     {
-                        throw new Exception("More than one material database found by the specified name. Use full file path instead");
+                        ent = new SwAmbigiusMaterialsDatabase(m_App, searchMatDbPaths);
+                        return true;
                     }
                 }
 

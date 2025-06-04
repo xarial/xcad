@@ -9,6 +9,7 @@ using Inventor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -99,22 +100,24 @@ namespace Xarial.XCad.Inventor.Documents
 
             var opts = m_Doc.OwnerApplication.Application.TransientObjects.CreateNameValueMap();
 
-            SetSaveOptions(m_Translator, opts);
-
-            if (m_Translator.HasSaveCopyAsOptions[m_Doc.Document, context, opts])
+            if (m_Translator.HasSaveCopyAsOptions[SourceObject, context, opts])
             {
                 context.Type = IOMechanismEnum.kFileBrowseIOMechanism;
 
                 var data = m_Doc.OwnerApplication.Application.TransientObjects.CreateDataMedium();
                 data.FileName = FilePath;
 
-                m_Translator.SaveCopyAs(m_Doc.Document, context, opts, data);
+                SetSaveOptions(m_Translator, opts);
+
+                m_Translator.SaveCopyAs(SourceObject, context, opts, data);
             }
             else
             {
                 throw new SaveDocumentFailedException(-1, "Invalid options");
             }
         }
+
+        protected virtual object SourceObject => m_Doc.Document;
 
         protected virtual void SetSaveOptions(TranslatorAddIn translator, NameValueMap opts) 
         {
@@ -196,13 +199,13 @@ namespace Xarial.XCad.Inventor.Documents
         }
     }
 
-    internal class AiDxfDwgSaveOperation : AiDrawingTranslatorSaveOperation, IXDxfDwgSaveOperation
+    internal class AiDxfDwgDrawingSaveOperation : AiDrawingTranslatorSaveOperation, IXDxfDwgDrawingSaveOperation
     {
-        public AiDxfDwgSaveOperation(AiDrawing drw, TranslatorAddIn translator, string filePath) : base(drw, translator, filePath)
+        public AiDxfDwgDrawingSaveOperation(AiDrawing drw, TranslatorAddIn translator, string filePath) : base(drw, translator, filePath)
         {
         }
 
-        public string LayersMapFilePath { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string ConfigurationFilePath { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool ExportHiddenLayers { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public SplineExportOptions_e SplineExportOptions { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
@@ -212,14 +215,40 @@ namespace Xarial.XCad.Inventor.Documents
         }
     }
 
+    /// <summary>
+    /// Autodesk Inventor specific flat pattern save options
+    /// </summary>
     public interface IAiFlatPatternSaveOperation : IFlatPatternSaveOperation
     {
+        /// <summary>
+        /// AutoCAD version
+        /// </summary>
         FlatPatternAcadVersion_e Version { get; set; }
+        
+        /// <summary>
+        /// Spline tolerance
+        /// </summary>
         double SplineTolerance { get; set; }
     }
 
-    internal class AiFlatPatternSaveOperation : AiSaveOperation, IAiFlatPatternSaveOperation
+    internal class AiFlatPatternSaveOperation : AiTranslatorSaveOperation, IAiFlatPatternSaveOperation
     {
+        public string ConfigurationFilePath
+        {
+            get => m_Creator.CachedProperties.Get<string>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
         public SplineExportOptions_e SplineExportOptions
         {
             get => m_Creator.CachedProperties.Get<SplineExportOptions_e>();
@@ -286,7 +315,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         private readonly SheetMetalComponentDefinition m_SheetMetalCompDef;
 
-        internal AiFlatPatternSaveOperation(AiDocument doc, SheetMetalComponentDefinition sheetMetalCompDef, string filePath) : base(doc, filePath)
+        internal AiFlatPatternSaveOperation(AiDocument doc, SheetMetalComponentDefinition sheetMetalCompDef, TranslatorAddIn translator, string filePath) : base(doc, translator, filePath)
         {
             m_SheetMetalCompDef = sheetMetalCompDef;
 
@@ -296,37 +325,51 @@ namespace Xarial.XCad.Inventor.Documents
 
         protected override void SaveAs(CancellationToken cancellationToken)
         {
-            var ext = System.IO.Path.GetExtension(FilePath).Trim('.').ToUpper();
-
-            var vers = Version.ToString().Substring("Acad".Length);
-
-            var simplifySplines = SplineExportOptions != SplineExportOptions_e.Splines;
-
-            var format = new StringBuilder($"FLAT PATTERN {ext}?AcadVersion={vers}");
-            format.Append($"&SimplifySplines={Convert.ToBoolean(simplifySplines)}");
-
-            if (simplifySplines)
+            if (string.IsNullOrEmpty(ConfigurationFilePath))
             {
-                format.Append($"&SplineTolerance={SplineTolerance}");
+                var ext = System.IO.Path.GetExtension(FilePath).Trim('.').ToUpper();
 
-                if (SplineExportOptions == SplineExportOptions_e.TangentArcs)
+                var vers = Version.ToString().Substring("Acad".Length);
+
+                var simplifySplines = SplineExportOptions != SplineExportOptions_e.Splines;
+
+                var format = new StringBuilder($"FLAT PATTERN {ext}?AcadVersion={vers}");
+                format.Append($"&SimplifySplines={Convert.ToBoolean(simplifySplines)}");
+
+                if (simplifySplines)
                 {
-                    format.Append("&SimplifyAsTangentArcs=True");
+                    format.Append($"&SplineTolerance={SplineTolerance}");
+
+                    if (SplineExportOptions == SplineExportOptions_e.TangentArcs)
+                    {
+                        format.Append("&SimplifyAsTangentArcs=True");
+                    }
                 }
-            }
 
-            if (!ViewOptions.HasFlag(FlatPatternViewOptions_e.BendLines)) 
+                if (!ViewOptions.HasFlag(FlatPatternViewOptions_e.BendLines))
+                {
+                    format.Append("&BendUpLayer=IV_BEND&BendDownLayer=IV_BEND_DOWN");
+                    format.Append("&InvisibleLayers=IV_BEND;IV_BEND_DOWN");
+                }
+
+                if (ViewOptions.HasFlag(FlatPatternViewOptions_e.BendNotes))
+                {
+                    throw new NotSupportedException("Bend notes option is not supported");
+                }
+
+                m_SheetMetalCompDef.DataIO.WriteDataToFile(format.ToString(), FilePath);
+            }
+            else 
             {
-                format.Append("&BendUpLayer=IV_BEND&BendDownLayer=IV_BEND_DOWN");
-                format.Append("&InvisibleLayers=IV_BEND;IV_BEND_DOWN");
+                base.SaveAs(cancellationToken);
             }
-
-            if (ViewOptions.HasFlag(FlatPatternViewOptions_e.BendNotes))
-            {
-                throw new NotSupportedException("Bend notes option is not supported");
-            }
-
-            m_SheetMetalCompDef.DataIO.WriteDataToFile(format.ToString(), FilePath);
         }
+
+        protected override void SetSaveOptions(TranslatorAddIn translator, NameValueMap opts)
+        {
+            opts.Value["Export_Acad_IniFile"] = ConfigurationFilePath;
+        }
+
+        protected override object SourceObject => m_SheetMetalCompDef.FlatPattern;
     }
 }

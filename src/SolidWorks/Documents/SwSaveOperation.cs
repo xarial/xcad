@@ -9,6 +9,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -504,11 +505,43 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
     }
 
-    internal class SwDxfDwgSaveOperation : SwDrawingSaveOperation, IXDxfDwgSaveOperation
+    internal class DxfMappingSetter : IDisposable
     {
-        private bool m_OrigDxfMapping;
-        private string m_OrigDxfMappingFiles;
-        private int m_OrigDxfMappingFileIndex;
+        private readonly ISldWorks m_SwApp;
+
+        private readonly bool m_OrigDxfMapping;
+        private readonly string m_OrigDxfMappingFiles;
+        private readonly int m_OrigDxfMappingFileIndex;
+
+        internal DxfMappingSetter(SwDocument doc, string layersMapFilePath)
+        {
+            m_SwApp = doc.OwnerApplication.Sw;
+
+            m_OrigDxfMapping = m_SwApp.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping);
+            m_OrigDxfMappingFiles = m_SwApp.GetUserPreferenceStringListValue((int)swUserPreferenceStringListValue_e.swDxfMappingFiles);
+            m_OrigDxfMappingFileIndex = m_SwApp.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex);
+
+            m_SwApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping, !string.IsNullOrEmpty(layersMapFilePath));
+
+            if (!string.IsNullOrEmpty(layersMapFilePath))
+            {
+                m_SwApp.SetUserPreferenceStringListValue((int)swUserPreferenceStringListValue_e.swDxfMappingFiles, layersMapFilePath);
+
+                m_SwApp.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex, 0);
+            }
+        }
+
+        public void Dispose()
+        {
+            m_SwApp.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping, m_OrigDxfMapping);
+            m_SwApp.SetUserPreferenceStringListValue((int)swUserPreferenceStringListValue_e.swDxfMappingFiles, m_OrigDxfMappingFiles);
+            m_SwApp.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex, m_OrigDxfMappingFileIndex);
+        }
+    }
+
+    internal class SwDxfDwgDrawingSaveOperation : SwDrawingSaveOperation, IXDxfDwgDrawingSaveOperation
+    {
+        private DxfMappingSetter m_DxfMappingSetter;
         private int m_OrigDxfMultiSheetOption;
         private bool m_OrigExportHiddenLayers;
         private bool m_OrigDxfExportSplinesAsSplines;
@@ -516,7 +549,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SwDrawing m_Draw;
         private SheetActivator m_SheetActivator;
 
-        internal SwDxfDwgSaveOperation(SwDrawing doc, string filePath) : base(doc, filePath)
+        internal SwDxfDwgDrawingSaveOperation(SwDrawing doc, string filePath) : base(doc, filePath)
         {
             m_Draw = doc;
 
@@ -535,7 +568,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
 
-            LayersMapFilePath = mapFilePath;
+            ConfigurationFilePath = mapFilePath;
         }
 
         protected override void SetSaveOptions(out object exportData)
@@ -544,20 +577,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             exportData = null;
 
-            m_OrigDxfMapping = m_Doc.OwnerApplication.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping);
-            m_OrigDxfMappingFiles = m_Doc.OwnerApplication.Sw.GetUserPreferenceStringListValue((int)swUserPreferenceStringListValue_e.swDxfMappingFiles);
-            m_OrigDxfMappingFileIndex = m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex);
+            m_DxfMappingSetter = new DxfMappingSetter(m_Doc, ConfigurationFilePath);
             m_OrigDxfMultiSheetOption = m_Doc.OwnerApplication.Sw.GetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMultiSheetOption);
             m_OrigDxfExportSplinesAsSplines = m_Doc.OwnerApplication.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfExportSplinesAsSplines);
-
-            m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping, !string.IsNullOrEmpty(LayersMapFilePath));
-
-            if (!string.IsNullOrEmpty(LayersMapFilePath)) 
-            {
-                m_Doc.OwnerApplication.Sw.SetUserPreferenceStringListValue((int)swUserPreferenceStringListValue_e.swDxfMappingFiles, LayersMapFilePath);
-
-                m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex, 0);
-            }
 
             bool exportSplinesAsSplines;
 
@@ -603,9 +625,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override void RestoreSaveOptions()
         {
-            m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfMapping, m_OrigDxfMapping);
-            m_Doc.OwnerApplication.Sw.SetUserPreferenceStringListValue((int)swUserPreferenceStringListValue_e.swDxfMappingFiles, m_OrigDxfMappingFiles);
-            m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMappingFileIndex, m_OrigDxfMappingFileIndex);
+            m_DxfMappingSetter?.Dispose();
             m_Doc.OwnerApplication.Sw.SetUserPreferenceIntegerValue((int)swUserPreferenceIntegerValue_e.swDxfMultiSheetOption, m_OrigDxfMultiSheetOption);
 
             m_Doc.OwnerApplication.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swDxfExportSplinesAsSplines, m_OrigDxfExportSplinesAsSplines);
@@ -615,7 +635,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_SheetActivator?.Dispose();
         }
 
-        public string LayersMapFilePath
+        public string ConfigurationFilePath
         {
             get => m_Creator.CachedProperties.Get<string>();
             set
@@ -683,6 +703,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         private readonly SwPart m_Part;
         private readonly SwFlatPattern m_FlatPattern;
 
+        private DxfMappingSetter m_DxfMappingSetter;
+
         public SwFlatPatternSaveOperation(SwPart part, SwFlatPattern flatPattern, string filePath)
         {
             m_Part = part;
@@ -690,6 +712,22 @@ namespace Xarial.XCad.SolidWorks.Documents
             FilePath = filePath;
 
             m_Creator = new ElementCreator<bool?>(ExportFlatPattern, null, false);
+        }
+
+        public string ConfigurationFilePath
+        {
+            get => m_Creator.CachedProperties.Get<string>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
         }
 
         public SplineExportOptions_e SplineExportOptions
@@ -750,13 +788,16 @@ namespace Xarial.XCad.SolidWorks.Documents
                         throw new SaveDocumentFailedException(-1, "Bend notes option is not supported");
                     }
 
-                    if (m_Part.Part.ExportToDWG2(FilePath, m_Part.Path, (int)swExportToDWG_e.swExportToDWG_ExportSheetMetal, true, null, false, false, (int)opts, null))
+                    using (new DxfMappingSetter(m_Part, ConfigurationFilePath))
                     {
-                        return true;
-                    }
-                    else 
-                    {
-                        throw new SaveDocumentFailedException(-1, "Failed to export flat pattern");
+                        if (m_Part.Part.ExportToDWG2(FilePath, m_Part.Path, (int)swExportToDWG_e.swExportToDWG_ExportSheetMetal, true, null, false, false, (int)opts, null))
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            throw new SaveDocumentFailedException(-1, "Failed to export flat pattern");
+                        }
                     }
                 }
             }

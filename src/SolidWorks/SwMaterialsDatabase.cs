@@ -28,10 +28,56 @@ namespace Xarial.XCad.SolidWorks
         string FilePath { get; }
     }
 
+    /// <summary>
+    /// Temp material database
+    /// </summary>
+    /// <remarks>This database is used if the database file is not available on the PC</remarks>
+    public interface ISwTempMaterialsDatabase : ISwMaterialsDatabase
+    {
+    }
+
+    /// <summary>
+    /// This database is used if there are multiple database files matching the material database
+    /// </summary>
+    public interface ISwAmbigiusMaterialsDatabase : ISwMaterialsDatabase
+    {
+        /// <summary>
+        /// Database paths
+        /// </summary>
+        string[] FilePaths { get; }
+
+        /// <summary>
+        /// Index of database to use
+        /// </summary>
+        /// <remarks>If not set <see cref="Exceptions.AmbigiusMaterialsDatabaseException"/> will be thrown when database properties are accessed</remarks>
+        int? MaterialDatabaseIndex { get; set; }
+    }
+
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwMaterialsDatabase : ISwMaterialsDatabase
     {
-        public const string SYSTEM_DB_NAME = "solidworks materials";
+        protected static string GetMaterialDbName(string dbFilePath)
+        {
+            var dbFileName = Path.GetFileNameWithoutExtension(dbFilePath);
+
+            if (string.Equals(dbFileName, SYSTEM_DB_NAME, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return "";
+            }
+            else
+            {
+                return dbFileName;
+            }
+        }
+
+        protected static XmlDocument LoadXmlFromFile(string dbFilePath)
+        {
+            var matDbXml = new XmlDocument();
+            matDbXml.LoadXml(File.ReadAllText(dbFilePath));
+            return matDbXml;
+        }
+
+        internal const string SYSTEM_DB_NAME = "solidworks materials";
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -44,9 +90,9 @@ namespace Xarial.XCad.SolidWorks
 
         public IXMaterial this[string name] => m_RepoHelper.Get(name);
 
-        public string Name { get; }
+        public virtual string Name { get; }
 
-        public int Count => m_MatDbXml.Value.SelectNodes("//classification/material")?.Count ?? 0;
+        public int Count => MatDbXml.SelectNodes("//classification/material")?.Count ?? 0;
 
         public bool IsCommitted => true;
 
@@ -54,7 +100,7 @@ namespace Xarial.XCad.SolidWorks
 
         public IEnumerator<IXMaterial> GetEnumerator()
         {
-            foreach (XmlNode matXmlNode in m_MatDbXml.Value.SelectNodes("//classification/material"))
+            foreach (XmlNode matXmlNode in MatDbXml.SelectNodes("//classification/material"))
             {
                 yield return new SwMaterial(matXmlNode, this);
             }
@@ -62,7 +108,7 @@ namespace Xarial.XCad.SolidWorks
 
         public bool TryGet(string name, out IXMaterial ent)
         {
-            var matXmlNode = m_MatDbXml.Value.SelectSingleNode($"//classification/material[@name='{name}']");
+            var matXmlNode = MatDbXml.SelectSingleNode($"//classification/material[@name='{name}']");
 
             if (matXmlNode != null)
             {
@@ -76,47 +122,28 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        internal XmlNode FindMaterialXmlNode(string name) => m_MatDbXml.Value.SelectSingleNode($"//classification/material[@name='{name}']");
+        internal XmlNode FindMaterialXmlNode(string name) => MatDbXml.SelectSingleNode($"//classification/material[@name='{name}']");
 
         private readonly SwApplication m_App;
 
-        private readonly Lazy<XmlDocument> m_MatDbXml;
-
-        private static string GetMaterialDbName(string dbFilePath)
-        {
-            var dbFileName = Path.GetFileNameWithoutExtension(dbFilePath);
-
-            if (string.Equals(dbFileName, SYSTEM_DB_NAME, StringComparison.CurrentCultureIgnoreCase))
-            {
-                return "";
-            }
-            else
-            {
-                return dbFilePath;
-            }
-        }
-
-        private static XmlDocument LoadXmlFromFile(string dbFilePath)
-        {
-            var matDbXml = new XmlDocument();
-            matDbXml.LoadXml(File.ReadAllText(dbFilePath));
-            return matDbXml;
-        }
+        private readonly Lazy<XmlDocument> m_MatDbXmlLazy;
 
         private readonly RepositoryHelper<IXMaterial> m_RepoHelper;
 
+        protected virtual XmlDocument MatDbXml => m_MatDbXmlLazy.Value;
+
         internal SwMaterialsDatabase(SwApplication app, string dbFilePath)
-            : this(app, GetMaterialDbName(dbFilePath), new Lazy<XmlDocument>(() => LoadXmlFromFile(dbFilePath)))
+            : this(app)
         {
+            Name = GetMaterialDbName(dbFilePath);
             FilePath = dbFilePath;
+            m_MatDbXmlLazy = new Lazy<XmlDocument>(() => LoadXmlFromFile(dbFilePath));
         }
 
-        protected SwMaterialsDatabase(SwApplication app, string name, Lazy<XmlDocument> matDbXml)
+        protected SwMaterialsDatabase(SwApplication app)
         {
             m_App = app;
-            Name = name;
-            m_MatDbXml = matDbXml;
-
+            
             m_RepoHelper = new RepositoryHelper<IXMaterial>(this);
         }
     }

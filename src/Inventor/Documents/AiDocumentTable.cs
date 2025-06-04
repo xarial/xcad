@@ -9,6 +9,7 @@ using Inventor;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
@@ -90,7 +91,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public iPartFactory Factory => m_Part.Part.ComponentDefinition.iPartFactory;
 
-        public override int Count => Factory.TableRows.Count;
+        public override int Count => Factory?.TableRows?.Count ?? 0;
 
         protected override AiDocumentRow CurrentRow 
         {
@@ -109,9 +110,14 @@ namespace Xarial.XCad.Inventor.Documents
 
         protected override IEnumerable<AiDocumentRow> EnumerateRows()
         {
-            foreach (iPartTableRow row in Factory.TableRows) 
+            var tableRows = Factory?.TableRows;
+
+            if (tableRows != null)
             {
-                yield return new AiPartRow(row, m_Part);
+                foreach (iPartTableRow row in tableRows)
+                {
+                    yield return new AiPartRow(row, m_Part);
+                }
             }
         }
     }
@@ -138,7 +144,7 @@ namespace Xarial.XCad.Inventor.Documents
             set => Factory.DefaultRow = ((AiAssemblyRow)value).Row;
         }
 
-        public override int Count => Factory.TableRows.Count;
+        public override int Count => Factory?.TableRows?.Count ?? 0;
 
         private readonly AiAssembly m_Assm;
 
@@ -151,9 +157,14 @@ namespace Xarial.XCad.Inventor.Documents
 
         protected override IEnumerable<AiDocumentRow> EnumerateRows()
         {
-            foreach (iAssemblyTableRow row in Factory.TableRows)
+            var tableRows = Factory?.TableRows;
+
+            if (tableRows != null)
             {
-                yield return new AiAssemblyRow(row, m_Assm);
+                foreach (iAssemblyTableRow row in tableRows)
+                {
+                    yield return new AiAssemblyRow(row, m_Assm);
+                }
             }
         }
     }

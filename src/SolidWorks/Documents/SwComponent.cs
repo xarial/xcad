@@ -41,6 +41,7 @@ using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Utils;
+using static System.Windows.Forms.AxHost;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -500,6 +501,13 @@ namespace Xarial.XCad.SolidWorks.Documents
                         state |= ComponentState_e.Foreign;
                     }
 
+                    var solving = (swComponentSolvingOption_e)Component.Solving;
+
+                    if (solving == swComponentSolvingOption_e.swComponentFlexibleSolving)
+                    {
+                        state |= ComponentState_e.Flexible;
+                    }
+
                     return state;
                 }
                 else 
@@ -511,52 +519,32 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    var swState = GetSuppressionState();
+                    var curState = State;
 
-                    if ((swState == swComponentSuppressionState_e.swComponentSuppressed
-                        || swState == swComponentSuppressionState_e.swComponentLightweight
-                        || swState == swComponentSuppressionState_e.swComponentFullyLightweight)
-                            && !value.HasFlag(ComponentState_e.Lightweight) && !value.HasFlag(ComponentState_e.Suppressed))
+                    var changes = new List<ComponentState_e>();
+
+                    foreach (ComponentState_e state in Enum.GetValues(typeof(ComponentState_e))) 
                     {
-                        if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentFullyResolved) != (int)swSuppressionError_e.swSuppressionChangeOk)
+                        if ((value.HasFlag(state) && !curState.HasFlag(state))
+                            || (!value.HasFlag(state) && curState.HasFlag(state)))
                         {
-                            throw new Exception("Failed to resolve component state");
-                        }
-                    }
-                    else if (swState != swComponentSuppressionState_e.swComponentSuppressed
-                            && value.HasFlag(ComponentState_e.Suppressed))
-                    {
-                        if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentSuppressed) != (int)swSuppressionError_e.swSuppressionChangeOk)
-                        {
-                            throw new Exception("Failed to suppress component");
-                        }
-                    }
-                    else if (swState != swComponentSuppressionState_e.swComponentFullyLightweight
-                            && swState != swComponentSuppressionState_e.swComponentLightweight
-                            && value.HasFlag(ComponentState_e.Lightweight))
-                    {
-                        if (Component.SetSuppression2((int)swComponentSuppressionState_e.swComponentFullyLightweight) != (int)swSuppressionError_e.swSuppressionChangeOk)
-                        {
-                            throw new Exception("Failed to resolve component state");
+                            changes.Add(state);
                         }
                     }
 
-                    if (RootAssembly.Model.IsOpenedViewOnly() && !value.HasFlag(ComponentState_e.ViewOnly)) //Large design review
+                    if (changes.Contains(ComponentState_e.ViewOnly))
                     {
                         throw new Exception("Component cannot be resolved when opened as view only");
                     }
 
-                    EditState(value, () => Component.IsHidden(false), ComponentState_e.Hidden, () => Component.Visible = (int)swComponentVisibilityState_e.swComponentHidden, () => Component.Visible = (int)swComponentVisibilityState_e.swComponentVisible);
-
-                    EditState(value, () => Component.ExcludeFromBOM, ComponentState_e.ExcludedFromBom, () => Component.ExcludeFromBOM = true, () => Component.ExcludeFromBOM = false);
-
-                    if (Component.IsEnvelope() && !value.HasFlag(ComponentState_e.Envelope))
+                    if (changes.Contains(ComponentState_e.Foreign))
                     {
-                        throw new Exception("Envelope state cannot be changed");
+                        throw new Exception("Component's foreign status cannot be changed");
                     }
 
-                    EditState(value, () => Component.IsVirtual, ComponentState_e.Embedded,
-                        () =>
+                    if (changes.Contains(ComponentState_e.Embedded)) 
+                    {
+                        if (value.HasFlag(ComponentState_e.Embedded))
                         {
                             if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
                             {
@@ -570,23 +558,67 @@ namespace Xarial.XCad.SolidWorks.Documents
                             {
                                 throw new Exception("Component can only be set to virtual starting from SOLIDWORKS 2013");
                             }
-                        },
-                        () =>
+                        }
+                        else
                         {
                             throw new NotSupportedException("Changing component from virtual is not supported");
-                        });
+                        }
+                    }
 
-                    EditState(value, () => Component.IsFixed(), ComponentState_e.Fixed,
-                        () =>
+                    if (changes.Contains(ComponentState_e.Fixed))
+                    {
+                        using (var sel = new SelectionGroup(RootAssembly, true))
                         {
-                            Select(false);
-                            RootAssembly.Assembly.FixComponent();
-                        },
-                        () =>
+                            sel.Add(Component);
+
+                            if (value.HasFlag(ComponentState_e.Fixed))
+                            {
+                                RootAssembly.Assembly.FixComponent();
+                            }
+                            else
+                            {
+                                RootAssembly.Assembly.UnfixComponent();
+                            }
+                        }
+                    }
+
+                    var batchChanges = changes.Where(c => c == ComponentState_e.ExcludedFromBom || c == ComponentState_e.Suppressed || c == ComponentState_e.SuppressedIdMismatch || c == ComponentState_e.Lightweight || c == ComponentState_e.Hidden).ToArray();
+
+                    //NOTE: for performance benefits if more than 1 update is required use batch update option
+                    //NOTE: Envelope and Solving state can only be set via batch update method
+                    if (batchChanges.Length > 1 || changes.Contains(ComponentState_e.Envelope) || changes.Contains(ComponentState_e.Flexible))
+                    {
+                        BatchSetProperties(Component, value);
+                    }
+                    else 
+                    {
+                        foreach (var batchChange in batchChanges) 
                         {
-                            Select(false);
-                            RootAssembly.Assembly.UnfixComponent();
-                        });
+                            switch (batchChange) 
+                            {
+                                case ComponentState_e.Suppressed:
+                                case ComponentState_e.SuppressedIdMismatch:
+                                case ComponentState_e.Lightweight:
+                                    var suppression = ConvertSuppressionState(value);
+                                    if (Component.SetSuppression2((int)suppression) != (int)swSuppressionError_e.swSuppressionChangeOk)
+                                    {
+                                        throw new Exception($"Failed to update component suppression state to {suppression}");
+                                    }
+                                    break;
+
+                                case ComponentState_e.ExcludedFromBom:
+                                    Component.ExcludeFromBOM = value.HasFlag(ComponentState_e.ExcludedFromBom);
+                                    break;
+
+                                case ComponentState_e.Hidden:
+                                    Component.Visible = (int)(value.HasFlag(ComponentState_e.Hidden) ? swComponentVisibilityState_e.swComponentHidden : swComponentVisibilityState_e.swComponentVisible);
+                                    break;
+
+                                default:
+                                    throw new NotSupportedException();
+                            }
+                        }
+                    }
                 }
                 else 
                 {
@@ -595,17 +627,47 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private void EditState(ComponentState_e state, Func<bool> getFunc, ComponentState_e type, Action setFunc, Action unsetFunc) 
+        private void BatchSetProperties(IComponent2 comp, ComponentState_e state)
         {
-            var curVal = getFunc();
+            using (var sel = new SelectionGroup(RootAssembly, true))
+            {
+                sel.Add(comp);
 
-            if (curVal && !state.HasFlag(type))
-            {
-                unsetFunc.Invoke();
+                var suppression = ConvertSuppressionState(state);
+
+                var solving = state.HasFlag(ComponentState_e.Flexible) ? swComponentSolvingOption_e.swComponentFlexibleSolving : swComponentSolvingOption_e.swComponentRigidSolving;
+                var hidden = state.HasFlag(ComponentState_e.Hidden);
+                var exlFromBom = state.HasFlag(ComponentState_e.ExcludedFromBom);
+                var envelope = state.HasFlag(ComponentState_e.ExcludedFromBom);
+
+                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2019))
+                {
+                    RootAssembly.Assembly.CompConfigProperties6((int)suppression, (int)solving, !hidden, false, "", exlFromBom, envelope, (int)swASMSLDPRTCompPref_e.swUseSystemSettings);
+                }
+                else if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017))
+                {
+                    RootAssembly.Assembly.CompConfigProperties5((int)suppression, (int)solving, !hidden, false, "", exlFromBom, envelope);
+                }
+                else 
+                {
+                    throw new NotSupportedException("Batch configuration change is only supported from SOLIDWORKS 2017");
+                }
             }
-            else if (!curVal && state.HasFlag(type))
+        }
+
+        private swComponentSuppressionState_e ConvertSuppressionState(ComponentState_e state)
+        {
+            if (state.HasFlag(ComponentState_e.Suppressed) || state.HasFlag(ComponentState_e.SuppressedIdMismatch))
             {
-                setFunc.Invoke();
+                return swComponentSuppressionState_e.swComponentSuppressed;
+            }
+            else if (state.HasFlag(ComponentState_e.Lightweight))
+            {
+                return swComponentSuppressionState_e.swComponentFullyLightweight;
+            }
+            else
+            {
+                return swComponentSuppressionState_e.swComponentFullyResolved;
             }
         }
 

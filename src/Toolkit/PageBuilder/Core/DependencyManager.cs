@@ -87,7 +87,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
                     IBinding dependOnBinding;
                     if (!depGroup.TaggedBindings.TryGetValue(dependOnTag, out dependOnBinding))
                     {
-                        throw new Exception("Dependent on binding is not found for tag");
+                        throw new Exception($"Dependent on binding is not found for tag '{dependOnTag}'");
                     }
 
                     dependOnBindings[i] = dependOnBinding;

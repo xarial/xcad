@@ -70,6 +70,11 @@ namespace Xarial.XCad.Documents.Enums
         /// <summary>
         /// Component is a foreign document (interconnected)
         /// </summary>
-        Foreign = 2 << 8
+        Foreign = 2 << 8,
+
+        /// <summary>
+        /// Sub-assembly component is flexible
+        /// </summary>
+        Flexible = 2 << 9
     }
 }

@@ -148,7 +148,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 case ".dxf":
                 case ".dwg":
-                    return new SwDxfDwgSaveOperation(this, filePath);
+                    return new SwDxfDwgDrawingSaveOperation(this, filePath);
 
                 default:
                     return new SwDrawingSaveOperation(this, filePath);

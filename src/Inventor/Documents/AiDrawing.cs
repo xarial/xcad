@@ -47,7 +47,7 @@ namespace Xarial.XCad.Inventor.Documents
                 {
                     case "{C24E3AC2-122E-11D5-8E91-0010B541CD80}":
                     case "{C24E3AC4-122E-11D5-8E91-0010B541CD80}":
-                        return new AiDxfDwgSaveOperation(this, translator, filePath);
+                        return new AiDxfDwgDrawingSaveOperation(this, translator, filePath);
 
                     default:
                         return new AiDrawingTranslatorSaveOperation(this, translator, filePath);

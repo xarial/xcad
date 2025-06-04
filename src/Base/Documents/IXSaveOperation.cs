@@ -140,7 +140,7 @@ namespace Xarial.XCad.Documents
     }
 
     /// <summary>
-    /// Options to export splines in <see cref="IXDxfDwgSaveOperation.SplineExportOptions"/>
+    /// Options to export splines in <see cref="IXDxfDwgDrawingSaveOperation.SplineExportOptions"/>
     /// </summary>
     public enum SplineExportOptions_e 
     {
@@ -163,34 +163,37 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Save options for DXF/DWG format
     /// </summary>
-    public interface IXDxfDwgSaveOperation : IXDrawingSaveOperation
-    {   
+    public interface IXDxfDwgSaveOperation : IXSaveOperation
+    {
         /// <summary>
-        /// File path to a layers map file
+        /// File path to a configuration file
         /// </summary>
-        string LayersMapFilePath { get; set; }
-
-        /// <summary>
-        /// True to include hidden layers, False to only export visible layers
-        /// </summary>
-        bool ExportHiddenLayers { get; set; }
+        /// <remarks>This file contains configuration of export, this usually includes layers map</remarks>
+        string ConfigurationFilePath { get; set; }
 
         /// <summary>
         /// Options to export splines
         /// </summary>
         SplineExportOptions_e SplineExportOptions { get; set; }
+
+    }
+
+    /// <summary>
+    /// Save options for DXF/DWG format from drawing
+    /// </summary>
+    public interface IXDxfDwgDrawingSaveOperation : IXDrawingSaveOperation, IXDxfDwgSaveOperation
+    {   
+        /// <summary>
+        /// True to include hidden layers, False to only export visible layers
+        /// </summary>
+        bool ExportHiddenLayers { get; set; }
     }
 
     /// <summary>
     /// Save options for <see cref="Features.IXFlatPattern"/>
     /// </summary>
-    public interface IFlatPatternSaveOperation : IXSaveOperation 
+    public interface IFlatPatternSaveOperation : IXDxfDwgSaveOperation
     {
-        /// <summary>
-        /// Options to export splines
-        /// </summary>
-        SplineExportOptions_e SplineExportOptions { get; set; }
-
         /// <summary>
         /// Flat pattern view options
         /// </summary>

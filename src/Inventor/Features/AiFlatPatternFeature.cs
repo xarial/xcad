@@ -2,6 +2,7 @@
 using System;
 using System.Threading;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Inventor.Documents;
@@ -98,9 +99,35 @@ namespace Xarial.XCad.Inventor.Features
         public AppearanceSourceTypeEnum AppearanceSourceType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 
-    internal class AiFlatPatternFeature : AiFeature, IXFlatPattern
+    /// <summary>
+    /// Inventor-specific flat pattern
+    /// </summary>
+    public interface IAiFlatPattern : IXFlatPattern
+    {
+        /// <summary>
+        /// Pointer to underlying flat pattern element
+        /// </summary>
+        FlatPattern FlatPattern { get; }
+    }
+
+    internal class AiFlatPatternFeature : AiFeature, IAiFlatPattern
     {
         private readonly SheetMetalComponentDefinition m_SheetMetalCompDef;
+
+        public FlatPattern FlatPattern 
+        {
+            get 
+            {
+                if (IsCommitted)
+                {
+                    return m_SheetMetalCompDef.FlatPattern;
+                }
+                else 
+                {
+                    throw new NonCommittedElementAccessException();
+                }
+            }
+        }
 
         internal AiFlatPatternFeature(SheetMetalComponentDefinition sheetMetalCompDef, FlatPatternFeature feat, AiDocument ownerDoc, AiApplication ownerApp) : base(feat, ownerDoc, ownerApp)
         {
@@ -112,7 +139,7 @@ namespace Xarial.XCad.Inventor.Features
         public IXEntity FixedEntity => throw new NotImplementedException();
 
         public IFlatPatternSaveOperation PreCreateSaveAsOperation(string filePath)
-            => new AiFlatPatternSaveOperation(OwnerDocument, m_SheetMetalCompDef, filePath);
+            => new AiFlatPatternSaveOperation(OwnerDocument, m_SheetMetalCompDef, OwnerDocument.TryGetTranslator(filePath), filePath);
 
         protected override PartFeature CreateFeature(CancellationToken token)
         {

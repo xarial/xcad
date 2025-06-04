@@ -260,17 +260,11 @@ namespace Xarial.XCad.Inventor.Documents
             throw new NotImplementedException();
         }
 
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        internal void SetClosed()
-        {
-            m_IsClosed = true;
-        }
-
         public void Rebuild() => Document.Rebuild2(true);
 
         public void Save() => Document.Save2(true);
 
-        protected TranslatorAddIn TryGetTranslator(string filePath)
+        protected internal TranslatorAddIn TryGetTranslator(string filePath)
         {
             var ext = System.IO.Path.GetExtension(filePath);
 
@@ -299,17 +293,36 @@ namespace Xarial.XCad.Inventor.Documents
 
         private void OnCloseDocument(_Document DocumentObject, string FullDocumentName, EventTimingEnum BeforeOrAfter, NameValueMap Context, out HandlingCodeEnum HandlingCode)
         {
-            if (BeforeOrAfter == EventTimingEnum.kAfter)
+            if (m_IsClosed != true)
             {
-                //NOTE: event is raised in different thread and API cannot be accessed and getting the id throws an exception, have to use cached value
-                if (string.Equals(m_Id, DocumentObject.InternalName)) 
+                if (BeforeOrAfter == EventTimingEnum.kAfter)
                 {
-                    m_IsClosed = true;
-                    Destroyed?.Invoke(this);
-                }
-            }
+                    string closingDocId;
 
-            HandlingCode = HandlingCodeEnum.kEventHandled;
+                    try
+                    {
+                        //NOTE: event is raised in different thread and API cannot be accessed and getting the id throws an exception, have to use cached value
+                        closingDocId = DocumentObject.InternalName;
+                    }
+                    catch
+                    {
+                        HandlingCode = HandlingCodeEnum.kEventNotHandled;
+                        return;
+                    }
+
+                    if (string.Equals(m_Id, closingDocId))
+                    {
+                        m_IsClosed = true;
+                        Destroyed?.Invoke(this);
+                    }
+                }
+
+                HandlingCode = HandlingCodeEnum.kEventHandled;
+            }
+            else 
+            {
+                HandlingCode = HandlingCodeEnum.kEventNotHandled;
+            }
         }
 
         public void Dispose()
