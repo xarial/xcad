@@ -34,6 +34,7 @@ using Xarial.XCad.SolidWorks.UI.PropertyPage.Attributes;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Annotations;
+using Xarial.XCad.Enums;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
@@ -121,9 +122,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     ctrl.Style = (int)selAtt.Style;
                 }
 
-                if (selAtt.SelectionColor != 0)
+                if (selAtt.SelectionColor != SystemColor_e.None)
                 {
-                    ctrl.SetSelectionColor(true, (int)selAtt.SelectionColor);
+                    ctrl.SetSelectionColor(true, (int)SwColorHelper.ConvertSystemColor(selAtt.SelectionColor));
                 }
 
                 ctrl.AllowMultipleSelectOfSameEntity = selAtt.AllowDuplicateEntity;

@@ -33,6 +33,7 @@ namespace Xarial.XCad.SwDocumentManager.Services
     /// <remarks>This logic implemented according to <see href="https://help.solidworks.com/2016/english/SolidWorks/sldworks/c_Search_Routine_for_Referenced_Documents.htm"/></remarks>
     public class SwDmFilePathResolver : IFilePathResolver
     {
+        /// <inheritdoc/>
         public string ResolvePath(string parentDocDirPath, string path)
         {
             string resolvedPath;

@@ -52,7 +52,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
             m_RepoHelper = new RepositoryHelper<IXComponent>(this);
 
-            m_PathResolver = new SwDmFilePathResolver();
+            m_PathResolver = parentAssm.OwnerApplication.FilePathResolver;
             m_ComponentsCache = new Dictionary<string, SwDmComponent>(StringComparer.CurrentCultureIgnoreCase);
         }
 

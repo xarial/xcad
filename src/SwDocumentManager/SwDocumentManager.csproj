@@ -54,6 +54,8 @@
     <None Include="..\..\thirdpty\SolidWorks.Interop.swdocumentmgr.dll" pack="true" PackagePath="lib\netcoreapp3.1" />
     <None Include="..\..\thirdpty\SolidWorks.Interop.swdocumentmgr.dll" pack="true" PackagePath="lib\net6.0-windows7.0" Link="_Pack\SolidWorks.Interop.swdocumentmgr.dll" />
     <None Include="..\..\thirdpty\SolidWorks.Interop.swdocumentmgr.dll" pack="true" PackagePath="lib\net7.0-windows7.0" Link="_Pack\SolidWorks.Interop.swdocumentmgr.dll" />
+	<None Include="..\..\thirdpty\SolidWorks.Interop.swdocumentmgr.dll" pack="true" PackagePath="lib\net8.0-windows8.0" Link="_Pack\SolidWorks.Interop.swdocumentmgr.dll" />
+	<None Include="..\..\thirdpty\SolidWorks.Interop.swdocumentmgr.dll" pack="true" PackagePath="lib\net9.0-windows9.0" Link="_Pack\SolidWorks.Interop.swdocumentmgr.dll" />
   </ItemGroup>
 
   <ItemGroup>

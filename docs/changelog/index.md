@@ -8,8 +8,9 @@ This page contains list of the most notable changes in the releases of xCAD.NET.
 
 Breaking change is marked with &#x26A0; symbol
 
-## 0.8.1 -
+## 0.9.0 -
 
+* &#x26A0; StandardSelectionColor_e enumeration is renamed to SystemColor_e
 * &#x26A0; Several options from **PageOptionsAttribute** are extracted to **PageButtonsAttribute** and **PageLockedPage** attributes
 * &#x26A0; **AlignDimensionDelegate**, **AssignPreviewBodyColorDelegate**, **ShouldHidePreviewEditBodyDelegate** of **SwMacroFeatureDefinition\<TParams, TPage\>** are replaced with **OnAlignDimensionDelegate**, **OnAssignPreviewBodyColorDelegate**, **OnShouldHidePreviewEditBodyDelegate** virtual methods
 * &#x26A0; ICustomItemsProvider::ProvideItems changed signature (added **IControl ctrl** and **object parameter**)

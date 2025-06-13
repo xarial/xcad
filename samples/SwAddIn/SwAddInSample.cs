@@ -795,8 +795,8 @@ namespace SwAddInExample
                             row2.Name = "Second Row";
                             row2.Value = "Value2";
                             row2.IsReadOnly = true;
-                            m_Callout.Background = StandardSelectionColor_e.Tertiary;
-                            m_Callout.Foreground = StandardSelectionColor_e.Primary;
+                            m_Callout.Background = SystemColor_e.SelectedItem3;
+                            m_Callout.Foreground = SystemColor_e.SelectedItem1;
                             m_Callout.Commit();
                         }
                         else 

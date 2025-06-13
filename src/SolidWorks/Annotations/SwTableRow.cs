@@ -220,29 +220,28 @@ namespace Xarial.XCad.SolidWorks.Annotations
             m_Columns = columns;
         }
 
-        public int? ItemNumber
+        public string ItemNumber
         {
             get
             {
                 CheckDeleted();
-                TryGetItemNumer(out var itemNumber);
-                return itemNumber;
+                return GetItemNumer();
             }
             set
             {
                 CheckDeleted();
 
-                var hasItemNumber = value.HasValue;
+                var hasItemNumber = !string.IsNullOrEmpty(value);
 
                 if (hasItemNumber)
                 {
-                    if (value != BomItemNumber.Auto)
+                    if (!string.Equals(value, BomItemNumber.Auto, StringComparison.CurrentCultureIgnoreCase))
                     {
                         throw new TableElementOperationException($"Only automatic item number is supported. Use {nameof(BomItemNumber)}.{nameof(BomItemNumber.Auto)}");
                     }
                 }
 
-                if (TryGetItemNumer(out _) != hasItemNumber)
+                if (!string.IsNullOrEmpty(GetItemNumer()) != hasItemNumber)
                 {
                     using(new SwTableVisibleRow(this))
                     {
@@ -261,7 +260,7 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
                             SendMessage(hWnd, WM_COMMAND, new IntPtr(HIDE_ITEM_NUMBER), IntPtr.Zero);
 
-                            if (TryGetItemNumer(out _) != hasItemNumber)
+                            if (!string.IsNullOrEmpty(GetItemNumer()) != hasItemNumber)
                             {
                                 throw new TableElementOperationException($"Failed to set has item number");
                             }
@@ -329,19 +328,17 @@ namespace Xarial.XCad.SolidWorks.Annotations
             }
         }
 
-        private bool TryGetItemNumer(out int? itemNumber)
+        private string GetItemNumer()
         {
             var itemNumberTxt = Cells[m_Columns.ItemNumberColumn.Index].Value;
-            
-            if (!string.IsNullOrEmpty(itemNumberTxt))
+
+            if (string.IsNullOrEmpty(itemNumberTxt))
             {
-                itemNumber = int.Parse(itemNumberTxt);
-                return true;
+                return BomItemNumber.None;
             }
             else 
             {
-                itemNumber = null;
-                return false;
+                return itemNumberTxt;
             }
         }
     }

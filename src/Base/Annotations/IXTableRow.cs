@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 
@@ -40,7 +41,7 @@ namespace Xarial.XCad.Annotations
         /// Gets or sets an item number of BOM row
         /// </summary>
         /// <remarks>Use <see cref="BomItemNumber"/> for available values</remarks>
-        int? ItemNumber { get; set; }
+        string ItemNumber { get; set; }
 
         /// <summary>
         /// Components of this BOM row
@@ -56,11 +57,11 @@ namespace Xarial.XCad.Annotations
         /// <summary>
         /// Automatic item number
         /// </summary>
-        public static int? Auto { get; } = -1;
+        public static string Auto { get; } = Guid.NewGuid().ToString();
 
         /// <summary>
         /// No item number in the row
         /// </summary>
-        public static int? None { get; } = null;
+        public static string None { get; } = null;
     }
 }

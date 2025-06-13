@@ -127,37 +127,57 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public bool TryGet(string name, out IXConfiguration ent)
         {
-            ISwDMConfiguration conf;
-
-            if (m_Doc.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019))
+            if (m_Doc.IsCommitted)
             {
-                conf = ((ISwDMConfigurationMgr2)m_Doc.Document.ConfigurationManager).GetConfigurationByName2(name, out SwDMConfigurationError err);
+                ISwDMConfiguration conf;
 
-                if (err == SwDMConfigurationError.SwDMConfigurationError_NameNotFound) 
+                if (m_Doc.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019))
                 {
-                    ent = null;
-                    return false;
+                    conf = ((ISwDMConfigurationMgr2)m_Doc.Document.ConfigurationManager).GetConfigurationByName2(name, out SwDMConfigurationError err);
+
+                    if (err == SwDMConfigurationError.SwDMConfigurationError_NameNotFound)
+                    {
+                        ent = null;
+                        return false;
+                    }
+
+                    if (err != SwDMConfigurationError.SwDMConfigurationError_None)
+                    {
+                        throw new InvalidConfigurationsException(err);
+                    }
+                }
+                else
+                {
+                    conf = m_Doc.Document.ConfigurationManager.GetConfigurationByName(name);
                 }
 
-                if (err != SwDMConfigurationError.SwDMConfigurationError_None)
+                if (!m_ConfigurationsCache.TryGetValue(conf, out ISwDmConfiguration curConf))
                 {
-                    throw new InvalidConfigurationsException(err);
+                    curConf = SwDmObjectFactory.FromDispatch<ISwDmConfiguration>(conf, m_Doc);
+                    m_ConfigurationsCache.Add(conf, curConf);
+                }
+
+                ent = curConf;
+
+                return true;
+            }
+            else 
+            {
+                switch (m_Doc) 
+                {
+                    case SwDmPart part:
+                        ent = new SwDmPartConfiguration(name, part);
+                        return true;
+
+                    case SwDmAssembly assm:
+                        ent = new SwDmAssemblyConfiguration(name, assm);
+                        return true;
+
+                    default:
+                        ent = null;
+                        return false;
                 }
             }
-            else
-            {
-                conf = m_Doc.Document.ConfigurationManager.GetConfigurationByName(name);
-            }
-
-            if (!m_ConfigurationsCache.TryGetValue(conf, out ISwDmConfiguration curConf))
-            {
-                curConf = SwDmObjectFactory.FromDispatch<ISwDmConfiguration>(conf, m_Doc);
-                m_ConfigurationsCache.Add(conf, curConf);
-            }
-
-            ent = curConf;
-
-            return true;
         }
 
         public void RemoveRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken) 
@@ -230,7 +250,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         IXAssemblyConfiguration IXAssemblyConfigurationRepository.PreCreate()
-            => new SwDmAssemblyConfiguration(null, m_Assm);
+            => new SwDmAssemblyConfiguration(default(ISwDMConfiguration), m_Assm);
     }
 
     internal class SwDmPartConfigurationCollection : SwDmConfigurationCollection, ISwDmPartConfigurationCollection
@@ -270,6 +290,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         IXPartConfiguration IXPartConfigurationRepository.PreCreate()
-            => new SwDmPartConfiguration(null, m_Part);
+            => new SwDmPartConfiguration(default(ISwDMConfiguration), m_Part);
     }
 }

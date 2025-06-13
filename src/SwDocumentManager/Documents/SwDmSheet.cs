@@ -31,7 +31,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXSheet Clone(IXDrawing targetDrawing) => throw new NotSupportedException();
         public IXSketch2D Sketch => throw new NotSupportedException();
         public IXSheetFormat Format => throw new NotSupportedException();
-        public IXAnnotationRepository Annotations => throw new NotSupportedException();
         #endregion
 
         public string Name
@@ -41,6 +40,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         }
 
         public IXDrawingViewRepository DrawingViews => m_DrawingViewsLazy.Value;
+
+        public IXAnnotationRepository Annotations => new SwDmSheetAnnotationCollection(this, m_Drawing);
 
         public IXIdentifier Id => new XIdentifier(((ISwDMSheet3)Sheet).GetID());
 

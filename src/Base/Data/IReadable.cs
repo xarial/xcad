@@ -18,7 +18,7 @@ namespace Xarial.XCad.Data
         /// Provides a data reader
         /// </summary>
         /// <param name="visibleOnly">Only read visible data</param>
-        /// <returns>Daat reader</returns>
+        /// <returns>Data reader</returns>
         IDataReader ExecuteReader(bool visibleOnly);
     }
 }

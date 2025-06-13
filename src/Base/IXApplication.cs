@@ -27,6 +27,35 @@ namespace Xarial.XCad
         /// Application level options for drawings
         /// </summary>
         IXDrawingsApplicationOptions Drawings { get; }
+
+        /// <summary>
+        /// Application level options for color
+        /// </summary>
+        IXColorOptions Colors { get; }
+    }
+
+    /// <summary>
+    /// Application level color options
+    /// </summary>
+    public interface IXColorOptions 
+    {
+        /// <summary>
+        /// System colors
+        /// </summary>
+        IXSystemColors System { get; }
+    }
+
+    /// <summary>
+    /// System colors
+    /// </summary>
+    public interface IXSystemColors 
+    {
+        /// <summary>
+        /// Gets or sets system colors
+        /// </summary>
+        /// <param name="sysColor">System color</param>
+        /// <returns>Color</returns>
+        Color this[SystemColor_e sysColor] { get; set; }
     }
 
     /// <summary>

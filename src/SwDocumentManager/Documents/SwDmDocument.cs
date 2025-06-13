@@ -135,8 +135,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IOperationGroup PreCreateOperationGroup() => throw new NotSupportedException();
         public IXUnits Units => throw new NotSupportedException();
         public IXModelViewRepository ModelViews => throw new NotSupportedException();
-        public IXAnnotationRepository Annotations => throw new NotSupportedException();
-
         #endregion
 
         IXVersion IXDocument.Version => Version;
@@ -289,6 +287,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public override bool IsCommitted => m_Creator.IsCreated;
 
         public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
+        public IXAnnotationRepository Annotations { get; }
 
         public event DataStoreAvailableDelegate StreamReadAvailable;
         public event DataStoreAvailableDelegate StorageReadAvailable;
@@ -320,6 +319,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             m_CloseHandler = closeHandler;
 
             Dependencies = new SwDmDocumentDependencies(this);
+            Annotations = new SwDmAnnotationCollection(this);
 
             m_Creator = new ElementCreator<ISwDMDocument>(OpenDocument, doc, isCreated);
 

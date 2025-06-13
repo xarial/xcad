@@ -24,19 +24,46 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.Services;
 using Xarial.XCad.SwDocumentManager.Documents;
 using Xarial.XCad.SwDocumentManager.Services;
+using Xarial.XCad.Toolkit;
+using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SwDocumentManager
 {
+    /// <summary>
+    /// SOLIDWORKS Document Manager Application
+    /// </summary>
     public interface ISwDmApplication : IXApplication
     {
+        /// <summary>
+        /// Pointer to native Documetn Manager
+        /// </summary>
         ISwDMApplication SwDocMgr { get; }
+
+        /// <summary>
+        /// License key
+        /// </summary>
         SecureString LicenseKey { get; set; }
+
+        /// <summary>
+        /// Custom DI services
+        /// </summary>
+        IXServiceCollection CustomServices { get; set; }
+
+        /// <summary>
+        /// Documents collection
+        /// </summary>
         new ISwDmDocumentCollection Documents { get; }
+
+        /// <summary>
+        /// Document manager version
+        /// </summary>
         new ISwDmVersion Version { get; }
     }
 
-    internal class SwDmApplication : ISwDmApplication
+    internal class SwDmApplication : ISwDmApplication, IXServiceConsumer
     {
+        public event ConfigureServicesDelegate ConfigureServices;
+
         #region Not Supported        
 
         public event ApplicationStartingDelegate Starting { add => throw new NotSupportedException(); remove => throw new NotSupportedException(); }
@@ -99,19 +126,85 @@ namespace Xarial.XCad.SwDocumentManager
             }
         }
 
+        public IXServiceCollection CustomServices
+        {
+            get => m_CustomServices;
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_CustomServices = value;
+                }
+                else
+                {
+                    throw new Exception("Services can only be set before committing");
+                }
+            }
+        }
+
         private bool m_IsDisposed;
         private bool m_IsClosed;
 
         private readonly IElementCreator<ISwDMApplication> m_Creator;
 
-        internal SwDmVersionMapper VersionMapper { get; }
+        internal IXLogger Logger { get; private set; }
+        internal ISwVersionMapper VersionMapper { get; private set; }
+        internal IFilePathResolver FilePathResolver { get; private set; }
 
-        internal SwDmApplication(ISwDMApplication dmApp, bool isCreated) 
+        internal IServiceProvider Services { get; private set; }
+
+        private IXServiceCollection m_CustomServices;
+
+        private bool m_IsInitialized;
+
+        internal SwDmApplication(ISwDMApplication dmApp, IXServiceCollection customServices) : this()
         {
-            m_Creator = new ElementCreator<ISwDMApplication>(CreateApplication, dmApp, isCreated);
+            m_Creator = new ElementCreator<ISwDMApplication>(CreateApplication, dmApp, true);
+            
+            m_CustomServices = customServices;
+
+            Init();
+        }
+
+        internal SwDmApplication() 
+        {
             Documents = new SwDmDocumentCollection(this);
 
-            VersionMapper = new SwDmVersionMapper();
+            m_Creator = new ElementCreator<ISwDMApplication>(CreateApplication, null, false);
+        }
+
+        internal void Init()
+        {
+            if (!m_IsInitialized)
+            {
+                m_IsInitialized = true;
+
+                if (m_CustomServices == null)
+                {
+                    m_CustomServices = new ServiceCollection();
+                }
+
+                LoadServices(m_CustomServices);
+
+                Services = m_CustomServices.CreateProvider();
+
+                Logger = Services.GetService<IXLogger>();
+                VersionMapper = Services.GetService<ISwVersionMapper>();
+                FilePathResolver = Services.GetService<IFilePathResolver>();
+            }
+            else
+            {
+                Debug.Assert(false, "App has been already initialized. Must be only once");
+            }
+        }
+
+        private void LoadServices(IXServiceCollection customServices)
+        {
+            customServices.Add<IXLogger>(() => new TraceLogger("xCAD.SwDmApplication"), ServiceLifetimeScope_e.Singleton, false);
+            customServices.Add<IFilePathResolver>(() => new SwDmFilePathResolver(), ServiceLifetimeScope_e.Singleton, false);
+            customServices.Add<ISwVersionMapper, SwDmVersionMapper>(ServiceLifetimeScope_e.Singleton, false);
+
+            ConfigureServices?.Invoke(this, customServices);
         }
 
         private ISwDMApplication CreateApplication(CancellationToken cancellationToken)
@@ -139,6 +232,12 @@ namespace Xarial.XCad.SwDocumentManager
             }
         }
 
+        public void Commit(CancellationToken cancellationToken)
+        {
+            m_Creator.Create(cancellationToken);
+            Init();
+        }
+
         public void Dispose()
         {
             if (!m_IsDisposed)
@@ -159,9 +258,6 @@ namespace Xarial.XCad.SwDocumentManager
                 GC.WaitForPendingFinalizers();
             }
         }
-
-        public void Commit(CancellationToken cancellationToken) 
-            => m_Creator.Create(cancellationToken);
     }
 
     public static class SwDmApplicationExtension

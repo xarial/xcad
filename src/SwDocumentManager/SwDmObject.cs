@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
+using Xarial.XCad.SwDocumentManager.Annotations;
 using Xarial.XCad.SwDocumentManager.Documents;
 using Xarial.XCad.SwDocumentManager.Features;
 using Xarial.XCad.Toolkit.Data;
@@ -120,6 +121,32 @@ namespace Xarial.XCad.SwDocumentManager
 
                 case ISwDMView view:
                     return new SwDmDrawingView(view, (SwDmDrawing)doc);
+
+                case ISwDMTable table:
+                    var type = ((ISwDMTable2)table).GetBOMTableType(out var err);
+
+                    if (err == SwDmTableError.SwDmTableErrorNone)
+                    {
+                        if (doc is IXDrawing)
+                        {
+                            return new SwDmDrawingBomTable(table, app, (SwDmDrawing)doc);
+                        }
+                        else 
+                        {
+                            return new SwDmBomTable(table, app, doc);
+                        }
+                    }
+                    else 
+                    {
+                        if (doc is IXDrawing)
+                        {
+                            return new SwDmDrawingTable(table, app, (SwDmDrawing)doc);
+                        }
+                        else
+                        {
+                            return new SwDmTable(table, app, doc);
+                        }
+                    }
 
                 default:
                     return new SwDmObject(disp, app, doc);

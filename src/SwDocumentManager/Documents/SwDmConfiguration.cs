@@ -17,6 +17,7 @@ using Xarial.XCad.Annotations;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.SolidWorks.Data;
@@ -67,17 +68,41 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             PartNumber = new SwDmPartNumber(this);
         }
 
-        public virtual string Name
+        private readonly string m_NonCommittedName;
+
+        internal SwDmConfiguration(string name, SwDmDocument3D doc) : this(default(ISwDMConfiguration), doc)
         {
-            get => Configuration.Name;
+            m_NonCommittedName = name;
+        }
+
+        public string Name
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return Configuration.Name;
+                }
+                else 
+                {
+                    return m_NonCommittedName;
+                }
+            }
             set
             {
-                ((ISwDMConfiguration7)Configuration).Name2 = value;
-                Document.IsDirty = true;
+                if (IsCommitted)
+                {
+                    ((ISwDMConfiguration7)Configuration).Name2 = value;
+                    Document.IsDirty = true;
+                }
+                else 
+                {
+                    throw new NonCommittedElementAccessException();
+                }
             }
         }
 
-        public override bool IsCommitted => true;
+        public override bool IsCommitted => Document.IsCommitted;
 
         public IPartNumber PartNumber { get; }
 
@@ -312,6 +337,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             Components = new SwDmComponentCollection(assm, this);
         }
 
+        internal SwDmAssemblyConfiguration(string name, SwDmAssembly assm) : base(name, assm)
+        {
+            Components = new SwDmComponentCollection(assm, this);
+        }
+
         public IXComponentRepository Components { get; }
     }
 
@@ -326,6 +356,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         #endregion
 
         internal SwDmPartConfiguration(ISwDMConfiguration conf, SwDmPart part) : base(conf, part)
+        {
+            CutLists = new SwDmCutListItemCollection(this, part);
+        }
+
+        internal SwDmPartConfiguration(string name, SwDmPart part) : base(name, part)
         {
             CutLists = new SwDmCutListItemCollection(this, part);
         }

@@ -27,12 +27,12 @@ namespace Xarial.XCad.Graphics
         /// <summary>
         /// Background color of the callout
         /// </summary>
-        StandardSelectionColor_e? Background { get; set; }
+        SystemColor_e Background { get; set; }
 
         /// <summary>
         /// Foreground color of the callout
         /// </summary>
-        StandardSelectionColor_e? Foreground { get; set; }
+        SystemColor_e Foreground { get; set; }
 
         /// <summary>
         /// Controls the visibility of this callout

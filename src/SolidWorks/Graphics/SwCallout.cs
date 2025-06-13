@@ -20,10 +20,12 @@ using System.Threading;
 using Xarial.XCad.Data;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Exceptions;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Graphics;
 using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI;
 using Xarial.XCad.Utils.Reflection;
 
@@ -138,13 +140,13 @@ namespace Xarial.XCad.SolidWorks.Graphics
             }
             set
             {
-                if (!m_Owner.IsCommitted)
+                if (m_Owner.IsCommitted)
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    m_Owner.Callout.Value[RowIndex] = value;
                 }
                 else
                 {
-                    m_Owner.Callout.Value[RowIndex] = value;
+                    m_Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -191,26 +193,26 @@ namespace Xarial.XCad.SolidWorks.Graphics
 
         public ICallout Callout => m_Creator.Element;
         
-        public StandardSelectionColor_e? Background
+        public SystemColor_e Background
         {
             get
             {
                 if (IsCommitted)
                 {
-                    return (StandardSelectionColor_e)Callout.OpaqueColor;
+                    return SwColorHelper.ConvertToSystemColor((swUserPreferenceIntegerValue_e)Callout.OpaqueColor);
                 }
                 else
                 {
-                    return m_Creator.CachedProperties.Get<StandardSelectionColor_e?>();
+                    return m_Creator.CachedProperties.Get<SystemColor_e>();
                 }
             }
             set
             {
                 if (IsCommitted)
                 {
-                    if (value.HasValue)
+                    if (value != SystemColor_e.None)
                     {
-                        Callout.OpaqueColor = (int)value.Value;
+                        Callout.OpaqueColor = (int)SwColorHelper.ConvertSystemColor(value);
                     }
                     else
                     {
@@ -224,17 +226,17 @@ namespace Xarial.XCad.SolidWorks.Graphics
             }
         }
 
-        public StandardSelectionColor_e? Foreground
+        public SystemColor_e Foreground
         {
             get
             {
                 if (IsCommitted)
                 {
-                    return (StandardSelectionColor_e)Callout.TextColor[0];
+                    return SwColorHelper.ConvertToSystemColor((swUserPreferenceIntegerValue_e)Callout.TextColor[0]);
                 }
                 else
                 {
-                    return m_Creator.CachedProperties.Get<StandardSelectionColor_e?>();
+                    return m_Creator.CachedProperties.Get<SystemColor_e>();
                 }
             }
             set
@@ -243,9 +245,9 @@ namespace Xarial.XCad.SolidWorks.Graphics
                 {
                     for (int i = 0; i < Rows.Length; i++)
                     {
-                        if (value.HasValue)
+                        if (value != SystemColor_e.None)
                         {
-                            Callout.TextColor[i] = (int)value.Value;
+                            Callout.TextColor[i] = (int)SwColorHelper.ConvertSystemColor(value);
                         }
                         else 
                         {
@@ -260,7 +262,7 @@ namespace Xarial.XCad.SolidWorks.Graphics
             }
         }
 
-        public bool Visible 
+        public virtual bool Visible 
         {
             get
             {
@@ -285,13 +287,13 @@ namespace Xarial.XCad.SolidWorks.Graphics
                     {
                         Hide();
                     }
-
-                    m_IsVisible = value;
                 }
                 else
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
+
+                m_IsVisible = value;
             }
         }
 
@@ -310,8 +312,6 @@ namespace Xarial.XCad.SolidWorks.Graphics
             ValidateHandler(m_Handler);
 
             m_Handler.ValueChanged += OnRowValueChanged;
-
-            Visible = true;
 
             Visible = true;
         }
@@ -344,7 +344,7 @@ namespace Xarial.XCad.SolidWorks.Graphics
             {
                 var row = new SwCalloutRow(this);
 
-                Rows = (Rows ?? new IXCalloutRow[0]).Union(new IXCalloutRow[] { row }).ToArray();
+                Rows = (Rows ?? Array.Empty<IXCalloutRow>()).Union(new IXCalloutRow[] { row }).ToArray();
 
                 return row;
             }
@@ -362,7 +362,7 @@ namespace Xarial.XCad.SolidWorks.Graphics
             }
         }
 
-        private void Hide()
+        protected virtual void Hide()
         {
             if (!Callout.Display(false))
             {
@@ -370,7 +370,7 @@ namespace Xarial.XCad.SolidWorks.Graphics
             }
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             if (IsCommitted)
             {
@@ -389,9 +389,9 @@ namespace Xarial.XCad.SolidWorks.Graphics
                     throw new NullReferenceException("Failed to create callout");
                 }
 
-                if (Background.HasValue)
+                if (Background != SystemColor_e.None)
                 {
-                    callout.OpaqueColor = (int)Background.Value;
+                    callout.OpaqueColor = (int)SwColorHelper.ConvertSystemColor(Background);
                 }
 
                 for (int i = 0; i < Rows.Length; i++) 
@@ -400,15 +400,15 @@ namespace Xarial.XCad.SolidWorks.Graphics
                     callout.Value[i] = Rows[i].Value;
                     callout.ValueInactive[i] = Rows[i].IsReadOnly;
 
-                    if (Foreground.HasValue)
+                    if (Foreground != SystemColor_e.None)
                     {
-                        callout.TextColor[i] = (int)Foreground.Value;
+                        callout.TextColor[i] = (int)SwColorHelper.ConvertSystemColor(Foreground);
                     }
                 }
 
                 SetPosition(callout);
 
-                if (Visible) 
+                if (m_Creator.CachedProperties.Get<bool>(nameof(Visible)))
                 {
                     Show(callout);
                 }
@@ -553,21 +553,72 @@ namespace Xarial.XCad.SolidWorks.Graphics
             }
         }
 
+        public override bool Visible 
+        {
+            get => base.Visible && Owner.IsSelected; 
+            set => base.Visible = value; 
+        }
+
         protected override void Show(ICallout callout)
         {
+            //NOTE: setting the callout while it is visible can cause crash
+
+            if (!Visible)
+            {
+                if (!SetCalloutToSelected(callout))
+                {
+                    var selData = m_Sel.SelMgr.CreateSelectData();
+                    selData.Callout = (Callout)callout;
+
+                    ((SwSelObject)Owner).Select(true, selData);
+
+                    if (!SetCalloutToSelected(callout))
+                    {
+                        throw new Exception("Failed to find selection index of the owner object");
+                    }
+                }
+            }
+        }
+
+        protected override void Hide()
+        {
+            //NOTE: selection callout cannot be hidden (it hides when the owner object is deselected)
+        }
+
+        private bool SetCalloutToSelected(ICallout callout) 
+        {
             var selIndex = ((SwSelObject)Owner).SelectionIndex;
-            
+
             if (selIndex != -1)
             {
-                m_Sel.SelMgr.DeSelect2(selIndex, -1);
+                if (m_Sel.SelMgr.SetCallout(selIndex, (Callout)callout))
+                {
+                    return true;
+                }
+                else 
+                {
+                    throw new Exception("Failed to set callout");
+                }
             }
-
-            var selData = m_Sel.SelMgr.CreateSelectData();
-            selData.Callout = (Callout)callout;
-            ((SwSelObject)Owner).Select(true, selData);
+            else 
+            {
+                return false;
+            }
         }
 
         protected override ICallout NewCallout(int rowsCount, ISwCalloutHandler handler)
-            => m_Sel.SelMgr.CreateCallout2(rowsCount, handler);
+        {
+            if (Owner == null)
+            {
+                throw new Exception("Owner of the selection callout is not set");
+            }
+
+            return m_Sel.SelMgr.CreateCallout2(rowsCount, handler);
+        }
+
+        public override void Dispose()
+        {
+            //NOTE: select callout cannot be hidden (hides automatically when owner object is deselected)
+        }
     }
 }

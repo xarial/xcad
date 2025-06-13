@@ -40,6 +40,7 @@ using Xarial.XCad.SolidWorks.UI;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Data;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -51,6 +52,9 @@ namespace Xarial.XCad.SolidWorks
         ISldWorks Sw { get; }
         new ISwVersion Version { get; set; }
 
+        /// <summary>
+        /// Custom DI services
+        /// </summary>
         IXServiceCollection CustomServices { get; set; }
 
         new ISwDocumentCollection Documents { get; }
@@ -80,9 +84,12 @@ namespace Xarial.XCad.SolidWorks
         {
             m_App = app;
             Drawings = new SwDrawingsApplicationOptions(app);
+            Colors = new SwColorOptions(app);
         }
 
         public IXDrawingsApplicationOptions Drawings { get; }
+
+        public IXColorOptions Colors { get; }
     }
 
     internal class SwDrawingsApplicationOptions : IXDrawingsApplicationOptions
@@ -98,6 +105,49 @@ namespace Xarial.XCad.SolidWorks
         {
             get => m_App.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutomaticScaling3ViewDrawings);
             set => m_App.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutomaticScaling3ViewDrawings, value);
+        }
+    }
+
+    internal class SwColorOptions : IXColorOptions
+    {
+        internal SwColorOptions(SwApplication app) 
+        {
+            System = new SwSystemColors(app);
+        }
+
+        public IXSystemColors System { get; }
+    }
+
+    internal class SwSystemColors : IXSystemColors 
+    {
+        private readonly SwApplication m_App;
+
+        internal SwSystemColors(SwApplication app)
+        {
+            m_App = app;
+        }
+
+        public Color this[SystemColor_e sysColor] 
+        {
+            get
+            {
+                var pref = SwColorHelper.ConvertSystemColor(sysColor);
+
+                var colorRef = m_App.Sw.GetUserPreferenceIntegerValue((int)pref);
+
+                return ColorUtils.FromColorRef(colorRef);
+            }
+            set 
+            {
+                var colorRef = ColorUtils.ToColorRef(value);
+
+                var pref = SwColorHelper.ConvertSystemColor(sysColor);
+
+                if (!m_App.Sw.SetUserPreferenceIntegerValue((int)pref, colorRef)) 
+                {
+                    throw new Exception("Failed to change system color");
+                }
+            }
         }
     }
 

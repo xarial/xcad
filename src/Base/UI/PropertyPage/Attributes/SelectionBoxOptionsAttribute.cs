@@ -28,7 +28,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <summary>
         /// Standard color of selection box
         /// </summary>
-        public StandardSelectionColor_e SelectionColor { get; set; }
+        public SystemColor_e SelectionColor { get; set; }
 
         /// <summary>
         /// Allowed entities filter for the selection
@@ -67,7 +67,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <param name="selColor">Color of the selections in this selection box</param>
         public SelectionBoxOptionsAttribute(
             SelectionBoxStyle_e style = SelectionBoxStyle_e.None,
-            StandardSelectionColor_e selColor = 0) : this(-1, null, style, selColor)
+            SystemColor_e selColor = SystemColor_e.None) : this(-1, null, style, selColor)
         {
         }
 
@@ -84,13 +84,13 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <param name="mark">Selection mark. If multiple selections box are used - use different selection marks for each of them
         /// to differentiate the selections</param>
         public SelectionBoxOptionsAttribute(int mark, Type[] filters = null)
-            : this(mark, null, SelectionBoxStyle_e.None, 0, filters)
+            : this(mark, null, SelectionBoxStyle_e.None, SystemColor_e.None, filters)
         {
         }
 
-        /// <inheritdoc cref="SelectionBoxOptionsAttribute(int, Type, SelectionBoxStyle_e, StandardSelectionColor_e, Type[])"/>
+        /// <inheritdoc cref="SelectionBoxOptionsAttribute(int, Type, SelectionBoxStyle_e, SystemColor_e, Type[])"/>
         public SelectionBoxOptionsAttribute(Type customFilter, Type[] filters = null)
-            : this(-1, customFilter, SelectionBoxStyle_e.None, 0, filters)
+            : this(-1, customFilter, SelectionBoxStyle_e.None, SystemColor_e.None, filters)
         {
         }
 
@@ -98,7 +98,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// <param name="customFilter">Type of custom filter of <see cref="ISelectionCustomFilter"/> for custom logic for filtering selection objects</param>
         /// <exception cref="InvalidCastException"/>
         public SelectionBoxOptionsAttribute(int mark, Type customFilter, SelectionBoxStyle_e style,
-            StandardSelectionColor_e selColor, Type[] filters = null)
+            SystemColor_e selColor, Type[] filters = null)
         {
             Style = style;
             SelectionColor = selColor;

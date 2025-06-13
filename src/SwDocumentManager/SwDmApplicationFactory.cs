@@ -39,7 +39,7 @@ namespace Xarial.XCad.SwDocumentManager
         /// Pre-creates application
         /// </summary>
         /// <returns>xCAD application</returns>
-        public static ISwDmApplication PreCreate() => new SwDmApplication(null, false);
+        public static ISwDmApplication PreCreate() => new SwDmApplication();
 
         /// <summary>
         /// Returns all installed SOLIDWORKS Document Manager versions
@@ -94,8 +94,10 @@ namespace Xarial.XCad.SwDocumentManager
         /// Creates instance of the application from the COM pointer
         /// </summary>
         /// <param name="app">Pointer to the application</param>
+        /// <param name="customServices">Custom services</param>
         /// <returns>xCAD application</returns>
-        public static ISwDmApplication FromPointer(ISwDMApplication app) => new SwDmApplication(app, true);
+        public static ISwDmApplication FromPointer(ISwDMApplication app, IXServiceCollection customServices = null)
+            => new SwDmApplication(app, customServices);
 
         internal static ISwDMApplication ConnectToDm(SecureString dmKeySecure) 
         {

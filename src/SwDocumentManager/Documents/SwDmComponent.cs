@@ -93,7 +93,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             Component = comp;
             ParentAssembly = parentAssm;
-            m_FilePathResolver = new SwDmFilePathResolver();
+            m_FilePathResolver = parentAssm.OwnerApplication.FilePathResolver;
 
             m_PathLazy = new Lazy<string>(() => 
             {
@@ -442,20 +442,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         protected readonly SwDmComponent m_Comp;
 
-        private readonly string m_ConfName;
-
-        internal SwDmComponentConfiguration(SwDmComponent comp, string confName) : base(null, (SwDmDocument3D)comp.OwnerDocument)
+        internal SwDmComponentConfiguration(SwDmComponent comp, string name) : base(name, (SwDmDocument3D)comp.OwnerDocument)
         {
             m_Comp = comp;
-            m_ConfName = confName;
         }
         
-        public override string Name 
-        {
-            get => m_ConfName;
-            set => throw new NotSupportedException();
-        }
-
         public override IXConfiguration Parent
         {
             get
