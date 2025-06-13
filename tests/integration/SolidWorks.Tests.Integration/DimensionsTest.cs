@@ -71,7 +71,7 @@ namespace SolidWorks.Tests.Integration
             double v4_1;
             double v5;
             double v5_1;
-            double v5_2;
+            double v5_2; 
 
             IDimension swDim;
 

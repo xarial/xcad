@@ -141,6 +141,22 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("{" + nameof(FullName) + "}")]
     internal abstract class SwComponent : SwSelObject, ISwComponent
     {
+        internal static swComponentSuppressionState_e ConvertSuppressionState(ComponentState_e state)
+        {
+            if (state.HasFlag(ComponentState_e.Suppressed) || state.HasFlag(ComponentState_e.SuppressedIdMismatch))
+            {
+                return swComponentSuppressionState_e.swComponentSuppressed;
+            }
+            else if (state.HasFlag(ComponentState_e.Lightweight))
+            {
+                return swComponentSuppressionState_e.swComponentFullyLightweight;
+            }
+            else
+            {
+                return swComponentSuppressionState_e.swComponentFullyResolved;
+            }
+        }
+
         IXDocument3D IXComponent.ReferencedDocument { get => ReferencedDocument; set => ReferencedDocument = (ISwDocument3D)value; }
         IXComponentRepository IXComponent.Children => Children;
         IXFeatureRepository IXComponent.Features => Features;
@@ -582,13 +598,18 @@ namespace Xarial.XCad.SolidWorks.Documents
                         }
                     }
 
-                    var batchChanges = changes.Where(c => c == ComponentState_e.ExcludedFromBom || c == ComponentState_e.Suppressed || c == ComponentState_e.SuppressedIdMismatch || c == ComponentState_e.Lightweight || c == ComponentState_e.Hidden).ToArray();
+                    var batchChanges = changes.Where(c => c == ComponentState_e.ExcludedFromBom 
+                        || c == ComponentState_e.Suppressed 
+                        || c == ComponentState_e.SuppressedIdMismatch 
+                        || c == ComponentState_e.Lightweight 
+                        || c == ComponentState_e.Hidden).ToArray();
 
-                    //NOTE: for performance benefits if more than 1 update is required use batch update option
+                    //NOTE: For performance benefits if more than 1 update is required use batch update option
                     //NOTE: Envelope and Solving state can only be set via batch update method
-                    if (batchChanges.Length > 1 || changes.Contains(ComponentState_e.Envelope) || changes.Contains(ComponentState_e.Flexible))
+                    //NOTE: Fixed state can only be changed by selecting the component (e.g. via batch update method)
+                    if (batchChanges.Length > 1 || changes.Contains(ComponentState_e.Envelope) || changes.Contains(ComponentState_e.Flexible) || changes.Contains(ComponentState_e.Fixed))
                     {
-                        BatchSetProperties(Component, value);
+                        RootAssembly.BatchSetState(new IComponent2[] { Component }, value, changes.Contains(ComponentState_e.Fixed));
                     }
                     else 
                     {
@@ -624,50 +645,6 @@ namespace Xarial.XCad.SolidWorks.Documents
                 {
                     m_Creator.CachedProperties.Set(value);
                 }
-            }
-        }
-
-        private void BatchSetProperties(IComponent2 comp, ComponentState_e state)
-        {
-            using (var sel = new SelectionGroup(RootAssembly, true))
-            {
-                sel.Add(comp);
-
-                var suppression = ConvertSuppressionState(state);
-
-                var solving = state.HasFlag(ComponentState_e.Flexible) ? swComponentSolvingOption_e.swComponentFlexibleSolving : swComponentSolvingOption_e.swComponentRigidSolving;
-                var hidden = state.HasFlag(ComponentState_e.Hidden);
-                var exlFromBom = state.HasFlag(ComponentState_e.ExcludedFromBom);
-                var envelope = state.HasFlag(ComponentState_e.ExcludedFromBom);
-
-                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2019))
-                {
-                    RootAssembly.Assembly.CompConfigProperties6((int)suppression, (int)solving, !hidden, false, "", exlFromBom, envelope, (int)swASMSLDPRTCompPref_e.swUseSystemSettings);
-                }
-                else if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017))
-                {
-                    RootAssembly.Assembly.CompConfigProperties5((int)suppression, (int)solving, !hidden, false, "", exlFromBom, envelope);
-                }
-                else 
-                {
-                    throw new NotSupportedException("Batch configuration change is only supported from SOLIDWORKS 2017");
-                }
-            }
-        }
-
-        private swComponentSuppressionState_e ConvertSuppressionState(ComponentState_e state)
-        {
-            if (state.HasFlag(ComponentState_e.Suppressed) || state.HasFlag(ComponentState_e.SuppressedIdMismatch))
-            {
-                return swComponentSuppressionState_e.swComponentSuppressed;
-            }
-            else if (state.HasFlag(ComponentState_e.Lightweight))
-            {
-                return swComponentSuppressionState_e.swComponentFullyLightweight;
-            }
-            else
-            {
-                return swComponentSuppressionState_e.swComponentFullyResolved;
             }
         }
 

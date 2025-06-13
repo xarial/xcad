@@ -114,11 +114,6 @@ namespace Xarial.XCad.SolidWorks.Utils
                 throw new Exception("Only not committed components can be added to the assembly");
             }
 
-            if (comps.Any(c => c.State.HasFlag(ComponentState_e.Envelope)))
-            {
-                throw new NotSupportedException("Envelope state cannot be set to components");
-            }
-
             fileComps = comps.Where(c => !string.IsNullOrEmpty(c.ReferencedDocument.Path)).ToArray();
             virtComps = comps.Except(fileComps).ToArray();
 
@@ -244,52 +239,11 @@ namespace Xarial.XCad.SolidWorks.Utils
 
         private void SetStates(SwAssembly assm, SwComponent[] comps)
         {
-            var fixedComps = comps.Where(c => c.State.HasFlag(ComponentState_e.Fixed));
-
-            if (fixedComps.Any())
+            foreach (var compGroups in comps.GroupBy(c => c.State)) 
             {
-                SelectComponents(assm.Model, fixedComps.Select(c => c.BatchComponentBuffer).ToArray());
-                assm.Assembly.FixComponent();
-            }
+                var state = compGroups.Key;
 
-            var suppressedComps = comps.Where(c => c.State.HasFlag(ComponentState_e.Suppressed));
-
-            if (suppressedComps.Any())
-            {
-                SelectComponents(assm.Model, suppressedComps.Select(c => c.BatchComponentBuffer).ToArray());
-                if (!assm.Assembly.SetComponentSuppression((int)swComponentSuppressionState_e.swComponentSuppressed))
-                {
-                    throw new Exception("Failed to suppress components");
-                }
-            }
-
-            var hiddenComps = comps.Where(c => c.State.HasFlag(ComponentState_e.Hidden));
-
-            if (hiddenComps.Any())
-            {
-                SelectComponents(assm.Model, hiddenComps.Select(c => c.BatchComponentBuffer).ToArray());
-                assm.Assembly.HideComponent();
-            }
-
-            var lightweightComps = comps.Where(c => c.State.HasFlag(ComponentState_e.Lightweight));
-
-            if (lightweightComps.Any())
-            {
-                SelectComponents(assm.Model, lightweightComps.Select(c => c.BatchComponentBuffer).ToArray());
-                if (!assm.Assembly.SetComponentSuppression((int)swComponentSuppressionState_e.swComponentLightweight))
-                {
-                    throw new Exception("Failed to set components to lightweight");
-                }
-            }
-
-            var exclFromBomComps = comps.Where(c => c.State.HasFlag(ComponentState_e.ExcludedFromBom));
-
-            if (exclFromBomComps.Any())
-            {
-                foreach (var exclFromBomComp in exclFromBomComps)
-                {
-                    exclFromBomComp.BatchComponentBuffer.ExcludeFromBOM = true;
-                }
+                assm.BatchSetState(compGroups.Select(c => c.BatchComponentBuffer).ToArray(), state, state.HasFlag(ComponentState_e.Fixed));
             }
         }
 

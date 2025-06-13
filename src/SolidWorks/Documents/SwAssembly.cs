@@ -15,6 +15,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
@@ -71,6 +72,86 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             m_LazyConfigurations = new Lazy<SwAssemblyConfigurationCollection>(() => new SwAssemblyConfigurationCollection(this, app));
             m_Evaluation = new SwAssemblyEvaluation(this);
+        }
+
+        internal void BatchSetState(IComponent2[] comps, ComponentState_e state, bool setFixedState)
+        {
+            swComponentSuppressionState_e suppression;
+
+            if (!state.HasFlag(ComponentState_e.Lightweight))
+            {
+                suppression = SwComponent.ConvertSuppressionState(state);
+            }
+            else 
+            {
+                //NOTE: API limitation - lightweight cannot be set via CompConfigPropertiesX
+                suppression = swComponentSuppressionState_e.swComponentFullyResolved;
+            }
+
+            var solving = state.HasFlag(ComponentState_e.Flexible) ? swComponentSolvingOption_e.swComponentFlexibleSolving : swComponentSolvingOption_e.swComponentRigidSolving;
+            var hidden = state.HasFlag(ComponentState_e.Hidden);
+            var exlFromBom = state.HasFlag(ComponentState_e.ExcludedFromBom);
+            var envelope = state.HasFlag(ComponentState_e.ExcludedFromBom);
+
+            foreach (var compConfGrp in comps.GroupBy(c => c.ReferencedConfiguration, StringComparer.CurrentCultureIgnoreCase))
+            {
+                using (var sel = new SelectionGroup(this, true))
+                {
+                    sel.AddRange(compConfGrp.ToArray());
+
+                    //NOTE: need to specify the reference configuration in CompConfigPropertiesX, otehrwise if empty string is used, configuration is set to default (not the current referenced)
+                    var refConfName = compConfGrp.Key;
+
+                    bool compConfigChangeRes;
+
+                    if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2019))
+                    {
+                        compConfigChangeRes = Assembly.CompConfigProperties6((int)suppression, (int)solving, !hidden, true, refConfName, exlFromBom, envelope, (int)swASMSLDPRTCompPref_e.swUseSystemSettings);
+                    }
+                    else if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017))
+                    {
+                        compConfigChangeRes = Assembly.CompConfigProperties5((int)suppression, (int)solving, !hidden, true, refConfName, exlFromBom, envelope);
+                    }
+                    else
+                    {
+                        throw new NotSupportedException("Batch configuration change is only supported from SOLIDWORKS 2017");
+                    }
+
+                    if (!compConfigChangeRes)
+                    {
+                        throw new Exception("Failed to change configuration component properties");
+                    }
+                }
+            }
+
+            if (state.HasFlag(ComponentState_e.Lightweight)) 
+            {
+                foreach (var comp in comps) 
+                {
+                    if (comp.SetSuppression2((int)swComponentSuppressionState_e.swComponentFullyLightweight) != (int)swSuppressionError_e.swSuppressionChangeOk)
+                    {
+                        throw new Exception($"Failed to set component to lightweight");
+                    }
+                }
+            }
+
+            if (setFixedState)
+            {
+                //NOTE: selection is cleared after previous portion of code is run, so need to reselect components
+                using (var sel = new SelectionGroup(this, true))
+                {
+                    sel.AddRange(comps);
+
+                    if (state.HasFlag(ComponentState_e.Fixed))
+                    {
+                        Assembly.FixComponent();
+                    }
+                    else
+                    {
+                        Assembly.UnfixComponent();
+                    }
+                }
+            }
         }
 
         ISwAssemblyConfigurationCollection ISwAssembly.Configurations => m_LazyConfigurations.Value;

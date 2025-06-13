@@ -282,6 +282,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(b1.CenterPoint.Z, 0.03624369);
         }
 
+        //NOTE: this test can fail when run automatically, but OK, when debugged step-by-step
         [Test]
         public void BoundingBoxAssemblyScopedPreciseTest()
         {
