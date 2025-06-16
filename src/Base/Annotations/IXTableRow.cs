@@ -57,7 +57,7 @@ namespace Xarial.XCad.Annotations
         /// <summary>
         /// Automatic item number
         /// </summary>
-        public static string Auto { get; } = Guid.NewGuid().ToString();
+        public static string Auto { get; } = "_Auto_DAD68E34-8ED6-40D3-B3A7-115BD70D85E4";
 
         /// <summary>
         /// No item number in the row

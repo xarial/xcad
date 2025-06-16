@@ -4,15 +4,20 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xarial.XCad;
+using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SwDocumentManager;
 using Xarial.XCad.SwDocumentManager.Documents;
+using Xarial.XCad.Tests.Common;
 
 namespace SolidWorksDocMgr.Tests.Integration
 {
@@ -44,52 +49,35 @@ namespace SolidWorksDocMgr.Tests.Integration
     [RequiresThread(System.Threading.ApartmentState.STA)]
     public abstract class IntegrationTests
     {
-        private readonly string m_DataFolder;
         private SwVersion_e? SW_VERSION = SwVersion_e.Sw2024;
 
-        protected ISwDmApplication m_App;
+        public ISwDmApplication Application => m_TestManager.Application;
 
-        private List<IDisposable> m_Disposables;
-
-        public IntegrationTests() 
-        {
-            m_DataFolder = Environment.GetEnvironmentVariable("XCAD_TEST_DATA", EnvironmentVariableTarget.User);
-
-            if (string.IsNullOrEmpty(m_DataFolder))
-            {
-                m_DataFolder = Environment.GetEnvironmentVariable("XCAD_TEST_DATA", EnvironmentVariableTarget.Machine);
-            }
-        }
+        private TestManager<ISwDmApplication, ISwDmDocument> m_TestManager;
 
         [OneTimeSetUp]
         public void Setup()
         {
-            var dmKey = Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.User);
+            const string SW_DM_KEY = "SW_DM_KEY";
+            const string XCAD_TEST_DATA = "XCAD_TEST_DATA";
+
+            var dmKey = Environment.GetEnvironmentVariable(SW_DM_KEY, EnvironmentVariableTarget.User);
 
             if (string.IsNullOrEmpty(dmKey))
             {
-                dmKey = Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.Machine);
+                dmKey = Environment.GetEnvironmentVariable(SW_DM_KEY, EnvironmentVariableTarget.Machine);
             }
 
-            m_App = SwDmApplicationFactory.Create(dmKey);
+            var dataArchiveFile = Environment.GetEnvironmentVariable(XCAD_TEST_DATA, EnvironmentVariableTarget.User);
 
-            m_Disposables = new List<IDisposable>();
-        }
-
-        protected string GetFilePath(string name)
-        {
-            string filePath;
-
-            if (Path.IsPathRooted(name))
+            if (string.IsNullOrEmpty(dataArchiveFile))
             {
-                filePath = name;
-            }
-            else
-            {
-                filePath = Path.Combine(m_DataFolder, name);
+                dataArchiveFile = Environment.GetEnvironmentVariable(XCAD_TEST_DATA, EnvironmentVariableTarget.Machine);
             }
 
-            return filePath;
+            var app = SwDmApplicationFactory.Create(dmKey);
+
+            m_TestManager = new TestManager<ISwDmApplication, ISwDmDocument>(app, dataArchiveFile);
         }
 
         protected void UpdateSwReferences(string destPath, params string[] assmRelPaths)
@@ -141,52 +129,20 @@ namespace SolidWorksDocMgr.Tests.Integration
             }
         }
 
-        protected DocumentWrapper OpenDataDocument(string name, bool readOnly = true)
-        {
-            var filePath = GetFilePath(name);
+        protected DataFile GetDataFile(string name) => m_TestManager.GetDataFile(name);
 
-            var doc = (ISwDmDocument)m_App.Documents.Open(filePath, 
-                readOnly 
-                ? Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly 
-                : Xarial.XCad.Documents.Enums.DocumentState_e.Default);
+        protected DataDocument<ISwDmDocument> OpenDataDocument(string name, bool readOnly = true) 
+            => m_TestManager.OpenDataDocument(name, readOnly);
 
-            if (doc != null)
-            {
-                var docWrapper = new DocumentWrapper(m_App, doc);
-                m_Disposables.Add(docWrapper);
-                return docWrapper;
-            }
-            else
-            {
-                throw new NullReferenceException($"Failed to open the the data document at '{filePath}'");
-            }
-        }
-        
         [TearDown]
         public void TearDown()
         {
-            foreach (var disp in m_Disposables)
-            {
-                try
-                {
-                    disp.Dispose();
-                }
-                catch
-                {
-                }
-            }
-
-            m_Disposables.Clear();
-
-            while (m_App.Documents.Any())
-            {
-                m_App.Documents.First().Close();
-            }
         }
 
         [OneTimeTearDown]
         public void FinalTearDown()
         {
+            m_TestManager?.Dispose();
         }
     }
 }

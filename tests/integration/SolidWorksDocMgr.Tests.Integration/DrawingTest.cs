@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
             {
-                name = (m_App.Documents.Active as ISwDmDrawing).Sheets.Active.Name;
+                name = (doc.Document as ISwDmDrawing).Sheets.Active.Name;
             }
 
             Assert.AreEqual("Sheet2", name);
@@ -33,7 +34,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
             {
-                confNames = (m_App.Documents.Active as ISwDmDrawing).Sheets.Select(x => x.Name).ToArray();
+                confNames = (doc.Document as ISwDmDrawing).Sheets.Select(x => x.Name).ToArray();
             }
 
             CollectionAssert.AreEquivalent(confNames, new string[]
@@ -55,7 +56,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing1.SLDDRW"))
             {
-                var sheets = (m_App.Documents.Active as ISwDmDrawing).Sheets;
+                var sheets = (doc.Document as ISwDmDrawing).Sheets;
 
                 var sheet1 = sheets["Sheet1"];
                 var sheet2 = sheets["Sheet2"];
@@ -100,7 +101,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
             {
-                var sheets = (m_App.Documents.Active as ISwDmDrawing).Sheets;
+                var sheets = (doc.Document as ISwDmDrawing).Sheets;
 
                 sheet1 = sheets["Sheet1"];
                 r1 = sheets.TryGet("Sheet2", out sheet2);
@@ -132,7 +133,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing1\\Drawing1.SLDDRW"))
             {
-                var sheets = (m_App.Documents.Active as ISwDmDrawing).Sheets;
+                var sheets = (doc.Document as ISwDmDrawing).Sheets;
                 sheet1Views = sheets["Sheet1"].DrawingViews.Select(v => v.Name).ToArray();
                 sheet2Views = sheets["Sheet2"].DrawingViews.Select(v => v.Name).ToArray();
             }
@@ -156,9 +157,13 @@ namespace SolidWorksDocMgr.Tests.Integration
             string view4Conf;
             string view5Conf;
 
+            string workDir;
+
             using (var doc = OpenDataDocument("Drawing1\\Drawing1.SLDDRW"))
             {
-                var sheets = (m_App.Documents.Active as ISwDmDrawing).Sheets;
+                workDir = doc.WorkFolderPath;
+
+                var sheets = (doc.Document as ISwDmDrawing).Sheets;
 
                 var v1 = sheets["Sheet1"].DrawingViews["Drawing View1"];
                 var v2 = sheets["Sheet1"].DrawingViews["Drawing View2"];
@@ -179,10 +184,10 @@ namespace SolidWorksDocMgr.Tests.Integration
                 view5Conf = v5.ReferencedConfiguration != null ? v5.ReferencedConfiguration.Name : "";
             }
 
-            Assert.That(string.Equals(view1DocPath, GetFilePath("Drawing1\\Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
-            Assert.That(string.Equals(view2DocPath, GetFilePath("Drawing1\\Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
-            Assert.That(string.Equals(view3DocPath, GetFilePath("Drawing1\\Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
-            Assert.That(string.Equals(view4DocPath, GetFilePath("Drawing1\\Part2.sldprt"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view1DocPath, Path.Combine(workDir, "Drawing1\\Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view2DocPath, Path.Combine(workDir, "Drawing1\\Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view3DocPath, Path.Combine(workDir, "Drawing1\\Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view4DocPath, Path.Combine(workDir, "Drawing1\\Part2.sldprt"), StringComparison.CurrentCultureIgnoreCase));
             Assert.That(string.IsNullOrEmpty(view5DocPath));
 
             Assert.That(string.Equals(view1Conf, "Conf1", StringComparison.CurrentCultureIgnoreCase));

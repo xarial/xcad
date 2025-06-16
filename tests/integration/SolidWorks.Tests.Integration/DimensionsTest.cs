@@ -35,7 +35,7 @@ namespace SolidWorks.Tests.Integration
         {
             string[] dimNames;
 
-            using (var doc = OpenDataDocument(@"Drawing4.slddrw"))
+            using (var doc = OpenDataDocument(@"Drawing9\Drawing9.SLDDRW"))
             {
                 dimNames = m_App.Documents.Active.Dimensions.Select(c => c.Name).ToArray();
             }
@@ -75,7 +75,7 @@ namespace SolidWorks.Tests.Integration
 
             IDimension swDim;
 
-            using (var doc = OpenDataDocument("Dimensions2.sldprt"))
+            using (var doc = OpenDataDocument(@"DimensionsAssem2\Dimensions2.sldprt"))
             {
                 swDim = (IDimension)m_App.Documents.Active.Model.Parameter("D1@Sketch1");
 
@@ -133,7 +133,7 @@ namespace SolidWorks.Tests.Integration
             double r5_1;
             double r6;
 
-            using (var doc = OpenDataDocument("Dimensions2.sldprt"))
+            using (var doc = OpenDataDocument(@"DimensionsAssem2\Dimensions2.sldprt"))
             {
                 var dim = m_App.Documents.Active.Dimensions["D1@Sketch1"];
 
@@ -170,11 +170,11 @@ namespace SolidWorks.Tests.Integration
             double r2;
             double r3;
 
-            using (var doc = OpenDataDocument("Drawing4.slddrw"))
+            using (var doc = OpenDataDocument(@"Drawing9\Drawing9.SLDDRW"))
             {
                 r1 = m_App.Documents.Active.Dimensions["D1@Sketch1"].Value;
 
-                if (m_App.Documents.Active.Model.Extension.SelectByID2("D2@Sketch1@Drawing4.SLDDRW", "DIMENSION", 0, 0, 0, false, 0, null, 0))
+                if (m_App.Documents.Active.Model.Extension.SelectByID2("D2@Sketch1@Drawing9.SLDDRW", "DIMENSION", 0, 0, 0, false, 0, null, 0))
                 {
                     var dim1 = m_App.Documents.Active.Selections.OfType<IXDimension>().First();
                     r2 = dim1.Value;
@@ -198,11 +198,11 @@ namespace SolidWorks.Tests.Integration
             double r1;
             double r2;
 
-            using (var doc = OpenDataDocument("Drawing4.slddrw"))
+            using (var doc = OpenDataDocument(@"Drawing9\Drawing9.SLDDRW"))
             {
                 m_App.Documents.Active.Dimensions["D1@Sketch1"].Value = 0.123;
 
-                if (m_App.Documents.Active.Model.Extension.SelectByID2("D2@Sketch1@Drawing4.SLDDRW", "DIMENSION", 0, 0, 0, false, 0, null, 0))
+                if (m_App.Documents.Active.Model.Extension.SelectByID2("D2@Sketch1@Drawing9.SLDDRW", "DIMENSION", 0, 0, 0, false, 0, null, 0))
                 {
                     var dim1 = m_App.Documents.Active.Selections.OfType<IXDimension>().First();
                     dim1.Value = 0.234;
@@ -239,7 +239,7 @@ namespace SolidWorks.Tests.Integration
 
             IDimension swDim;
 
-            using (var doc = OpenDataDocument("DimensionsAssem2.SLDASM"))
+            using (var doc = OpenDataDocument(@"DimensionsAssem2\DimensionsAssem2.SLDASM"))
             {
                 var assmConf = ((ISwAssembly)m_App.Documents.Active).Configurations.Active;
 
@@ -291,7 +291,7 @@ namespace SolidWorks.Tests.Integration
             double r5;
             double r6;
 
-            using (var doc = OpenDataDocument("DimensionsAssem2.SLDASM"))
+            using (var doc = OpenDataDocument(@"DimensionsAssem2\DimensionsAssem2.SLDASM"))
             {
                 var assmConf = ((ISwAssembly)m_App.Documents.Active).Configurations.Active;
 

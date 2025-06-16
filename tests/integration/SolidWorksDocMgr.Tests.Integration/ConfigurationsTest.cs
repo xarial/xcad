@@ -21,7 +21,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("Configs1.SLDPRT"))
             {
-                name = (m_App.Documents.Active as ISwDmDocument3D).Configurations.Active.Name;
+                name = ((ISwDmDocument3D)doc.Document).Configurations.Active.Name;
             }
 
             Assert.AreEqual("Conf3", name);
@@ -34,7 +34,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("Configs1.SLDPRT"))
             {
-                confNames = (m_App.Documents.Active as ISwDmDocument3D).Configurations.Select(x => x.Name).ToArray();
+                confNames = ((ISwDmDocument3D)doc.Document).Configurations.Select(x => x.Name).ToArray();
             }
 
             Assert.That(confNames.SequenceEqual(new string[]
@@ -55,7 +55,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("Configs1.SLDPRT"))
             {
-                var confs = (m_App.Documents.Active as ISwDmDocument3D).Configurations;
+                var confs = ((ISwDmDocument3D)doc.Document).Configurations;
 
                 conf1 = confs["Conf1"];
                 r1 = confs.TryGet("Conf2", out conf2);
@@ -88,13 +88,13 @@ namespace SolidWorksDocMgr.Tests.Integration
             using (var doc = OpenDataDocument("Configs1.SLDPRT"))
             {
                 var confsToDelete
-                    = (m_App.Documents.Active as ISwDmDocument3D).Configurations
+                    = ((ISwDmDocument3D)doc.Document).Configurations
                     .Where(c => c.Name != "Conf3").ToArray();
 
-                (m_App.Documents.Active as ISwDmDocument3D).Configurations.RemoveRange(confsToDelete);
+                ((ISwDmDocument3D)doc.Document).Configurations.RemoveRange(confsToDelete);
 
-                count = m_App.Documents.Active.Document.ConfigurationManager.GetConfigurationCount();
-                name = m_App.Documents.Active.Document.ConfigurationManager.GetActiveConfigurationName();
+                count = ((ISwDmDocument3D)doc.Document).Document.ConfigurationManager.GetConfigurationCount();
+                name = ((ISwDmDocument3D)doc.Document).Document.ConfigurationManager.GetActiveConfigurationName();
             }
 
             Assert.AreEqual(1, count);
@@ -116,7 +116,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("PartNumber1.SLDPRT"))
             {
-                var confs = (m_App.Documents.Active as ISwDmDocument3D).Configurations;
+                var confs = ((ISwDmDocument3D)doc.Document).Configurations;
 
                 var p1 = confs["Default"].PartNumber;
                 var p2 = confs["Conf1"].PartNumber;
@@ -154,7 +154,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("BomChildrenDisplay.SLDASM"))
             {
-                var confs = (m_App.Documents.Active as ISwDmDocument3D).Configurations;
+                var confs = ((ISwDmDocument3D)doc.Document).Configurations;
                 s1 = confs["Conf1"].BomChildrenSolving;
                 s2 = confs["Conf2"].BomChildrenSolving;
                 s3 = confs["Conf3"].BomChildrenSolving;
@@ -172,7 +172,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly16\Part1.SLDPRT"))
             {
-                var part = m_App.Documents.Active as ISwDmDocument3D;
+                var part = (ISwDmDocument3D)doc.Document;
 
                 c1 = part.Configurations["SubConfA"].Parent?.Name;
                 c2 = part.Configurations["SubConfA"].Parent.Parent?.Name;
@@ -201,7 +201,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly16\Assem1.SLDASM"))
             {
-                var assm = m_App.Documents.Active as ISwDmAssembly;
+                var assm = (ISwDmAssembly)doc.Document;
                 var comp1 = assm.Configurations.Active.Components["Part1-1"];
                 var comp2 = assm.Configurations.Active.Components["Part1-2"];
                 var comp3 = assm.Configurations.Active.Components["SubAssem1-1"];

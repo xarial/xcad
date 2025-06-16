@@ -10,7 +10,6 @@ using System.Text;
 using Xarial.XCad.Enums;
 using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Enums;
-using Environment = System.Environment;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -57,11 +56,11 @@ namespace SolidWorks.Tests.Integration
 
         public IntegrationTests() 
         {
-            m_DataFolder = Environment.GetEnvironmentVariable("XCAD_TEST_DATA", EnvironmentVariableTarget.User);
+            m_DataFolder = System.Environment.GetEnvironmentVariable("XCAD_TEST_DATA", EnvironmentVariableTarget.User);
 
             if (string.IsNullOrEmpty(m_DataFolder))
             {
-                m_DataFolder = Environment.GetEnvironmentVariable("XCAD_TEST_DATA", EnvironmentVariableTarget.Machine);
+                m_DataFolder = System.Environment.GetEnvironmentVariable("XCAD_TEST_DATA", EnvironmentVariableTarget.Machine);
             }
         }
 

@@ -39,16 +39,16 @@ namespace SolidWorks.Tests.Integration
             bool e1, e2, e3, e4, e5, e6, e7, e8, e9;
 
             var part1_1 = m_App.Documents.PreCreate<ISwPart>();
-            part1_1.Path = GetFilePath("Part1.sldprt");
+            part1_1.Path = GetFilePath(@"Drawing9\Part1.sldprt");
 
             var part1_3 = m_App.Documents.PreCreate<ISwPart>();
-            part1_3.Path = GetFilePath("Part1.sldprt");
+            part1_3.Path = GetFilePath(@"Drawing9\Part1.sldprt");
 
             IXDocument part1_2;
             IXDocument part2_1;
             IXDocument part2_2;
 
-            using (OpenDataDocument("Part1.sldprt"))
+            using (OpenDataDocument(@"Drawing9\Part1.sldprt"))
             {
                 part1_2 = m_App.Documents.Active;
 
@@ -217,7 +217,7 @@ namespace SolidWorks.Tests.Integration
             int r1;
             int r2;
 
-            var spec1 = (IDocumentSpecification)m_App.Sw.GetOpenDocSpec(GetFilePath(@"AssmCutLists1.SLDASM"));
+            var spec1 = (IDocumentSpecification)m_App.Sw.GetOpenDocSpec(GetFilePath(@"AssmCutLists1\AssmCutLists1.SLDASM"));
             spec1.ReadOnly = true;
             var model1 = m_App.Sw.OpenDoc7(spec1);
 
@@ -234,8 +234,8 @@ namespace SolidWorks.Tests.Integration
 
             CollectionAssert.AreEquivalent(new string[]
             {
-                GetFilePath(@"AssmCutLists1.SLDASM"),
-                GetFilePath(@"CutListConfs1.SLDPRT")
+                GetFilePath(@"AssmCutLists1\AssmCutLists1.SLDASM"),
+                GetFilePath(@"AssmCutLists1\CutListConfs1.SLDPRT")
             }, paths);
 
             Assert.AreEqual(2, r1);
@@ -527,7 +527,7 @@ namespace SolidWorks.Tests.Integration
             var spec1 = (IDocumentSpecification)m_App.Sw.GetOpenDocSpec(GetFilePath(@"Configs1.SLDPRT"));
             spec1.ReadOnly = true;
             var model1 = m_App.Sw.OpenDoc7(spec1);
-            var spec2 = (IDocumentSpecification)m_App.Sw.GetOpenDocSpec(GetFilePath(@"AssmCutLists1.SLDASM"));
+            var spec2 = (IDocumentSpecification)m_App.Sw.GetOpenDocSpec(GetFilePath(@"AssmCutLists1\AssmCutLists1.SLDASM"));
             spec2.ReadOnly = true;
             var model2 = m_App.Sw.OpenDoc7(spec2);
             var newDoc = NewDocument(swDocumentTypes_e.swDocDRAWING);
@@ -1581,7 +1581,7 @@ namespace SolidWorks.Tests.Integration
             string lastFeatName;
             int featsCount;
 
-            using (var doc = OpenDataDocument("Part1.SLDPRT"))
+            using (var doc = OpenDataDocument(@"Drawing9\Part1.SLDPRT"))
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
@@ -1617,7 +1617,7 @@ namespace SolidWorks.Tests.Integration
 
             const int swCommands_3DSketch = 89;
 
-            using (var doc = OpenDataDocument("Part1.sldprt"))
+            using (var doc = OpenDataDocument(@"Drawing9\Part1.sldprt"))
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
@@ -1662,7 +1662,7 @@ namespace SolidWorks.Tests.Integration
             }
 
             Assert.AreEqual(1, res1.Count);
-            Assert.AreEqual(GetFilePath("Part1.sldprt").ToLower(), res1[0].Item1.ToLower());
+            Assert.AreEqual(GetFilePath(@"Drawing9\Part1.sldprt").ToLower(), res1[0].Item1.ToLower());
             Assert.AreEqual(f1, res1[0].Item2);
 
             Assert.AreEqual(1, res2.Count);

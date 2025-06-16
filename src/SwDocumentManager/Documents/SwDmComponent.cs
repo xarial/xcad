@@ -442,8 +442,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         protected readonly SwDmComponent m_Comp;
 
+        private readonly string m_Name;
+
         internal SwDmComponentConfiguration(SwDmComponent comp, string name) : base(name, (SwDmDocument3D)comp.OwnerDocument)
         {
+            m_Name = name;
             m_Comp = comp;
         }
         
@@ -466,7 +469,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         internal protected override SwDmDocument3D Document => (SwDmDocument3D)m_Comp.ReferencedDocument;
 
-        public override ISwDMConfiguration Configuration => Document.Configurations[Name].Configuration;
+        public override ISwDMConfiguration Configuration => Document.Configurations[m_Name].Configuration;
 
         public override object Dispatch => Configuration;
 

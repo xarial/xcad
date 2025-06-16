@@ -86,8 +86,11 @@ namespace Xarial.XCad.SwDocumentManager.Annotations
                 if (err == SwDmTableError.SwDmTableErrorNone)
                 {
                     var rootAssm = (SwDmAssembly)m_BomTable.ReferencedDocument;
+                    var refConf = (SwDmAssemblyConfiguration)m_BomTable.ReferencedConfiguration;
 
                     var compParts = compRep.Split('/');
+
+                    IXComponent comp = null;
 
                     for (int i = 1; i < compParts.Length; i++) 
                     {
@@ -96,9 +99,18 @@ namespace Xarial.XCad.SwDocumentManager.Annotations
                         var confName = compParts[i].Substring(confNameStartIndex + 1, compParts[i].LastIndexOf(">") - confNameStartIndex - 1);
 
                         var compName = compParts[i].Substring(0, confNameStartIndex);
+
+                        if (comp != null)
+                        {
+                            comp = comp.Children[compName];
+                        }
+                        else 
+                        {
+                            comp = refConf.Components[compName];
+                        }
                     }
 
-                    return Array.Empty<IXComponent>();
+                    return new IXComponent[] { comp };
                 }
                 else
                 {

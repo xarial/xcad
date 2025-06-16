@@ -81,6 +81,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "__TemplateNamePlaceholderWp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "__TemplateNamePlaceholderWpf__.UI", "templates\Wpf\__TemplateNamePlaceholderWpf__.UI\__TemplateNamePlaceholderWpf__.UI.csproj", "{9380787E-99F9-45C7-BC96-5C53EEE0AB31}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Common", "tests\integration\Tests.Common\Tests.Common.csproj", "{31879DA7-63FD-4FE6-90A4-DC36BEE98FAD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -199,6 +201,10 @@ Global
 		{9380787E-99F9-45C7-BC96-5C53EEE0AB31}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9380787E-99F9-45C7-BC96-5C53EEE0AB31}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9380787E-99F9-45C7-BC96-5C53EEE0AB31}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31879DA7-63FD-4FE6-90A4-DC36BEE98FAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31879DA7-63FD-4FE6-90A4-DC36BEE98FAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31879DA7-63FD-4FE6-90A4-DC36BEE98FAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31879DA7-63FD-4FE6-90A4-DC36BEE98FAD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -233,6 +239,7 @@ Global
 		{5B1D5849-9423-4F16-84BB-DD2BEA75D596} = {521C05A6-A067-412B-A93F-92E00D476FA4}
 		{6C05FB38-8690-422E-BF4D-8C14C8954707} = {521C05A6-A067-412B-A93F-92E00D476FA4}
 		{9380787E-99F9-45C7-BC96-5C53EEE0AB31} = {521C05A6-A067-412B-A93F-92E00D476FA4}
+		{31879DA7-63FD-4FE6-90A4-DC36BEE98FAD} = {28BFC3E1-25EA-4934-80F5-2EFCA6E4494B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C1681BF6-7447-45FF-AC57-EC2B3250B843}

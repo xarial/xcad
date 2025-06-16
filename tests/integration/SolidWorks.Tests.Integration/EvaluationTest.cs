@@ -49,7 +49,7 @@ namespace SolidWorks.Tests.Integration
         {
             Box3D b1;
 
-            using (var doc = OpenDataDocument("Part1.SLDPRT"))
+            using (var doc = OpenDataDocument(@"Drawing9\Part1.SLDPRT"))
             {
                 var part = (IXPart)m_App.Documents.Active;
 

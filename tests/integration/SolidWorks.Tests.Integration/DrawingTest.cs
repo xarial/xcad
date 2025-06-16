@@ -848,7 +848,7 @@ namespace SolidWorks.Tests.Integration
             int t1;
             int c1;
 
-            using (var part = OpenDataDocument("Part1.sldprt"))
+            using (var part = OpenDataDocument(@"Drawing9\Part1.sldprt"))
             {
                 var partDoc = m_App.Documents.Active as ISwPart;
 
@@ -940,7 +940,7 @@ namespace SolidWorks.Tests.Integration
             string view1RefConf;
             int view1RefConfType;
 
-            using (var doc = OpenDataDocument("FlatPatternDraw1.slddrw"))
+            using (var doc = OpenDataDocument(@"FlatPatternDraw1\FlatPatternDraw1.slddrw"))
             {
                 var drwDoc = m_App.Documents.Active as ISwDrawing;
 
@@ -1439,7 +1439,7 @@ namespace SolidWorks.Tests.Integration
 
                 drwDoc.Drawing.ActivateSheet("Sheet1");
                 
-                view1 = drwDoc.Drawing.CreateDrawViewFromModelView3(GetFilePath("Part1.sldprt"), "*Front", 0, 0, 0).Name;
+                view1 = drwDoc.Drawing.CreateDrawViewFromModelView3(GetFilePath(@"Drawing9\Part1.sldprt"), "*Front", 0, 0, 0).Name;
 
                 drwDoc.Drawing.ActivateSheet("Sheet2");
 

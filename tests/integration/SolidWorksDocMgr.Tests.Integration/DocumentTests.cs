@@ -26,13 +26,13 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("Part_2020.sldprt"))
             {
-                var part1 = m_App.Documents.Active;
+                var part1 = doc.Document;
                 v1 = part1.Version;
             }
             
             using (var doc = OpenDataDocument("Part_2019.sldprt"))
             {
-                var part2 = m_App.Documents.Active;
+                var part2 = doc.Document;
                 v2 = part2.Version;
             }
 
@@ -43,26 +43,43 @@ namespace SolidWorksDocMgr.Tests.Integration
         [Test]
         public void DocumentsTest()
         {
-            var c1 = m_App.Documents.Count;
-            var activeIsNull = m_App.Documents.Active == null;
+            bool activeIsNull;
+            int c1;
+            int c2;
+            int c3;
+            int c4;
+            int c5;
+            bool activeIsDoc1;
+            bool activeIsDoc2;
+            bool activeIsDoc21;
+            bool activeIsNull1;
 
-            var doc1 = m_App.Documents.Open(GetFilePath("Part_2020.sldprt"), DocumentState_e.ReadOnly);
+            c1 = Application.Documents.Count;
+            activeIsNull = Application.Documents.Active == null;
 
-            var c2 = m_App.Documents.Count;
-            var activeIsDoc1 = m_App.Documents.Active.Equals(doc1);
+            using (var dataFile1 = GetDataFile("Part_2020.sldprt"))
+            {
+                var doc1 = Application.Documents.Open(dataFile1.FilePath, DocumentState_e.ReadOnly);
 
-            var doc2 = m_App.Documents.Open(GetFilePath("Part_2019.sldprt"), DocumentState_e.ReadOnly);
+                c2 = Application.Documents.Count;
+                activeIsDoc1 = Application.Documents.Active.Equals(doc1);
 
-            var c3 = m_App.Documents.Count;
-            var activeIsDoc2 = m_App.Documents.Active.Equals(doc2);
+                using (var dataFile2 = GetDataFile("Part_2019.sldprt"))
+                {
+                    var doc2 = Application.Documents.Open(dataFile2.FilePath, DocumentState_e.ReadOnly);
 
-            doc1.Close();
-            var c4 = m_App.Documents.Count;
-            var activeIsDoc21 = m_App.Documents.Active.Equals(doc2);
+                    c3 = Application.Documents.Count;
+                    activeIsDoc2 = Application.Documents.Active.Equals(doc2);
 
-            doc2.Close();
-            var c5 = m_App.Documents.Count;
-            var activeIsNull1 = m_App.Documents.Active == null;
+                    doc1.Close();
+                    c4 = Application.Documents.Count;
+                    activeIsDoc21 = Application.Documents.Active.Equals(doc2);
+
+                    doc2.Close();
+                    c5 = Application.Documents.Count;
+                    activeIsNull1 = Application.Documents.Active == null;
+                }
+            }
 
             Assert.AreEqual(0, c1);
             Assert.IsTrue(activeIsNull);
@@ -82,15 +99,19 @@ namespace SolidWorksDocMgr.Tests.Integration
             bool r1;
             bool r2;
             //bool r3;
-            
-            var doc1 = m_App.Documents.Open(GetFilePath("Part_2020.sldprt"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
-            r1 = doc1.IsAlive;
-            doc1.Close();
-            r2 = doc1.IsAlive;
 
-            //doc1 = m_App.Documents.Open(GetFilePath("Part_2020.sldprt"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
-            //((ISwDmDocument)doc1).Document.CloseDoc();
-            //r3 = doc1.IsAlive;
+            using (var dataFile = GetDataFile("Part_2020.sldprt"))
+            {
+                var doc1 = Application.Documents.Open(dataFile.FilePath, DocumentState_e.ReadOnly);
+                r1 = doc1.IsAlive;
+                doc1.Close();
+                r2 = doc1.IsAlive;
+
+                //doc1 = m_App.Documents.Open(GetFilePath("Part_2020.sldprt"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
+                //((ISwDmDocument)doc1).Document.CloseDoc();
+                //r3 = doc1.IsAlive;
+
+            }
 
             Assert.IsTrue(r1);
             Assert.IsFalse(r2);
@@ -102,7 +123,7 @@ namespace SolidWorksDocMgr.Tests.Integration
         {
             using (var doc = OpenDataDocument(@"Assembly2\TopAssem.SLDASM"))
             {
-                var assm = m_App.Documents.Active;
+                var assm = doc.Document;
 
                 var deps = assm.Dependencies.ToArray();
 
@@ -121,7 +142,7 @@ namespace SolidWorksDocMgr.Tests.Integration
         {
             using (var doc = OpenDataDocument(@"Assembly2\TopAssem.SLDASM"))
             {
-                var assm = m_App.Documents.Active;
+                var assm = doc.Document;
 
                 var deps = assm.Dependencies.TryIterateAll().ToArray();
 
@@ -143,7 +164,7 @@ namespace SolidWorksDocMgr.Tests.Integration
         {
             using (var doc = OpenDataDocument(@"Assembly6\Assem1.SLDASM"))
             {
-                var assm = m_App.Documents.Active;
+                var assm = doc.Document;
 
                 var deps = assm.Dependencies.TryIterateAll().ToArray();
 
@@ -191,7 +212,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly7\Assem1.SLDASM"))
             {
-                var assm = m_App.Documents.Active;
+                var assm = doc.Document;
 
                 titles = assm.Dependencies.TryIterateAll().Select(d => Path.GetFileNameWithoutExtension(d.Title)).ToArray();
             }
@@ -217,7 +238,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var assm = OpenDataDocument(@"Assembly9\Assem1.SLDASM"))
             {
-                var deps = m_App.Documents.Active.Dependencies.TryIterateAll().ToArray();
+                var deps = assm.Document.Dependencies.TryIterateAll().ToArray();
                 r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
             }
 
@@ -233,36 +254,38 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             Directory.CreateDirectory(destPath);
 
-            foreach (var srcFile in Directory.GetFiles(GetFilePath(@"Assembly6"), "*.*")) 
+            using (var dataFile = GetDataFile(@"Assembly6\Assem1.SLDASM"))
             {
-                File.Copy(srcFile, Path.Combine(destPath, Path.GetFileName(srcFile)));
-            }
-
-            using (var doc = OpenDataDocument(Path.Combine(destPath, "Assem1.SLDASM"), false))
-            {
-                var assm = m_App.Documents.Active;
-
-                var deps = assm.Dependencies.TryIterateAll().ToArray();
-
-                Assert.AreEqual(8, deps.Length);
-                Assert.That(deps.All(d => !d.State.HasFlag(DocumentState_e.ReadOnly)));
-
-                foreach (var dep in deps) 
+                foreach (var srcFile in Directory.GetFiles(Path.Combine(dataFile.WorkFolderPath, "Assembly6"), "*.*"))
                 {
-                    if (dep.IsCommitted)
-                    {
-                        dep.Close();
-                    }
+                    File.Copy(srcFile, Path.Combine(destPath, Path.GetFileName(srcFile)));
                 }
             }
+
+            var assm = Application.Documents.Open(Path.Combine(destPath, "Assem1.SLDASM"));
+
+            var deps = assm.Dependencies.TryIterateAll().ToArray();
+
+            Assert.AreEqual(8, deps.Length);
+            Assert.That(deps.All(d => !d.State.HasFlag(DocumentState_e.ReadOnly)));
+
+            foreach (var dep in deps)
+            {
+                if (dep.IsCommitted)
+                {
+                    dep.Close();
+                }
+            }
+
+            assm.Close();
 
             Directory.Delete(destPath, true);
 
             using (var doc = OpenDataDocument(@"Assembly6\Assem1.SLDASM", true))
             {
-                var assm = m_App.Documents.Active;
+                assm = doc.Document;
 
-                var deps = assm.Dependencies.TryIterateAll().ToArray();
+                deps = assm.Dependencies.TryIterateAll().ToArray();
 
                 Assert.AreEqual(8, deps.Length);
                 Assert.That(deps.All(d => d.State.HasFlag(DocumentState_e.ReadOnly)));
@@ -284,70 +307,70 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             Directory.CreateDirectory(destPath);
 
-            var srcPath = GetFilePath(@"Assembly6");
-
-            foreach (var srcFile in Directory.GetFiles(srcPath, "*.*"))
+            using (var dataFile = GetDataFile(@"Assembly6\Assem1.SLDASM"))
             {
-                File.Copy(srcFile, Path.Combine(destPath, Path.GetFileName(srcFile)));
+                foreach (var srcFile in Directory.GetFiles(Path.Combine(dataFile.WorkFolderPath, "Assembly6"), "*.*"))
+                {
+                    File.Copy(srcFile, Path.Combine(destPath, Path.GetFileName(srcFile)));
+                }
             }
 
-            using (var doc = OpenDataDocument(Path.Combine(destPath, "Assem1.SLDASM")))
-            {
-                var assm = m_App.Documents.Active;
+            var assm = Application.Documents.Open(Path.Combine(destPath, "Assem1.SLDASM"));
 
-                var deps = assm.Dependencies.TryIterateAll().ToArray();
+            var deps = assm.Dependencies.TryIterateAll().ToArray();
 
-                var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "_temp_Part1^Assem1.sldprt",
-                    StringComparison.CurrentCultureIgnoreCase));
-                var d2 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part2.sldprt",
-                    StringComparison.CurrentCultureIgnoreCase));
-                var d3 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Assem2.sldasm",
-                    StringComparison.CurrentCultureIgnoreCase));
-                var d4 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "_temp_Assem3^Assem1.sldasm",
-                    StringComparison.CurrentCultureIgnoreCase));
-                var d5 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part4.sldprt",
-                    StringComparison.CurrentCultureIgnoreCase));
-                var d6 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "_temp_Part5^Assem3_Assem1.sldprt",
-                    StringComparison.CurrentCultureIgnoreCase));
-                var d7 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Assem4.sldasm",
-                    StringComparison.CurrentCultureIgnoreCase));
-                var d8 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "_temp_Part1^Assem4.sldprt",
-                    StringComparison.CurrentCultureIgnoreCase));
+            var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "_temp_Part1^Assem1.sldprt",
+                StringComparison.CurrentCultureIgnoreCase));
+            var d2 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part2.sldprt",
+                StringComparison.CurrentCultureIgnoreCase));
+            var d3 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Assem2.sldasm",
+                StringComparison.CurrentCultureIgnoreCase));
+            var d4 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "_temp_Assem3^Assem1.sldasm",
+                StringComparison.CurrentCultureIgnoreCase));
+            var d5 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Part4.sldprt",
+                StringComparison.CurrentCultureIgnoreCase));
+            var d6 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "_temp_Part5^Assem3_Assem1.sldprt",
+                StringComparison.CurrentCultureIgnoreCase));
+            var d7 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "Assem4.sldasm",
+                StringComparison.CurrentCultureIgnoreCase));
+            var d8 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "_temp_Part1^Assem4.sldprt",
+                StringComparison.CurrentCultureIgnoreCase));
 
-                Assert.AreEqual(8, deps.Length);
+            Assert.AreEqual(8, deps.Length);
 
-                Assert.IsNotNull(d1);
-                Assert.IsNotNull(d2);
-                Assert.IsNotNull(d3);
-                Assert.IsNotNull(d4);
-                Assert.IsNotNull(d5);
-                Assert.IsNotNull(d6);
-                Assert.IsNotNull(d7);
-                Assert.IsNotNull(d8);
+            Assert.IsNotNull(d1);
+            Assert.IsNotNull(d2);
+            Assert.IsNotNull(d3);
+            Assert.IsNotNull(d4);
+            Assert.IsNotNull(d5);
+            Assert.IsNotNull(d6);
+            Assert.IsNotNull(d7);
+            Assert.IsNotNull(d8);
 
-                Assert.IsTrue(d1.IsCommitted);
-                Assert.IsFalse(d2.IsCommitted);
-                Assert.IsFalse(d3.IsCommitted);
-                Assert.IsTrue(d4.IsCommitted);
-                Assert.IsTrue(d5.IsCommitted);
-                Assert.IsTrue(d6.IsCommitted);
-                Assert.IsTrue(d7.IsCommitted);
-                Assert.IsTrue(d8.IsCommitted);
+            Assert.IsTrue(d1.IsCommitted);
+            Assert.IsFalse(d2.IsCommitted);
+            Assert.IsFalse(d3.IsCommitted);
+            Assert.IsTrue(d4.IsCommitted);
+            Assert.IsTrue(d5.IsCommitted);
+            Assert.IsTrue(d6.IsCommitted);
+            Assert.IsTrue(d7.IsCommitted);
+            Assert.IsTrue(d8.IsCommitted);
 
-                Assert.That(string.Equals(Path.GetFileName(d2.Path), "Part2.SLDPRT", StringComparison.CurrentCultureIgnoreCase));
-                Assert.That(string.Equals(Path.GetFileName(d3.Path), "Assem2.sldasm", StringComparison.CurrentCultureIgnoreCase));
-                Assert.Throws<OpenDocumentFailedException>(() => d2.Commit());
-                Assert.Throws<OpenDocumentFailedException>(() => d3.Commit());
-                //Assert.That(string.Equals(d5.Path, Path.Combine(destPath, "Part4.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));//NOTE: SOLIDWORKS does not follow the path resolution for the components of virtual component
-                Assert.That(string.Equals(d7.Path, Path.Combine(destPath, "Assem4.sldasm"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(Path.GetFileName(d2.Path), "Part2.SLDPRT", StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(Path.GetFileName(d3.Path), "Assem2.sldasm", StringComparison.CurrentCultureIgnoreCase));
+            Assert.Throws<OpenDocumentFailedException>(() => d2.Commit());
+            Assert.Throws<OpenDocumentFailedException>(() => d3.Commit());
+            //Assert.That(string.Equals(d5.Path, Path.Combine(destPath, "Part4.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));//NOTE: SOLIDWORKS does not follow the path resolution for the components of virtual component
+            Assert.That(string.Equals(d7.Path, Path.Combine(destPath, "Assem4.sldasm"), StringComparison.CurrentCultureIgnoreCase));
 
-                d1.Close();
-                d4.Close();
-                d5.Close();
-                d6.Close();
-                d7.Close();
-                d8.Close();
-            }
+            d1.Close();
+            d4.Close();
+            d5.Close();
+            d6.Close();
+            d7.Close();
+            d8.Close();
+
+            assm.Close();
 
             Directory.Delete(destPath, true);
         }
@@ -357,7 +380,7 @@ namespace SolidWorksDocMgr.Tests.Integration
         {
             using (var doc = OpenDataDocument(@"MovedNonOpenedAssembly1\TopAssembly.SLDASM"))
             {
-                var assm = m_App.Documents.Active;
+                var assm = doc.Document;
 
                 var deps = assm.Dependencies.ToArray();
 
@@ -374,11 +397,11 @@ namespace SolidWorksDocMgr.Tests.Integration
         {
             using (var doc = OpenDataDocument(@"Assembly3\Assemblies\Assem1.SLDASM"))
             {
-                var assm = m_App.Documents.Active;
+                var assm = doc.Document;
 
                 var deps = assm.Dependencies.ToArray();
 
-                var dir = GetFilePath(@"Assembly3");
+                var dir = Path.Combine(doc.WorkFolderPath, "Assembly3");
 
                 Assert.AreEqual(1, deps.Length);
                 Assert.That(deps.All(d => !d.IsCommitted));
@@ -398,21 +421,24 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             try
             {
-                var srcPath = GetFilePath("Assembly11");
-
-                CopyDirectory(srcPath, tempSrcAssmPath);
-                UpdateSwReferences(tempSrcAssmPath, "TopLevel\\Assem1.sldasm", "SubAssemblies\\Assem3.SLDASM", "SubAssemblies\\A\\Assem2.SLDASM");
-
-                CopyDirectory(tempSrcAssmPath, destPath);
-
-                File.Delete(Path.Combine(destPath, "Parts\\Part4.sldprt"));
-                File.Delete(Path.Combine(destPath, "SubAssemblies\\Part2.sldprt"));
-                File.Delete(Path.Combine(tempSrcAssmPath, "Parts\\Part4.sldprt"));
-
-                using (var doc = OpenDataDocument(Path.Combine(destPath, "TopLevel\\Assem1.sldasm")))
+                using (var dataFile = GetDataFile(@"Assembly11\TopLevel\Assem1.sldasm"))
                 {
-                    var assm = (ISwDmAssembly)doc.Document;
+                    var srcPath = Path.Combine(dataFile.WorkFolderPath, "Assembly11");
 
+                    CopyDirectory(srcPath, tempSrcAssmPath);
+                    UpdateSwReferences(tempSrcAssmPath, "TopLevel\\Assem1.sldasm", "SubAssemblies\\Assem3.SLDASM", "SubAssemblies\\A\\Assem2.SLDASM");
+
+                    CopyDirectory(tempSrcAssmPath, destPath);
+
+                    File.Delete(Path.Combine(destPath, "Parts\\Part4.sldprt"));
+                    File.Delete(Path.Combine(destPath, "SubAssemblies\\Part2.sldprt"));
+                    File.Delete(Path.Combine(tempSrcAssmPath, "Parts\\Part4.sldprt"));
+                }
+
+                var assm = (ISwDmAssembly)Application.Documents.Open(Path.Combine(destPath, "TopLevel\\Assem1.sldasm"));
+
+                try
+                {
                     var deps = assm.Dependencies.TryIterateAll().ToArray();
 
                     refs = deps.ToDictionary(x => x.Path, x => x.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
@@ -424,6 +450,10 @@ namespace SolidWorksDocMgr.Tests.Integration
                             refDoc.Close();
                         }
                     }
+                }
+                finally 
+                {
+                    assm.Close();
                 }
             }
             finally
@@ -467,13 +497,11 @@ namespace SolidWorksDocMgr.Tests.Integration
         {
             const string STREAM_NAME = "_xCadIntegrationTestStream_";
 
-            var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sldprt");
+            TestData result = null;
 
-            File.Copy(GetFilePath("EmptyPart1.sldprt"), tempFile);
-
-            using (var doc = OpenDataDocument(tempFile, false))
+            using (var dataFile = GetDataFile("EmptyPart1.sldprt"))
             {
-                var part = m_App.Documents.Active;
+                var part = Application.Documents.Open(dataFile.FilePath);
 
                 part.StreamWriteAvailable += (d) =>
                 {
@@ -492,13 +520,9 @@ namespace SolidWorksDocMgr.Tests.Integration
                 };
 
                 part.Save();
-            }
+                part.Close();
 
-            TestData result = null;
-
-            using (var doc = OpenDataDocument(tempFile))
-            {
-                var part = m_App.Documents.Active;
+                part = Application.Documents.Open(dataFile.FilePath);
 
                 using (var stream = part.OpenStream(STREAM_NAME, false))
                 {
@@ -506,8 +530,6 @@ namespace SolidWorksDocMgr.Tests.Integration
                     result = xmlSer.Deserialize(stream) as TestData;
                 }
             }
-
-            File.Delete(tempFile);
 
             Assert.IsNotNull(result);
             Assert.AreEqual("Test1", result.Text);
@@ -521,18 +543,18 @@ namespace SolidWorksDocMgr.Tests.Integration
             const string STREAM1_NAME = "_xCadIntegrationStream1_";
             const string STREAM2_NAME = "_xCadIntegrationStream2_";
 
-            var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".sldprt");
+            var subStreamsCount = 0;
+            var txt = "";
+            var number = 0;
 
-            File.Copy(GetFilePath("EmptyPart1.sldprt"), tempFile);
-
-            using (var doc = OpenDataDocument(tempFile, false))
+            using (var dataFile = GetDataFile("EmptyPart1.sldprt"))
             {
-                var part = m_App.Documents.Active;
+                var part = Application.Documents.Open(dataFile.FilePath);
+
+                var path = SUB_STORAGE_PATH.Split('\\');
 
                 part.StorageWriteAvailable += (d) =>
                 {
-                    var path = SUB_STORAGE_PATH.Split('\\');
-
                     using (var storage = part.OpenStorage(path[0], true))
                     {
                         using (var subStorage = storage.OpenStorage(path[1], true))
@@ -555,17 +577,9 @@ namespace SolidWorksDocMgr.Tests.Integration
                 };
 
                 part.Save();
-            }
+                part.Close();
 
-            var subStreamsCount = 0;
-            var txt = "";
-            var number = 0;
-
-            using (var doc = OpenDataDocument(tempFile))
-            {
-                var part = m_App.Documents.Active;
-
-                var path = SUB_STORAGE_PATH.Split('\\');
+                part = Application.Documents.Open(dataFile.FilePath);
 
                 using (var storage = part.OpenStorage(path[0], false))
                 {
@@ -593,8 +607,6 @@ namespace SolidWorksDocMgr.Tests.Integration
                 }
             }
 
-            File.Delete(tempFile);
-
             Assert.AreEqual(2, subStreamsCount);
             Assert.AreEqual("Test2", txt);
             Assert.AreEqual(25, number);
@@ -611,7 +623,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument("PartQty.SLDPRT"))
             {
-                var part = (IXDocument3D)m_App.Documents.Active;
+                var part = (IXDocument3D)doc.Document;
                 
                 q1 = part.Configurations["Conf1"].Quantity;
                 q2 = part.Configurations["Conf2"].Quantity;
@@ -639,53 +651,65 @@ namespace SolidWorksDocMgr.Tests.Integration
             bool r7;
             bool r8;
 
-            var a1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\Assembly.SLDASM"));
-            a1.State = DocumentState_e.ReadOnly;
-            a1.Commit();
-            r1 = a1.IsAlive;
-            a1.Close();
+            ISwDmDocument a1;
+            ISwDmDocument b1;
+            ISwDmDocument d1;
+            ISwDmDocument l1;
+            ISwDmDocument p1;
+            ISwDmDocument at1;
+            ISwDmDocument dt1;
+            ISwDmDocument pt1;
 
-            var b1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\Block.SLDBLK"));
-            b1.State = DocumentState_e.ReadOnly;
-            b1.Commit();
-            r2 = b1.IsAlive;
-            b1.Close();
+            using (var dataFile = GetDataFile(@"Native\Assembly.SLDASM"))
+            {
+                a1 = Application.Documents.PreCreateFromPath(Path.Combine(dataFile.WorkFolderPath, @"Native\Assembly.SLDASM"));
+                a1.State = DocumentState_e.ReadOnly;
+                a1.Commit();
+                r1 = a1.IsAlive;
+                a1.Close();
 
-            var d1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\Drawing.SLDDRW"));
-            d1.State = DocumentState_e.ReadOnly;
-            d1.Commit();
-            r3 = d1.IsAlive;
-            d1.Close();
+                b1 = Application.Documents.PreCreateFromPath(Path.Combine(dataFile.WorkFolderPath, @"Native\Block.SLDBLK"));
+                b1.State = DocumentState_e.ReadOnly;
+                b1.Commit();
+                r2 = b1.IsAlive;
+                b1.Close();
 
-            var l1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\LibFeatPart.SLDLFP"));
-            l1.State = DocumentState_e.ReadOnly;
-            l1.Commit();
-            r4 = l1.IsAlive;
-            l1.Close();
+                d1 = Application.Documents.PreCreateFromPath(Path.Combine(dataFile.WorkFolderPath, @"Native\Drawing.SLDDRW"));
+                d1.State = DocumentState_e.ReadOnly;
+                d1.Commit();
+                r3 = d1.IsAlive;
+                d1.Close();
 
-            var p1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\Part.SLDPRT"));
-            p1.State = DocumentState_e.ReadOnly;
-            p1.Commit();
-            r5 = p1.IsAlive;
-            p1.Close();
+                l1 = Application.Documents.PreCreateFromPath(Path.Combine(dataFile.WorkFolderPath, @"Native\LibFeatPart.SLDLFP"));
+                l1.State = DocumentState_e.ReadOnly;
+                l1.Commit();
+                r4 = l1.IsAlive;
+                l1.Close();
 
-            var at1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\TemplateAssembly.ASMDOT"));
-            at1.State = DocumentState_e.ReadOnly;
-            at1.Commit();
-            r6 = at1.IsAlive;
-            at1.Close();
+                p1 = Application.Documents.PreCreateFromPath(Path.Combine(dataFile.WorkFolderPath, @"Native\Part.SLDPRT"));
+                p1.State = DocumentState_e.ReadOnly;
+                p1.Commit();
+                r5 = p1.IsAlive;
+                p1.Close();
 
-            var dt1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\TemplateDrawing.DRWDOT"));
-            dt1.State = DocumentState_e.ReadOnly;
-            dt1.Commit();
-            r7 = dt1.IsAlive;
-            dt1.Close();
+                at1 = Application.Documents.PreCreateFromPath(Path.Combine(dataFile.WorkFolderPath, @"Native\TemplateAssembly.ASMDOT"));
+                at1.State = DocumentState_e.ReadOnly;
+                at1.Commit();
+                r6 = at1.IsAlive;
+                at1.Close();
 
-            var pt1 = m_App.Documents.PreCreateFromPath(GetFilePath(@"Native\TemplatePart.PRTDOT"));
-            pt1.State = DocumentState_e.ReadOnly;
-            pt1.Commit();
-            r8 = pt1.IsAlive;
-            pt1.Close();
+                dt1 = Application.Documents.PreCreateFromPath(Path.Combine(dataFile.WorkFolderPath, @"Native\TemplateDrawing.DRWDOT"));
+                dt1.State = DocumentState_e.ReadOnly;
+                dt1.Commit();
+                r7 = dt1.IsAlive;
+                dt1.Close();
+
+                pt1 = Application.Documents.PreCreateFromPath(Path.Combine(dataFile.WorkFolderPath, @"Native\TemplatePart.PRTDOT"));
+                pt1.State = DocumentState_e.ReadOnly;
+                pt1.Commit();
+                r8 = pt1.IsAlive;
+                pt1.Close();
+            }
 
             Assert.IsInstanceOf<IXAssembly>(a1);
             Assert.IsInstanceOf<IXPart>(b1);
@@ -718,69 +742,81 @@ namespace SolidWorksDocMgr.Tests.Integration
             bool r7;
             bool r8;
 
-            var a1 = m_App.Documents.PreCreate<IXDocument>();
-            a1.Path = GetFilePath(@"Native\Assembly.SLDASM");
-            a1.State = DocumentState_e.ReadOnly;
-            a1.Commit();
-            var a1_1 = ((IXUnknownDocument)a1).GetSpecific();
-            r1 = a1_1.IsAlive;
-            a1.Close();
+            IXDocument a1_1;
+            IXDocument b1_1;
+            IXDocument d1_1;
+            IXDocument l1_1;
+            IXDocument p1_1;
+            IXDocument at1_1;
+            IXDocument dt1_1;
+            IXDocument pt1_1;
 
-            var b1 = m_App.Documents.PreCreate<IXDocument>();
-            b1.Path = GetFilePath(@"Native\Block.SLDBLK");
-            b1.State = DocumentState_e.ReadOnly;
-            b1.Commit();
-            var b1_1 = ((IXUnknownDocument)b1).GetSpecific();
-            r2 = b1_1.IsAlive;
-            b1.Close();
+            using (var dataFile = GetDataFile(@"Native\Assembly.SLDASM"))
+            {
+                var a1 = Application.Documents.PreCreate<IXDocument>();
+                a1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\Assembly.SLDASM");
+                a1.State = DocumentState_e.ReadOnly;
+                a1.Commit();
+                a1_1 = ((IXUnknownDocument)a1).GetSpecific();
+                r1 = a1_1.IsAlive;
+                a1.Close();
 
-            var d1 = m_App.Documents.PreCreate<IXDocument>();
-            d1.Path = GetFilePath(@"Native\Drawing.SLDDRW");
-            d1.State = DocumentState_e.ReadOnly;
-            d1.Commit();
-            var d1_1 = ((IXUnknownDocument)d1).GetSpecific();
-            r3 = d1_1.IsAlive;
-            d1.Close();
+                var b1 = Application.Documents.PreCreate<IXDocument>();
+                b1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\Block.SLDBLK");
+                b1.State = DocumentState_e.ReadOnly;
+                b1.Commit();
+                b1_1 = ((IXUnknownDocument)b1).GetSpecific();
+                r2 = b1_1.IsAlive;
+                b1.Close();
 
-            var l1 = m_App.Documents.PreCreate<IXDocument>();
-            l1.Path = GetFilePath(@"Native\LibFeatPart.SLDLFP");
-            l1.State = DocumentState_e.ReadOnly;
-            l1.Commit();
-            var l1_1 = ((IXUnknownDocument)l1).GetSpecific();
-            r4 = l1_1.IsAlive;
-            l1.Close();
+                var d1 = Application.Documents.PreCreate<IXDocument>();
+                d1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\Drawing.SLDDRW");
+                d1.State = DocumentState_e.ReadOnly;
+                d1.Commit();
+                d1_1 = ((IXUnknownDocument)d1).GetSpecific();
+                r3 = d1_1.IsAlive;
+                d1.Close();
 
-            var p1 = m_App.Documents.PreCreate<IXDocument>();
-            p1.Path = GetFilePath(@"Native\Part.SLDPRT");
-            p1.State = DocumentState_e.ReadOnly;
-            p1.Commit();
-            var p1_1 = ((IXUnknownDocument)p1).GetSpecific();
-            r5 = p1_1.IsAlive;
-            p1.Close();
+                var l1 = Application.Documents.PreCreate<IXDocument>();
+                l1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\LibFeatPart.SLDLFP");
+                l1.State = DocumentState_e.ReadOnly;
+                l1.Commit();
+                l1_1 = ((IXUnknownDocument)l1).GetSpecific();
+                r4 = l1_1.IsAlive;
+                l1.Close();
 
-            var at1 = m_App.Documents.PreCreate<IXDocument>();
-            at1.Path = GetFilePath(@"Native\TemplateAssembly.ASMDOT");
-            at1.State = DocumentState_e.ReadOnly;
-            at1.Commit();
-            var at1_1 = ((IXUnknownDocument)at1).GetSpecific();
-            r6 = at1_1.IsAlive;
-            at1.Close();
+                var p1 = Application.Documents.PreCreate<IXDocument>();
+                p1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\Part.SLDPRT");
+                p1.State = DocumentState_e.ReadOnly;
+                p1.Commit();
+                p1_1 = ((IXUnknownDocument)p1).GetSpecific();
+                r5 = p1_1.IsAlive;
+                p1.Close();
 
-            var dt1 = m_App.Documents.PreCreate<IXDocument>();
-            dt1.Path = GetFilePath(@"Native\TemplateDrawing.DRWDOT");
-            dt1.State = DocumentState_e.ReadOnly;
-            dt1.Commit();
-            var dt1_1 = ((IXUnknownDocument)dt1).GetSpecific();
-            r7 = dt1_1.IsAlive;
-            dt1.Close();
+                var at1 = Application.Documents.PreCreate<IXDocument>();
+                at1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\TemplateAssembly.ASMDOT");
+                at1.State = DocumentState_e.ReadOnly;
+                at1.Commit();
+                at1_1 = ((IXUnknownDocument)at1).GetSpecific();
+                r6 = at1_1.IsAlive;
+                at1.Close();
 
-            var pt1 = m_App.Documents.PreCreate<IXDocument>();
-            pt1.Path = GetFilePath(@"Native\TemplatePart.PRTDOT");
-            pt1.State = DocumentState_e.ReadOnly;
-            pt1.Commit();
-            var pt1_1 = ((IXUnknownDocument)pt1).GetSpecific();
-            r8 = pt1_1.IsAlive;
-            pt1.Close();
+                var dt1 = Application.Documents.PreCreate<IXDocument>();
+                dt1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\TemplateDrawing.DRWDOT");
+                dt1.State = DocumentState_e.ReadOnly;
+                dt1.Commit();
+                dt1_1 = ((IXUnknownDocument)dt1).GetSpecific();
+                r7 = dt1_1.IsAlive;
+                dt1.Close();
+
+                var pt1 = Application.Documents.PreCreate<IXDocument>();
+                pt1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\TemplatePart.PRTDOT");
+                pt1.State = DocumentState_e.ReadOnly;
+                pt1.Commit();
+                pt1_1 = ((IXUnknownDocument)pt1).GetSpecific();
+                r8 = pt1_1.IsAlive;
+                pt1.Close();
+            }
 
             Assert.IsInstanceOf<IXAssembly>(a1_1);
             Assert.IsInstanceOf<IXPart>(b1_1);
@@ -823,42 +859,42 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Id\IdPart1.SLDPRT"))
             {
-                var part = (IXDocument3D)m_App.Documents.Active;
+                var part = (IXDocument3D)doc.Document;
 
                 id1 = part.Id.Thumbprint;
             }
 
             using (var doc = OpenDataDocument(@"Id\IdPart1Copy.SLDPRT"))
             {
-                var part = (IXDocument3D)m_App.Documents.Active;
+                var part = (IXDocument3D)doc.Document;
 
                 id2 = part.Id.Thumbprint;
             }
 
             using (var doc = OpenDataDocument(@"Id\IdPart1CopyModified.SLDPRT"))
             {
-                var part = (IXDocument3D)m_App.Documents.Active;
+                var part = (IXDocument3D)doc.Document;
 
                 id3 = part.Id.Thumbprint;
             }
 
             using (var doc = OpenDataDocument(@"Id\IdPart1SaveAs.SLDPRT"))
             {
-                var part = (IXDocument3D)m_App.Documents.Active;
+                var part = (IXDocument3D)doc.Document;
 
                 id4 = part.Id.Thumbprint;
             }
 
             using (var doc = OpenDataDocument(@"Id\IdPart2.SLDPRT"))
             {
-                var part = (IXDocument3D)m_App.Documents.Active;
+                var part = (IXDocument3D)doc.Document;
 
                 id5 = part.Id.Thumbprint;
             }
 
             using (var doc = OpenDataDocument(@"Id\IdPart2Copy.SLDPRT"))
             {
-                var part = (IXDocument3D)m_App.Documents.Active;
+                var part = (IXDocument3D)doc.Document;
 
                 id6 = part.Id.Thumbprint;
             }

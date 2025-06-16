@@ -222,7 +222,7 @@ namespace SolidWorks.Tests.Integration
             Dictionary<string, object> conf1Prps;
             Dictionary<string, object> confDefPrps;
 
-            using (var doc = OpenDataDocument("CutListConfs1.SLDPRT")) 
+            using (var doc = OpenDataDocument(@"AssmCutLists1\CutListConfs1.SLDPRT")) 
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
@@ -270,7 +270,7 @@ namespace SolidWorks.Tests.Integration
             Dictionary<string, object> conf1Prps;
             Dictionary<string, object> defPrps;
 
-            using (var doc = OpenDataDocument("AssmCutLists1.SLDASM"))
+            using (var doc = OpenDataDocument(@"AssmCutLists1\AssmCutLists1.SLDASM"))
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
@@ -300,7 +300,7 @@ namespace SolidWorks.Tests.Integration
             var conf1Val = "";
             var confDefVal = "";
 
-            using (var doc = OpenDataDocument("CutListConfs1.SLDPRT"))
+            using (var doc = OpenDataDocument(@"AssmCutLists1\CutListConfs1.SLDPRT"))
             {
                 var part = (ISwPart)m_App.Documents.Active;
 
@@ -350,7 +350,7 @@ namespace SolidWorks.Tests.Integration
             var conf1Val = "";
             var confDefVal = "";
 
-            using (var doc = OpenDataDocument("AssmCutLists1.SLDASM"))
+            using (var doc = OpenDataDocument(@"AssmCutLists1\AssmCutLists1.SLDASM"))
             {
                 var assm = (ISwAssembly)m_App.Documents.Active;
 
