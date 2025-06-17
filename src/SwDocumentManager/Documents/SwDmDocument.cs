@@ -594,17 +594,17 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             if (isCreated)
             {
-                m_CreateHandler.Invoke((ISwDmDocument)GetSpecific());
+                m_CreateHandler.Invoke((ISwDmDocument)GetKnown());
             }
         }
 
         public override void Commit(CancellationToken cancellationToken)
         {
             m_Creator.Create(cancellationToken);
-            m_CreateHandler.Invoke((ISwDmDocument)GetSpecific());
+            m_CreateHandler.Invoke((ISwDmDocument)GetKnown());
         }
 
-        public IXDocument GetSpecific()
+        public IXDocument GetKnown()
         {
             if (m_SpecificDoc != null)
             {

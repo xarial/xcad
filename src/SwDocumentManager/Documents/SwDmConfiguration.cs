@@ -51,15 +51,35 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 
-        public virtual ISwDMConfiguration Configuration { get; }
+        public virtual ISwDMConfiguration Configuration 
+        {
+            get 
+            {
+                if (IsCommitted)
+                {
+                    if (m_Conf == null) 
+                    {
+                        m_Conf = Document.Configurations[m_NonCommittedName].Configuration;
+                    }
+
+                    return m_Conf;
+                }
+                else 
+                {
+                    throw new NonCommittedElementAccessException();
+                }
+            }
+        }
 
         public IXIdentifier Id => new XIdentifier(((ISwDMConfiguration12)Configuration).GetID());
 
         public ISwDmCustomPropertiesCollection Properties => m_Properties.Value;
 
-        internal SwDmConfiguration(ISwDMConfiguration conf, SwDmDocument3D doc) : base(conf, doc.OwnerApplication, doc)
+        private ISwDMConfiguration m_Conf;
+
+        internal SwDmConfiguration(ISwDMConfiguration conf, ISwDmDocument3D doc) : base(conf, (SwDmApplication)doc.OwnerApplication, doc)
         {
-            Configuration = conf;
+            m_Conf = conf;
             Document = doc;
 
             m_Properties = new Lazy<ISwDmCustomPropertiesCollection>(
@@ -70,7 +90,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly string m_NonCommittedName;
 
-        internal SwDmConfiguration(string name, SwDmDocument3D doc) : this(default(ISwDMConfiguration), doc)
+        internal SwDmConfiguration(string name, ISwDmDocument3D doc) : this(default(ISwDMConfiguration), doc)
         {
             m_NonCommittedName = name;
         }
@@ -106,7 +126,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public IPartNumber PartNumber { get; }
 
-        internal protected virtual SwDmDocument3D Document { get; }
+        internal protected virtual ISwDmDocument3D Document { get; }
 
         public IXImage Preview
         {

@@ -757,7 +757,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 a1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\Assembly.SLDASM");
                 a1.State = DocumentState_e.ReadOnly;
                 a1.Commit();
-                a1_1 = ((IXUnknownDocument)a1).GetSpecific();
+                a1_1 = ((IXUnknownDocument)a1).GetKnown();
                 r1 = a1_1.IsAlive;
                 a1.Close();
 
@@ -765,7 +765,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 b1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\Block.SLDBLK");
                 b1.State = DocumentState_e.ReadOnly;
                 b1.Commit();
-                b1_1 = ((IXUnknownDocument)b1).GetSpecific();
+                b1_1 = ((IXUnknownDocument)b1).GetKnown();
                 r2 = b1_1.IsAlive;
                 b1.Close();
 
@@ -773,7 +773,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 d1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\Drawing.SLDDRW");
                 d1.State = DocumentState_e.ReadOnly;
                 d1.Commit();
-                d1_1 = ((IXUnknownDocument)d1).GetSpecific();
+                d1_1 = ((IXUnknownDocument)d1).GetKnown();
                 r3 = d1_1.IsAlive;
                 d1.Close();
 
@@ -781,7 +781,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 l1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\LibFeatPart.SLDLFP");
                 l1.State = DocumentState_e.ReadOnly;
                 l1.Commit();
-                l1_1 = ((IXUnknownDocument)l1).GetSpecific();
+                l1_1 = ((IXUnknownDocument)l1).GetKnown();
                 r4 = l1_1.IsAlive;
                 l1.Close();
 
@@ -789,7 +789,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 p1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\Part.SLDPRT");
                 p1.State = DocumentState_e.ReadOnly;
                 p1.Commit();
-                p1_1 = ((IXUnknownDocument)p1).GetSpecific();
+                p1_1 = ((IXUnknownDocument)p1).GetKnown();
                 r5 = p1_1.IsAlive;
                 p1.Close();
 
@@ -797,7 +797,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 at1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\TemplateAssembly.ASMDOT");
                 at1.State = DocumentState_e.ReadOnly;
                 at1.Commit();
-                at1_1 = ((IXUnknownDocument)at1).GetSpecific();
+                at1_1 = ((IXUnknownDocument)at1).GetKnown();
                 r6 = at1_1.IsAlive;
                 at1.Close();
 
@@ -805,7 +805,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 dt1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\TemplateDrawing.DRWDOT");
                 dt1.State = DocumentState_e.ReadOnly;
                 dt1.Commit();
-                dt1_1 = ((IXUnknownDocument)dt1).GetSpecific();
+                dt1_1 = ((IXUnknownDocument)dt1).GetKnown();
                 r7 = dt1_1.IsAlive;
                 dt1.Close();
 
@@ -813,7 +813,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 pt1.Path = Path.Combine(dataFile.WorkFolderPath, @"Native\TemplatePart.PRTDOT");
                 pt1.State = DocumentState_e.ReadOnly;
                 pt1.Commit();
-                pt1_1 = ((IXUnknownDocument)pt1).GetSpecific();
+                pt1_1 = ((IXUnknownDocument)pt1).GetKnown();
                 r8 = pt1_1.IsAlive;
                 pt1.Close();
             }

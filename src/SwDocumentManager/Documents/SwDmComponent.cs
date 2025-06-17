@@ -20,6 +20,7 @@ using System.Threading;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
 using Xarial.XCad.Documents.Enums;
@@ -137,7 +138,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                     if (!refConf.IsCommitted)
                     {
-                        refConf.Commit();
+                        ReferencedDocument.Commit();
                     }
 
                     return new SwDmSubComponentCollection(this, (SwDmAssembly)ReferencedDocument, refConf);
@@ -390,7 +391,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                     unknownDoc.Path = CachedPath;
 
-                    m_CachedDocument = (ISwDmDocument3D)unknownDoc.GetSpecific();
+                    m_CachedDocument = (ISwDmDocument3D)unknownDoc.GetKnown();
                 }
 
                 return (TDocument)m_CachedDocument;
@@ -434,6 +435,118 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         protected override ISwDmDocument3D GetReferencedDocument() => GetSpecificReferencedDocument<ISwDmAssembly>();
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
+    internal class SwDmUnknownComponent : ISwDmComponent, IXUnknownComponent
+    {
+        IXConfiguration IXComponent.ReferencedConfiguration { get => ReferencedConfiguration; set => throw new NotSupportedException(); }
+        IXDocument3D IXComponent.ReferencedDocument { get => ReferencedDocument; set => throw new NotSupportedException(); }
+
+        #region Not Supported
+        public string CachedPath => throw new NotSupportedException();
+        public ISwDMComponent Component => throw new NotSupportedException();
+        public IXIdentifier Id => throw new NotSupportedException();
+        public string Reference { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public ComponentState_e State { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public IXComponentRepository Children => throw new NotSupportedException();
+        public IXFeatureRepository Features => throw new NotSupportedException();
+        public IXBodyRepository Bodies => throw new NotSupportedException();
+        public TransformMatrix Transformation { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public IXDimensionRepository Dimensions => throw new NotSupportedException();
+        public object Dispatch => throw new NotSupportedException();
+        public bool IsSelected => throw new NotSupportedException();
+        public bool IsAlive => throw new NotSupportedException();
+        public ITagsManager Tags => throw new NotSupportedException();
+        public bool IsCommitted => throw new NotSupportedException();
+        public event ComponentMovedDelegate Moved;
+        public void Commit(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public void Delete() => throw new NotSupportedException();
+        public IEditor<IXComponent> Edit() => throw new NotSupportedException();
+        public bool Equals(IXObject other) => throw new NotSupportedException();
+        public void Select(bool append) => throw new NotSupportedException();
+        public void Serialize(Stream stream) => throw new NotSupportedException();
+        TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
+        #endregion
+
+        private readonly SwDmAssembly m_RootAssm;
+        private readonly SwDmAssemblyConfiguration m_RootConf;
+
+        private readonly string m_Name;
+
+        public ISwDmDocument3D ReferencedDocument { get; }
+        public ISwDmConfiguration ReferencedConfiguration { get; }
+
+        internal SwDmUnknownComponent(string name, string refConf, ISwDmComponent parent,SwDmAssemblyConfiguration rootConf)
+        {
+            m_Name = name;
+
+            Parent = parent;
+
+            OwnerApplication = rootConf.OwnerApplication;
+            m_RootAssm = (SwDmAssembly)rootConf.OwnerDocument;
+
+            ReferencedDocument = new SwDmUnknownDocument3D(m_RootAssm.OwnerApplication, null, false, null, null);
+            ReferencedConfiguration = new SwDmUnknownComponentConfiguration(refConf, ReferencedDocument);
+            
+            m_RootConf = rootConf;
+        }
+
+        public IXComponent Parent { get; }
+
+        public IXApplication OwnerApplication { get; }
+        public IXDocument OwnerDocument => m_RootAssm;
+
+        public string FullName
+        {
+            get
+            {
+                if (Parent != null)
+                {
+                    return Parent.FullName + "/" + Name;
+                }
+                else
+                {
+                    return Name;
+                }
+            }
+        }
+
+        public string Name { get => m_Name; set => throw new NotSupportedException(); }
+
+        public IXComponent GetKnown() 
+        {
+            if (Parent != null)
+            {
+                IXComponent parent;
+
+                if (Parent is IXUnknownComponent)
+                {
+                    parent = ((IXUnknownComponent)Parent).GetKnown();
+                }
+                else
+                {
+                    parent = Parent;
+                }
+
+                if (!parent.IsCommitted) 
+                {
+                    parent.Commit();
+                }
+
+                return parent.Children[m_Name];
+            }
+            else 
+            {
+                if (!m_RootConf.IsCommitted)
+                {
+                    m_RootAssm.Commit();
+                }
+
+                return m_RootConf.Components[m_Name];
+            }
+        }
+    }
+
     internal abstract class SwDmComponentConfiguration : SwDmConfiguration
     {
         #region Not Supported
@@ -467,13 +580,20 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
-        internal protected override SwDmDocument3D Document => (SwDmDocument3D)m_Comp.ReferencedDocument;
+        internal protected override ISwDmDocument3D Document => m_Comp.ReferencedDocument;
 
         public override ISwDMConfiguration Configuration => Document.Configurations[m_Name].Configuration;
 
         public override object Dispatch => Configuration;
 
         public override bool IsCommitted => Document.IsCommitted;
+    }
+
+    internal class SwDmUnknownComponentConfiguration : SwDmConfiguration
+    {
+        internal SwDmUnknownComponentConfiguration(string name, ISwDmDocument3D doc) : base(name, doc)
+        {
+        }
     }
 
     internal class SwDmPartComponentConfiguration : SwDmComponentConfiguration, ISwDmPartConfiguration

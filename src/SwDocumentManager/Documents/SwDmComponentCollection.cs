@@ -86,7 +86,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         private object[] GetComponents(ISwDMConfiguration conf) 
         {
             ValidateSpeedPak(conf);
-            return ((ISwDMConfiguration2)conf).GetComponents() as object[] ?? new object[0];
+            return ((ISwDMConfiguration2)conf).GetComponents() as object[] ?? Array.Empty<object>();
         }
 
         private void ValidateSpeedPak(ISwDMConfiguration conf) 
@@ -192,7 +192,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public bool TryGet(string name, out IXComponent ent)
         {
             var comp = IterateDmComponents().FirstOrDefault(c => string.Equals(((ISwDMComponent7)c).Name2,
-                name, StringComparison.CurrentCultureIgnoreCase));
+                    name, StringComparison.CurrentCultureIgnoreCase));
 
             if (comp != null)
             {

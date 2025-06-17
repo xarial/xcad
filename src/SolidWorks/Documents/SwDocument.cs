@@ -1391,7 +1391,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private IXDocument m_SpecificDoc;
 
-        public IXDocument GetSpecific()
+        public IXDocument GetKnown()
         {
             if (m_SpecificDoc != null)
             {

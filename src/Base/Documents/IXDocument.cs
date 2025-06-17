@@ -213,9 +213,9 @@ namespace Xarial.XCad.Documents
     public interface IXUnknownDocument : IXDocument
     {
         /// <summary>
-        /// Retrieves the specific document from the unknown document
+        /// Retrieves the specific known document from the unknown document
         /// </summary>
-        /// <returns></returns>
-        IXDocument GetSpecific();
+        /// <returns>Known document type</returns>
+        IXDocument GetKnown();
     }
 }

@@ -361,7 +361,7 @@ namespace Xarial.XCad.Inventor.Documents
         {
         }
 
-        public IXDocument GetSpecific()
+        public IXDocument GetKnown()
         {
             if (m_SpecificDoc != null)
             {

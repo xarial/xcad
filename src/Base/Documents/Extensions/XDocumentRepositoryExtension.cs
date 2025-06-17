@@ -50,7 +50,7 @@ namespace Xarial.XCad.Documents.Extensions
 
             if (doc is IXUnknownDocument)
             {
-                doc = (TDoc)(doc as IXUnknownDocument).GetSpecific();
+                doc = (TDoc)(doc as IXUnknownDocument).GetKnown();
             }
 
             return doc;
@@ -73,7 +73,7 @@ namespace Xarial.XCad.Documents.Extensions
 
             repo.Add(doc);
 
-            return doc.GetSpecific();
+            return doc.GetKnown();
         }
 
         /// <summary>

@@ -121,6 +121,19 @@ namespace Xarial.XCad.Documents
     }
 
     /// <summary>
+    /// Represents the unknown component type
+    /// </summary>
+    /// <remarks>This interface provides an access to the component whose specific type cannot be determined in advance
+    public interface IXUnknownComponent : IXComponent
+    {
+        /// <summary>
+        /// Retrieves the specific known component from the unknown component
+        /// </summary>
+        /// <returns>Known component type</returns>
+        IXComponent GetKnown();
+    }
+
+    /// <summary>
     /// Additional methods for <see cref="IXComponent"/>
     /// </summary>
     public static class XComponentExtension 

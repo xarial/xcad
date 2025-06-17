@@ -93,7 +93,7 @@ namespace Xarial.XCad.SwDocumentManager.Data
 
         private bool m_IsCommitted;
 
-        internal SwDmCustomProperty(string name, bool isCreated, SwDmDocument doc, SwDmApplication app)  : base(null, app, doc)
+        internal SwDmCustomProperty(string name, bool isCreated, ISwDmDocument doc, SwDmApplication app)  : base(null, app, doc)
         {
             m_Name = name;
             m_IsCommitted = isCreated;

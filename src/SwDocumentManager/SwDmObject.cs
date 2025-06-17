@@ -40,13 +40,13 @@ namespace Xarial.XCad.SwDocumentManager
         IXDocument IXObject.OwnerDocument => OwnerDocument;
 
         internal SwDmApplication OwnerApplication { get; }
-        internal SwDmDocument OwnerDocument { get; }
+        internal ISwDmDocument OwnerDocument { get; }
 
         public ITagsManager Tags => m_TagsLazy.Value;
 
         private readonly Lazy<ITagsManager> m_TagsLazy;
 
-        public SwDmObject(object disp, SwDmApplication ownerApp, SwDmDocument ownerDoc)
+        public SwDmObject(object disp, SwDmApplication ownerApp, ISwDmDocument ownerDoc)
         {
             Dispatch = disp;
 

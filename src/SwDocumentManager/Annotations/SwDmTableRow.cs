@@ -85,12 +85,11 @@ namespace Xarial.XCad.SwDocumentManager.Annotations
 
                 if (err == SwDmTableError.SwDmTableErrorNone)
                 {
-                    var rootAssm = (SwDmAssembly)m_BomTable.ReferencedDocument;
-                    var refConf = (SwDmAssemblyConfiguration)m_BomTable.ReferencedConfiguration;
+                    var rootConf = (SwDmAssemblyConfiguration)m_BomTable.ReferencedConfiguration;
 
                     var compParts = compRep.Split('/');
 
-                    IXComponent comp = null;
+                    ISwDmComponent comp = null;
 
                     for (int i = 1; i < compParts.Length; i++) 
                     {
@@ -100,13 +99,20 @@ namespace Xarial.XCad.SwDocumentManager.Annotations
 
                         var compName = compParts[i].Substring(0, confNameStartIndex);
 
-                        if (comp != null)
+                        if (rootConf.IsCommitted)
                         {
-                            comp = comp.Children[compName];
+                            if (comp != null)
+                            {
+                                comp = (ISwDmComponent)comp.Children[compName];
+                            }
+                            else
+                            {
+                                comp = (ISwDmComponent)rootConf.Components[compName];
+                            }
                         }
                         else 
                         {
-                            comp = refConf.Components[compName];
+                            comp = new SwDmUnknownComponent(compName, confName, comp, rootConf);
                         }
                     }
 

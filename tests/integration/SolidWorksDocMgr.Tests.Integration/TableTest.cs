@@ -1,5 +1,6 @@
 ﻿using Microsoft.SqlServer.Server;
 using NUnit.Framework;
+using SolidWorks.Interop.swdocumentmgr;
 using SolidWorksDocMgr.Tests.Integration;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Exceptions;
+using Xarial.XCad.SwDocumentManager.Documents;
 
 namespace SolidWorksDocMgr.Tests.Integration
 {
@@ -148,6 +150,188 @@ namespace SolidWorksDocMgr.Tests.Integration
             CollectionAssert.AreEqual(new string[] { "Part2-1" }, c3);
             Assert.IsNull(c4);
             Assert.IsNull(c5);
+        }
+
+        [Test]
+        public void BomUnknownComponentsTest()
+        {
+            string refDocPath1;
+            string refConf1;
+            bool refDocComm1;
+
+            Tuple<string, Tuple<string, string, string, bool>[]>[] res1;
+
+            string refDocPath2;
+            string refConf2;
+            bool refDocComm2;
+
+            Tuple<string, Tuple<string, string, string, bool>[]>[] res2;
+
+            string c1;
+            string cp1;
+
+            string workDir;
+
+            using (var doc = OpenDataDocument(@"Drawing10\Drawing10.slddrw"))
+            {
+                workDir = doc.WorkFolderPath;
+
+                var drw = (IXDrawing)doc.Document;
+
+                var bomTable1 = drw.Sheets["Sheet1"].Annotations.OfType<IXBomTable>().First();
+
+                var refDoc1 = bomTable1.ReferencedDocument;
+
+                refDocComm1 = refDoc1.IsCommitted;
+
+                refDocPath1 = refDoc1.Path;
+                refConf1 = bomTable1.ReferencedConfiguration.Name;
+
+                res1 = bomTable1.Rows.Select(r => new Tuple<string, Tuple<string, string, string, bool>[]>(
+                    r.ItemNumber,
+                    r.Components.Select(c => new Tuple<string, string, string, bool>(c.Name, c.ReferencedConfiguration.Name, c.Parent?.Name, c is IXUnknownComponent)).ToArray())).ToArray();
+
+                var bomTable2 = drw.Sheets["Sheet2"].Annotations.OfType<IXBomTable>().First();
+
+                var refDoc2 = bomTable2.ReferencedDocument;
+
+                refDocComm2 = refDoc2.IsCommitted;
+
+                refDocPath2 = refDoc2.Path;
+                refConf2 = bomTable2.ReferencedConfiguration.Name;
+
+                res2 = bomTable2.Rows.Select(r => new Tuple<string, Tuple<string, string, string, bool>[]>(
+                    r.ItemNumber,
+                    r.Components.Select(c => new Tuple<string, string, string, bool>(c.Name, c.ReferencedConfiguration.Name, c.Parent?.Name, c is IXUnknownComponent)).ToArray())).ToArray();
+
+                var comp = (IXUnknownComponent)bomTable1.Rows.ElementAt(1).Components.First();
+                var knownComp = (ISwDmComponent)comp.GetKnown();
+                c1 = ((ISwDMComponent7)knownComp.Component).Name2;
+                cp1 = ((ISwDMComponent7)((ISwDmComponent)knownComp.Parent).Component).Name2;
+            }
+
+            Assert.That(string.Equals(refDocPath1, Path.Combine(workDir, "Drawing10\\Assem1.sldasm"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(refConf1, "Default", StringComparison.CurrentCultureIgnoreCase));
+            Assert.IsFalse(refDocComm1);
+            Assert.That(string.Equals(refDocPath2, Path.Combine(workDir, "Drawing10\\Assem1.sldasm"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(refConf2, "Default", StringComparison.CurrentCultureIgnoreCase));
+            Assert.IsFalse(refDocComm2);
+            Assert.AreEqual(5, res1.Length);
+            Assert.AreEqual("1", res1[0].Item1);
+            Assert.AreEqual("1.1", res1[1].Item1);
+            Assert.AreEqual("2", res1[2].Item1);
+            Assert.AreEqual("3", res1[3].Item1);
+            Assert.AreEqual("3.1", res1[4].Item1);
+            Assert.AreEqual(1, res1[0].Item2.Length);
+            Assert.AreEqual("SubAssem1-1", res1[0].Item2[0].Item1);
+            Assert.AreEqual("Default", res1[0].Item2[0].Item2);
+            Assert.IsNull(res1[0].Item2[0].Item3);
+            Assert.IsTrue(res1[0].Item2[0].Item4);
+            Assert.AreEqual(1, res1[1].Item2.Length);
+            Assert.AreEqual("Part1-1", res1[1].Item2[0].Item1);
+            Assert.AreEqual("Default", res1[1].Item2[0].Item2);
+            Assert.AreEqual("SubAssem1-1", res1[1].Item2[0].Item3);
+            Assert.IsTrue(res1[1].Item2[0].Item4);
+            Assert.AreEqual(1, res1[2].Item2.Length);
+            Assert.AreEqual("Part1-1", res1[2].Item2[0].Item1);
+            Assert.AreEqual("Conf1", res1[2].Item2[0].Item2);
+            Assert.IsNull(res1[2].Item2[0].Item3);
+            Assert.IsTrue(res1[2].Item2[0].Item4);
+            Assert.AreEqual(1, res1[3].Item2.Length);
+            Assert.AreEqual("SubAssem1-2", res1[3].Item2[0].Item1);
+            Assert.AreEqual("Conf1", res1[3].Item2[0].Item2);
+            Assert.IsNull(res1[3].Item2[0].Item3);
+            Assert.IsTrue(res1[3].Item2[0].Item4);
+            Assert.AreEqual(1, res1[4].Item2.Length);
+            Assert.AreEqual("Part1-1", res1[4].Item2[0].Item1);
+            Assert.AreEqual("Conf1", res1[4].Item2[0].Item2);
+            Assert.AreEqual("SubAssem1-2", res1[4].Item2[0].Item3);
+            Assert.IsTrue(res1[4].Item2[0].Item4);
+
+            Assert.AreEqual(3, res2.Length);
+            Assert.AreEqual("1", res2[0].Item1);
+            Assert.AreEqual("2", res2[1].Item1);
+            Assert.AreEqual("3", res2[2].Item1);
+            Assert.AreEqual(1, res2[0].Item2.Length);
+            Assert.AreEqual("SubAssem1-1", res2[0].Item2[0].Item1);
+            Assert.AreEqual("Default", res2[0].Item2[0].Item2);
+            Assert.IsNull(res2[0].Item2[0].Item3);
+            Assert.IsTrue(res2[0].Item2[0].Item4);
+            Assert.AreEqual(1, res2[1].Item2.Length);
+            Assert.AreEqual("SubAssem1-2", res2[1].Item2[0].Item1);
+            Assert.AreEqual("Conf1", res2[1].Item2[0].Item2);
+            Assert.IsNull(res2[1].Item2[0].Item3);
+            Assert.IsTrue(res2[1].Item2[0].Item4);
+            Assert.AreEqual(1, res2[2].Item2.Length);
+            Assert.AreEqual("Part1-1", res2[2].Item2[0].Item1);
+            Assert.AreEqual("Conf1", res2[2].Item2[0].Item2);
+            Assert.IsNull(res2[2].Item2[0].Item3);
+            Assert.IsTrue(res2[2].Item2[0].Item4);
+
+            Assert.AreEqual("Part1-1", c1);
+            Assert.AreEqual("SubAssem1-1", cp1);
+        }
+
+        [Test]
+        public void BomUnknownComponentsDetachedTest()
+        {
+            string refDocFileName1;
+            string refConf1;
+            bool refDocComm1;
+
+            Tuple<string, Tuple<string, string, string, bool>[]>[] res1;
+
+            string workDir;
+
+            using (var doc = OpenDataDocument(@"Drawing10-detached.SLDDRW"))
+            {
+                workDir = doc.WorkFolderPath;
+
+                var drw = (IXDrawing)doc.Document;
+
+                var bomTable1 = drw.Sheets["Sheet1"].Annotations.OfType<IXBomTable>().First();
+
+                var refDoc1 = bomTable1.ReferencedDocument;
+
+                refDocComm1 = refDoc1.IsCommitted;
+
+                refDocFileName1 = Path.GetFileName(refDoc1.Path);
+                refConf1 = bomTable1.ReferencedConfiguration.Name;
+
+                res1 = bomTable1.Rows.Select(r => new Tuple<string, Tuple<string, string, string, bool>[]>(
+                    r.ItemNumber,
+                    r.Components.Select(c => new Tuple<string, string, string, bool>(c.Name, c.ReferencedConfiguration.Name, c.Parent?.Name, c is IXUnknownComponent)).ToArray())).ToArray();
+            }
+
+            Assert.That(string.Equals(refDocFileName1, "Assem1.sldasm", StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(refConf1, "Default", StringComparison.CurrentCultureIgnoreCase));
+            Assert.IsFalse(refDocComm1);
+
+            Assert.AreEqual(1, res1[0].Item2.Length);
+            Assert.AreEqual("SubAssem1-1", res1[0].Item2[0].Item1);
+            Assert.AreEqual("Default", res1[0].Item2[0].Item2);
+            Assert.IsNull(res1[0].Item2[0].Item3);
+            Assert.IsTrue(res1[0].Item2[0].Item4);
+            Assert.AreEqual(1, res1[1].Item2.Length);
+            Assert.AreEqual("Part1-1", res1[1].Item2[0].Item1);
+            Assert.AreEqual("Default", res1[1].Item2[0].Item2);
+            Assert.AreEqual("SubAssem1-1", res1[1].Item2[0].Item3);
+            Assert.IsTrue(res1[1].Item2[0].Item4);
+            Assert.AreEqual(1, res1[2].Item2.Length);
+            Assert.AreEqual("Part1-1", res1[2].Item2[0].Item1);
+            Assert.AreEqual("Conf1", res1[2].Item2[0].Item2);
+            Assert.IsNull(res1[2].Item2[0].Item3);
+            Assert.IsTrue(res1[2].Item2[0].Item4);
+            Assert.AreEqual(1, res1[3].Item2.Length);
+            Assert.AreEqual("SubAssem1-2", res1[3].Item2[0].Item1);
+            Assert.AreEqual("Conf1", res1[3].Item2[0].Item2);
+            Assert.IsNull(res1[3].Item2[0].Item3);
+            Assert.IsTrue(res1[3].Item2[0].Item4);
+            Assert.AreEqual(1, res1[4].Item2.Length);
+            Assert.AreEqual("Part1-1", res1[4].Item2[0].Item1);
+            Assert.AreEqual("Conf1", res1[4].Item2[0].Item2);
+            Assert.AreEqual("SubAssem1-2", res1[4].Item2[0].Item3);
+            Assert.IsTrue(res1[4].Item2[0].Item4);
         }
     }
 }

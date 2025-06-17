@@ -29,7 +29,7 @@ namespace Xarial.XCad.SwDocumentManager
 
         #endregion
 
-        public SwDmSelObject(object disp, SwDmApplication ownerApp, SwDmDocument ownerDoc) : base(disp, ownerApp, ownerDoc)
+        public SwDmSelObject(object disp, SwDmApplication ownerApp, ISwDmDocument ownerDoc) : base(disp, ownerApp, ownerDoc)
         {
         }
 

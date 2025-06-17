@@ -93,7 +93,7 @@ namespace SolidWorks.Tests.Integration
 
             doc.Commit();
 
-            doc = (ISwDocument)(doc as IXUnknownDocument).GetSpecific();
+            doc = (ISwDocument)(doc as IXUnknownDocument).GetKnown();
 
             var isReadOnly = doc.Model.IsOpenedReadOnly();
             var isPart = doc.Model is IPartDoc;
@@ -1015,7 +1015,7 @@ namespace SolidWorks.Tests.Integration
                 p2.Path = filePath;
                 p2.Commit();
 
-                var p3 = p2.GetSpecific();
+                var p3 = p2.GetKnown();
 
                 Assert.IsTrue(p1.IsCommitted);
                 Assert.That(string.Equals(p1.Path, filePath, StringComparison.CurrentCultureIgnoreCase));
@@ -1133,7 +1133,7 @@ namespace SolidWorks.Tests.Integration
             var part3unk = m_App.Documents.PreCreate<IXUnknownDocument>();
             part3unk.Template = GetFilePath("Template_2020.prtdot");
             part3unk.Commit();
-            var part3 = part3unk.GetSpecific();
+            var part3 = part3unk.GetKnown();
 
             var contains5 = m_App.Documents.Contains(part3, new XObjectEqualityComparer<IXDocument>());
 
@@ -1436,7 +1436,7 @@ namespace SolidWorks.Tests.Integration
             a1.Path = GetFilePath(@"Native\Assembly.SLDASM");
             a1.State = DocumentState_e.ReadOnly;
             a1.Commit();
-            var a1_1 = ((IXUnknownDocument)a1).GetSpecific();
+            var a1_1 = ((IXUnknownDocument)a1).GetKnown();
             r1 = a1_1.IsAlive;
             a1.Close();
 
@@ -1444,7 +1444,7 @@ namespace SolidWorks.Tests.Integration
             b1.Path = GetFilePath(@"Native\Block.SLDBLK");
             b1.State = DocumentState_e.ReadOnly;
             b1.Commit();
-            var b1_1 = ((IXUnknownDocument)b1).GetSpecific();
+            var b1_1 = ((IXUnknownDocument)b1).GetKnown();
             r2 = b1_1.IsAlive;
             b1.Close();
 
@@ -1452,7 +1452,7 @@ namespace SolidWorks.Tests.Integration
             d1.Path = GetFilePath(@"Native\Drawing.SLDDRW");
             d1.State = DocumentState_e.ReadOnly;
             d1.Commit();
-            var d1_1 = ((IXUnknownDocument)d1).GetSpecific();
+            var d1_1 = ((IXUnknownDocument)d1).GetKnown();
             r3 = d1_1.IsAlive;
             d1.Close();
 
@@ -1460,7 +1460,7 @@ namespace SolidWorks.Tests.Integration
             l1.Path = GetFilePath(@"Native\LibFeatPart.SLDLFP");
             l1.State = DocumentState_e.ReadOnly;
             l1.Commit();
-            var l1_1 = ((IXUnknownDocument)l1).GetSpecific();
+            var l1_1 = ((IXUnknownDocument)l1).GetKnown();
             r4 = l1_1.IsAlive;
             l1.Close();
 
@@ -1468,7 +1468,7 @@ namespace SolidWorks.Tests.Integration
             p1.Path = GetFilePath(@"Native\Part.SLDPRT");
             p1.State = DocumentState_e.ReadOnly;
             p1.Commit();
-            var p1_1 = ((IXUnknownDocument)p1).GetSpecific();
+            var p1_1 = ((IXUnknownDocument)p1).GetKnown();
             r5 = p1_1.IsAlive;
             p1.Close();
 
@@ -1476,7 +1476,7 @@ namespace SolidWorks.Tests.Integration
             at1.Path = GetFilePath(@"Native\TemplateAssembly.ASMDOT");
             at1.State = DocumentState_e.ReadOnly;
             at1.Commit();
-            var at1_1 = ((IXUnknownDocument)at1).GetSpecific();
+            var at1_1 = ((IXUnknownDocument)at1).GetKnown();
             r6 = at1_1.IsAlive;
             at1.Close();
 
@@ -1484,7 +1484,7 @@ namespace SolidWorks.Tests.Integration
             dt1.Path = GetFilePath(@"Native\TemplateDrawing.DRWDOT");
             dt1.State = DocumentState_e.ReadOnly;
             dt1.Commit();
-            var dt1_1 = ((IXUnknownDocument)dt1).GetSpecific();
+            var dt1_1 = ((IXUnknownDocument)dt1).GetKnown();
             r7 = dt1_1.IsAlive;
             dt1.Close();
 
@@ -1492,7 +1492,7 @@ namespace SolidWorks.Tests.Integration
             pt1.Path = GetFilePath(@"Native\TemplatePart.PRTDOT");
             pt1.State = DocumentState_e.ReadOnly;
             pt1.Commit();
-            var pt1_1 = ((IXUnknownDocument)pt1).GetSpecific();
+            var pt1_1 = ((IXUnknownDocument)pt1).GetKnown();
             r8 = pt1_1.IsAlive;
             pt1.Close();
 
