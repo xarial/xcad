@@ -22,16 +22,16 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Selections1.SLDPRT"))
             {
-                var part = (IPartDoc)m_App.Sw.IActiveDoc2;
+                var part = (IPartDoc)doc.Document.Model;
                 (part as IModelDoc2).ClearSelection2(true);
                 (part.GetEntityByName("Face1", (int)swSelectType_e.swSelFACES) as IEntity).Select4(true, null);
                 (part.GetEntityByName("Face2", (int)swSelectType_e.swSelFACES) as IEntity).Select4(true, null);
                 (part.GetEntityByName("Edge1", (int)swSelectType_e.swSelEDGES) as IEntity).Select4(true, null);
                 (part.FeatureByName("Sketch1") as IFeature).Select2(true, -1);
 
-                selCount = m_App.Documents.Active.Selections.Count;
+                selCount = Application.Documents.Active.Selections.Count;
 
-                foreach (var sel in m_App.Documents.Active.Selections) 
+                foreach (var sel in Application.Documents.Active.Selections) 
                 {
                     selTypes.Add(sel.GetType());
                 }
@@ -51,9 +51,9 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Selections1.SLDPRT"))
             {
-                var part = (IPartDoc)m_App.Sw.IActiveDoc2;
+                var part = (IPartDoc)doc.Document.Model;
 
-                m_App.Documents.Active.Selections.NewSelection += (d, o) => selTypes.Add(o.GetType());
+                doc.Document.Selections.NewSelection += (d, o) => selTypes.Add(o.GetType());
 
                 (part.GetEntityByName("Face1", (int)swSelectType_e.swSelFACES) as IEntity).Select4(true, null);
                 (part.GetEntityByName("Edge1", (int)swSelectType_e.swSelEDGES) as IEntity).Select4(true, null);
@@ -70,9 +70,9 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Selections1.SLDPRT"))
             {
-                var part = (IPartDoc)m_App.Sw.IActiveDoc2;
+                var part = (IPartDoc)doc.Document.Model;
 
-                m_App.Documents.Active.Selections.ClearSelection += (d) => clearSelCount++;
+                doc.Document.Selections.ClearSelection += (d) => clearSelCount++;
 
                 (part.GetEntityByName("Face1", (int)swSelectType_e.swSelFACES) as IEntity).Select4(true, null);
                 (part.GetEntityByName("Edge1", (int)swSelectType_e.swSelEDGES) as IEntity).Select4(false, null);
@@ -100,7 +100,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Selections1.SLDPRT"))
             {
-                var model = m_App.Documents.Active;
+                var model = doc.Document;
 
                 var part = (IPartDoc)model.Model;
                 var selMgr = model.Model.ISelectionManager;
@@ -115,15 +115,15 @@ namespace SolidWorks.Tests.Integration
                 model.Selections.AddRange(new ISwSelObject[] { e1, e2, e3, e4 });
 
                 selCount1 = selMgr.GetSelectedObjectCount2(-1);
-                r1 = m_App.Sw.IsSame(e1.Dispatch, selMgr.GetSelectedObject6(1, -1));
-                r2 = m_App.Sw.IsSame(e2.Dispatch, selMgr.GetSelectedObject6(2, -1));
-                r3 = m_App.Sw.IsSame(e3.Dispatch, selMgr.GetSelectedObject6(3, -1));
-                r4 = m_App.Sw.IsSame(e4.Feature, selMgr.GetSelectedObject6(4, -1));
+                r1 = Application.Sw.IsSame(e1.Dispatch, selMgr.GetSelectedObject6(1, -1));
+                r2 = Application.Sw.IsSame(e2.Dispatch, selMgr.GetSelectedObject6(2, -1));
+                r3 = Application.Sw.IsSame(e3.Dispatch, selMgr.GetSelectedObject6(3, -1));
+                r4 = Application.Sw.IsSame(e4.Feature, selMgr.GetSelectedObject6(4, -1));
 
                 model.Selections.RemoveRange(new ISwSelObject[] { e1, e3});
                 selCount2 = selMgr.GetSelectedObjectCount2(-1);
-                r5 = m_App.Sw.IsSame(e2.Dispatch, selMgr.GetSelectedObject6(1, -1));
-                r6 = m_App.Sw.IsSame(e4.Feature, selMgr.GetSelectedObject6(2, -1));
+                r5 = Application.Sw.IsSame(e2.Dispatch, selMgr.GetSelectedObject6(1, -1));
+                r6 = Application.Sw.IsSame(e4.Feature, selMgr.GetSelectedObject6(2, -1));
             }
 
             Assert.AreEqual(4, selCount1);

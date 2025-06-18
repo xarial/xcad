@@ -25,7 +25,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Features1.SLDPRT"))
             {
-                foreach (var feat in m_App.Documents.Active.Features)
+                foreach (var feat in doc.Document.Features)
                 {
                     featNames.Add(feat.Name);
                 }
@@ -37,7 +37,7 @@ namespace SolidWorks.Tests.Integration
                 "Sketch1<2>" };
 
             //NOTE: SW 2024, 'Lights, Cameras and Scene' feature is renamed to 'Lights and Cameras' (index 11)
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2024))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2024))
             {
                 Assert.AreEqual("Lights and Cameras", featNames[11]);
             }
@@ -58,7 +58,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Cylinder2.SLDPRT"))
             {
-                foreach (var feat in m_App.Documents.Active.Features)
+                foreach (var feat in doc.Document.Features)
                 {
                     if (feat.IsUserFeature)
                     {
@@ -82,13 +82,13 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Features1.SLDPRT"))
             {
-                feat1 = m_App.Documents.Active.Features["Sketch1"];
-                r1 = m_App.Documents.Active.Features.TryGet("Sketch1", out feat2);
-                r2 = m_App.Documents.Active.Features.TryGet("Sketch2", out feat3);
+                feat1 = doc.Document.Features["Sketch1"];
+                r1 = doc.Document.Features.TryGet("Sketch1", out feat2);
+                r2 = doc.Document.Features.TryGet("Sketch2", out feat3);
                 
                 try
                 {
-                    var feat4 = m_App.Documents.Active.Features["Sketch2"];
+                    var feat4 = doc.Document.Features["Sketch2"];
                 }
                 catch (Exception ex)
                 {
@@ -111,7 +111,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Sketch1.SLDPRT"))
             {
-                var sketch1 = m_App.Documents.Active.Features["Sketch1"];
+                var sketch1 = doc.Document.Features["Sketch1"];
                 var sketch2 = ((ISwSketchBase)sketch1).Entities.OfType<IXSketchSegment>().First().OwnerSketch;
                 e1 = sketch1.Equals(sketch2);
             }
@@ -127,7 +127,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("PartFeatures1.SLDPRT"))
             {
-                var part = m_App.Documents.Active;
+                var part = doc.Document;
 
                 feats1 = part.Features.Filter<IXSketch2D>().Select(f => f.Name).ToArray();
                 feats2 = part.Features.Filter<IXSketch2D>(true).Select(f => f.Name).ToArray();
@@ -169,7 +169,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("StructuralMemberOrientation.SLDPRT"))
             {
-                var part = m_App.Documents.Active;
+                var part = doc.Document;
 
                 var f1 = (ISwStructuralMember)part.Features["2D-Simple"];
                 var f1_g1 = f1.Groups["Group1"];
@@ -270,9 +270,9 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Features1.SLDPRT"))
             {
-                m_App.Documents.Active.Features.RemoveRange(new IXFeature[] { m_App.Documents.Active.Features["Boss-Extrude1"] , m_App.Documents.Active.Features["Boss-Extrude2"] });
+                doc.Document.Features.RemoveRange(new IXFeature[] { doc.Document.Features["Boss-Extrude1"] , doc.Document.Features["Boss-Extrude2"] });
 
-                feats1 = m_App.Documents.Active.Features.Skip(23).Select(f => f.Name).ToArray();
+                feats1 = doc.Document.Features.Skip(23).Select(f => f.Name).ToArray();
             }
 
             CollectionAssert.AreEqual(new string[] { "Sketch1"}, feats1);
@@ -305,7 +305,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly19\Assem19.SLDASM"))
             {
-                var assm = (IXAssembly)m_App.Documents.Active;
+                var assm = (IXAssembly)doc.Document;
 
                 s1 = assm.Features["Sketch1"].State;
                 s2 = assm.Features["Sketch2"].State;
@@ -333,12 +333,12 @@ namespace SolidWorks.Tests.Integration
                 s10 = assm.Selections.OfType<IXFeature>().First().State;
                 
                 assm.Configurations.Active.Components["Part1-1"].Features["Sketch1"].State = FeatureState_e.Suppressed;
-                r1 = ((bool[])((IFeature)((ISwPart)m_App.Documents["Part1.sldprt"]).Part.FeatureByName("Sketch1")).IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf1" })).First();
-                r2 = ((bool[])((IFeature)((ISwPart)m_App.Documents["Part1.sldprt"]).Part.FeatureByName("Sketch1")).IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" })).First();
+                r1 = ((bool[])((IFeature)((ISwPart)Application.Documents["Part1.sldprt"]).Part.FeatureByName("Sketch1")).IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf1" })).First();
+                r2 = ((bool[])((IFeature)((ISwPart)Application.Documents["Part1.sldprt"]).Part.FeatureByName("Sketch1")).IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" })).First();
 
                 ((IXAssemblyConfiguration)assm.Configurations["Default"]).Components["Part1-2"].Features["Sketch2"].State = FeatureState_e.Default;
-                r3 = ((bool[])((IFeature)((ISwPart)m_App.Documents["Part1.sldprt"]).Part.FeatureByName("Sketch2")).IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf1" })).First();
-                r4 = ((bool[])((IFeature)((ISwPart)m_App.Documents["Part1.sldprt"]).Part.FeatureByName("Sketch2")).IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" })).First();
+                r3 = ((bool[])((IFeature)((ISwPart)Application.Documents["Part1.sldprt"]).Part.FeatureByName("Sketch2")).IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf1" })).First();
+                r4 = ((bool[])((IFeature)((ISwPart)Application.Documents["Part1.sldprt"]).Part.FeatureByName("Sketch2")).IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" })).First();
 
                 assm.Features["Sketch1"].State = FeatureState_e.Suppressed;
                 r5 = ((bool[])((IFeature)((ISwAssembly)assm).Assembly.FeatureByName("Sketch1")).IsSuppressed2((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf1" })).First();

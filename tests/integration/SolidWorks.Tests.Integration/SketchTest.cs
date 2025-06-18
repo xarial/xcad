@@ -27,7 +27,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Sketch1.SLDPRT")) 
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 var sketch = part.CreateObjectFromDispatch<ISwSketch2D>(
                     part.Features["Sketch1"].Feature.GetSpecificFeature2() as ISketch);
@@ -58,7 +58,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Sketch1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 var sketch = part.CreateObjectFromDispatch<ISwSketch2D>(
                     part.Features["Sketch1"].Feature.GetSpecificFeature2() as ISketch);
@@ -92,9 +92,9 @@ namespace SolidWorks.Tests.Integration
             var y2 = -1d;
             var z2 = -1d;
 
-            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
+            using (var doc = NewDataDocument(swDocumentTypes_e.swDocPART))
             {
-                var part = m_App.Documents.Active;
+                var part = doc.Document;
 
                 var sketch3D = (ISwSketch3D)part.Features.PreCreate3DSketch();
                 var line = (IXSketchLine)sketch3D.Entities.PreCreateLine();
@@ -138,7 +138,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Sketch1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 var sketch = part.CreateObjectFromDispatch<ISwSketch2D>(
                     part.Features["Sketch1"].Feature.GetSpecificFeature2() as ISketch);
@@ -168,7 +168,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Blocks1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 var sketch = part.CreateObjectFromDispatch<ISwSketch2D>(
                     part.Features["Sketch1"].Feature.GetSpecificFeature2() as ISketch);
@@ -190,7 +190,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Blocks1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 part.Model.Extension.SelectByID2("Line8@Sketch1", "EXTSKETCHSEGMENT", 0, 0, 0, false, 0, null, 0);
                 var seg1 = (IXSketchSegment)part.Selections.First();
@@ -231,7 +231,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Blocks1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 var sketch = (ISwSketch2D)part.Features["Sketch1"];
 
@@ -287,7 +287,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Sketch1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 var sketch = part.CreateObjectFromDispatch<ISwSketch2D>(
                     part.Features["Sketch1"].Feature.GetSpecificFeature2() as ISketch);
@@ -305,7 +305,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("SheetSketch1.SLDDRW"))
             {
-                var drw = (ISwDrawing)m_App.Documents.Active;
+                var drw = (ISwDrawing)doc.Document;
 
                 var sketch = drw.Sheets["Sheet2"].Sketch;
 
@@ -347,7 +347,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("SketchEntities1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 var sketch = (ISwSketchBase)part.Features["Sketch1"];
 

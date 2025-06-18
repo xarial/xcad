@@ -32,9 +32,9 @@ namespace SolidWorks.Tests.Integration
             double[] pos;
             System.Drawing.Color color;
 
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocDRAWING)) 
+            using (var doc = NewDataDocument(Interop.swconst.swDocumentTypes_e.swDocDRAWING)) 
             {
-                var drw = m_App.Documents.Active;
+                var drw = doc.Document;
 
                 var note = drw.Annotations.PreCreate<ISwNote>();
                 note.Text = "Test Note";
@@ -91,7 +91,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Drawing8\Drawing8.SLDDRW"))
             {
-                var drw = (ISwDrawing)m_App.Documents.Active;
+                var drw = (ISwDrawing)doc.Document;
 
                 var notes = drw.Annotations.Filter<IXDrawingNote>().ToArray();
 

@@ -16,6 +16,32 @@ namespace Xarial.XCad.Tests.Common
         where TApp : IXApplication
         where TDoc : IXDocument
     {
+        private const string XCAD_TEST_DATA = "XCAD_TEST_DATA";
+        
+        private static string GetDefaultArchiveFilePath() 
+        {
+            var dataArchiveFile = Environment.GetEnvironmentVariable(XCAD_TEST_DATA, EnvironmentVariableTarget.User);
+
+            if (string.IsNullOrEmpty(dataArchiveFile))
+            {
+                dataArchiveFile = Environment.GetEnvironmentVariable(XCAD_TEST_DATA, EnvironmentVariableTarget.Machine);
+            }
+
+            if (!string.IsNullOrEmpty(dataArchiveFile))
+            {
+                if (!File.Exists(dataArchiveFile))
+                {
+                    throw new FileNotFoundException($"Data archive file path '{dataArchiveFile}' specified in '{XCAD_TEST_DATA}' environment variable does nto exist");
+                }
+            }
+            else 
+            {
+                throw new Exception($"Data archive file path is not specified in '{XCAD_TEST_DATA}' environment variable");
+            }
+
+            return dataArchiveFile;
+        }
+
         public TApp Application { get; }
 
         private readonly List<DataDocument<TDoc>> m_Docs;
@@ -23,6 +49,10 @@ namespace Xarial.XCad.Tests.Common
         private readonly string m_RootWorkFolder;
 
         private readonly ZipArchive m_Zip;
+
+        public TestManager(TApp app) : this(app, GetDefaultArchiveFilePath())
+        {
+        }
 
         public TestManager(TApp app, string dataArchiveFilePath)
         {
@@ -42,14 +72,22 @@ namespace Xarial.XCad.Tests.Common
             return new DataFile(dataFilePath, workFolderPath);
         }
 
-        public DataDocument<TDoc> OpenDataDocument(string name, bool readOnly = true)
+        public DataDocument<TDoc> NewDocument<TSpecDoc>()
+            where TSpecDoc : TDoc
+        {
+            var doc = Application.Documents.PreCreate<TSpecDoc>();
+            doc.Commit(default);
+
+            var dataDoc = new DataDocument<TDoc>(doc, "", "");
+            m_Docs.Add(dataDoc);
+            return dataDoc;
+        }
+
+        public DataDocument<TDoc> OpenDataDocument(string name, DocumentState_e state = DocumentState_e.ReadOnly)
         {
             var dataFilePath = ExtractDataFile(name, out var workFolderPath);
 
-            var doc = (TDoc)Application.Documents.Open(dataFilePath,
-                readOnly
-                ? DocumentState_e.ReadOnly
-                : DocumentState_e.Default);
+            var doc = (TDoc)Application.Documents.Open(dataFilePath, state);
 
             if (doc != null)
             {
@@ -199,15 +237,21 @@ namespace Xarial.XCad.Tests.Common
 
             m_Docs.Clear();
 
-            foreach (var doc in Application.Documents.ToArray()) 
+            try
             {
-                try
+                foreach (var doc in Application.Documents.ToArray())
                 {
-                    doc.Close();
+                    try
+                    {
+                        doc.Close();
+                    }
+                    catch
+                    {
+                    }
                 }
-                catch
-                {
-                }
+            }
+            catch
+            {
             }
 
             try

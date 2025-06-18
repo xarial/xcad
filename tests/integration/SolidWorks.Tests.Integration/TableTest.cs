@@ -3,6 +3,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
@@ -39,7 +40,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly18\Draw18.slddrw"))
             {
-                var drw = (IXDrawing)m_App.Documents.Active;
+                var drw = (IXDrawing)doc.Document;
                 var table = drw.Sheets.Active.Annotations.OfType<IXTable>().First();
 
                 header = table.Columns.Select(c => c.Title).ToArray();
@@ -94,7 +95,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly18\Draw18.slddrw"))
             {
-                var drw = (IXDrawing)m_App.Documents.Active;
+                var drw = (IXDrawing)doc.Document;
                 var table = drw.Sheets.Active.Annotations.OfType<IXTable>().First();
 
                 header = table.Columns.Where(c => c.Visible).Select(c => c.Title).ToArray();
@@ -134,7 +135,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly18\Draw18.slddrw"))
             {
-                var drw = (IXDrawing)m_App.Documents.Active;
+                var drw = (IXDrawing)doc.Document;
                 var table = drw.Sheets.Active.Annotations.OfType<IXTable>().First();
 
                 var rowsRepo = table.Rows;
@@ -180,7 +181,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly18\Draw18.slddrw"))
             {
-                var drw = (IXDrawing)m_App.Documents.Active;
+                var drw = (IXDrawing)doc.Document;
                 var bomTable = drw.Sheets.Active.Annotations.OfType<IXBomTable>().First();
 
                 var rowsRepo = bomTable.Rows;
@@ -209,7 +210,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly18\Draw18.slddrw"))
             {
-                var drw = (IXDrawing)m_App.Documents.Active;
+                var drw = (IXDrawing)doc.Document;
                 var bomTable = drw.Sheets.Active.Annotations.OfType<IXBomTable>().First();
 
                 var rowsRepo = bomTable.Rows;
@@ -246,7 +247,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly18\Draw18.slddrw"))
             {
-                var drw = (IXDrawing)m_App.Documents.Active;
+                var drw = (IXDrawing)doc.Document;
                 var table = drw.Sheets.Active.Annotations.OfType<IXTable>().First();
 
                 var rowsRepo = table.Rows;
@@ -313,9 +314,13 @@ namespace SolidWorks.Tests.Integration
             string[] c6;
             string[] c7;
 
+            string workDir;
+
             using (var doc = OpenDataDocument(@"Assembly18\Draw18.slddrw"))
             {
-                var drw = (IXDrawing)m_App.Documents.Active;
+                workDir = doc.WorkFolderPath;
+
+                var drw = (IXDrawing)doc.Document;
                 var bomTable = drw.Sheets.Active.Annotations.OfType<IXBomTable>().First();
 
                 var refDoc = bomTable.ReferencedDocument;
@@ -336,7 +341,7 @@ namespace SolidWorks.Tests.Integration
                 c7 = rowsRepo[7].Components?.Select(c => c.Name).ToArray();
             }
 
-            Assert.That(string.Equals(refDocPath, GetFilePath("Assembly18\\Assem18.sldasm"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(refDocPath, Path.Combine(workDir, @"Assembly18\Assem18.sldasm"), StringComparison.CurrentCultureIgnoreCase));
             Assert.That(string.Equals(refConf, "Default", StringComparison.CurrentCultureIgnoreCase));
             Assert.IsTrue(refDocComm);
             Assert.IsNull(c0);
@@ -366,7 +371,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly18\Draw18.slddrw"))
             {
-                var drw = (IXDrawing)m_App.Documents.Active;
+                var drw = (IXDrawing)doc.Document;
                 var table = drw.Sheets.Active.Annotations.OfType<IXTable>().First();
                 
                 var rowsRepo = table.Rows;
@@ -433,7 +438,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly18\Draw18.slddrw"))
             {
-                var drw = (IXDrawing)m_App.Documents.Active;
+                var drw = (IXDrawing)doc.Document;
                 var table = drw.Sheets.Active.Annotations.OfType<IXTable>().First();
 
                 var rowsRepo = table.Rows;

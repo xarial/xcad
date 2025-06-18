@@ -27,17 +27,17 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CustomProps1.SLDPRT")) 
             {
-                var prp = m_App.Documents.Active.Properties.GetOrPreCreate("AddTestPrp1");
+                var prp = doc.Document.Properties.GetOrPreCreate("AddTestPrp1");
                 exists = prp.Exists();
                 prp.Value = "AddTestPrp1Value";
-                m_App.Documents.Active.Properties.Add(prp);
-                m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager[""].Get5("AddTestPrp1", false, out val, out _, out _);
+                doc.Document.Properties.Add(prp);
+                Application.Sw.IActiveDoc2.Extension.CustomPropertyManager[""].Get5("AddTestPrp1", false, out val, out _, out _);
 
-                var prpConf = (m_App.Documents.Active as ISwDocument3D).Configurations["Default"].Properties.GetOrPreCreate("AddTestPrp1Conf");
+                var prpConf = (doc.Document as ISwDocument3D).Configurations["Default"].Properties.GetOrPreCreate("AddTestPrp1Conf");
                 existsConf = prpConf.Exists();
                 prpConf.Value = "AddTestPrp1ValueConf";
-                (m_App.Documents.Active as ISwDocument3D).Configurations["Default"].Properties.Add(prpConf);
-                m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Default"].Get5("AddTestPrp1Conf", false, out valConf, out _, out _);
+                (doc.Document as ISwDocument3D).Configurations["Default"].Properties.Add(prpConf);
+                Application.Sw.IActiveDoc2.Extension.CustomPropertyManager["Default"].Get5("AddTestPrp1Conf", false, out valConf, out _, out _);
             }
 
             Assert.IsFalse(exists);
@@ -54,7 +54,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("UnloadedConfPart.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
                 
                 var prp1 = part.Configurations["Default"].Properties.PreCreate();
                 prp1.Name = "Test1";
@@ -62,7 +62,7 @@ namespace SolidWorks.Tests.Integration
                 try
                 {
                     prp1.Commit();
-                    m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Default"].Get5("Test1", false, out string val1Str, out _, out _);
+                    Application.Sw.IActiveDoc2.Extension.CustomPropertyManager["Default"].Get5("Test1", false, out string val1Str, out _, out _);
                     val1 = val1Str;
                 }
                 catch (CustomPropertyUnloadedConfigException ex)
@@ -74,10 +74,10 @@ namespace SolidWorks.Tests.Integration
                 prp2.Name = "Test2";
                 prp2.Value = "Val2";
                 prp2.Commit();
-                m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Conf1"].Get5("Test2", false, out val2, out _, out _);
+                Application.Sw.IActiveDoc2.Extension.CustomPropertyManager["Conf1"].Get5("Test2", false, out val2, out _, out _);
             }
 
-            if(m_App.Version.Major == SwVersion_e.Sw2021 && !m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2021, 4, 1))
+            if(Application.Version.Major == SwVersion_e.Sw2021 && !Application.IsVersionNewerOrEqual(SwVersion_e.Sw2021, 4, 1))
             {
                 Assert.IsInstanceOf<CustomPropertyUnloadedConfigException>(val1);
             }
@@ -97,7 +97,7 @@ namespace SolidWorks.Tests.Integration
             
             using (var doc = OpenDataDocument("UnloadedConfPart.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 val1 = part.Configurations["Default"].Properties["Prp1"].Value;
                 val2 = part.Configurations["Conf1"].Properties["Prp1"].Value;
@@ -115,13 +115,13 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("UnloadedConfPart.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 part.Configurations["Default"].Properties["Prp1"].Value = "_DefaultVal1_";
                 part.Configurations["Conf1"].Properties["Prp1"].Value = "_Conf1Val1_";
 
-                m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Default"].Get5("Prp1", false, out val1, out _, out _);
-                m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Conf1"].Get5("Prp1", false, out val2, out _, out _);
+                Application.Sw.IActiveDoc2.Extension.CustomPropertyManager["Default"].Get5("Prp1", false, out val1, out _, out _);
+                Application.Sw.IActiveDoc2.Extension.CustomPropertyManager["Conf1"].Get5("Prp1", false, out val2, out _, out _);
             }
 
             Assert.AreEqual("_DefaultVal1_", val1);
@@ -136,8 +136,8 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CustomProps1.SLDPRT"))
             {
-                prps = m_App.Documents.Active.Properties.ToDictionary(p => p.Name, p => p.Value);
-                prpsConf = (m_App.Documents.Active as ISwDocument3D).Configurations["Default"].Properties.ToDictionary(p => p.Name, p => p.Value);
+                prps = doc.Document.Properties.ToDictionary(p => p.Name, p => p.Value);
+                prpsConf = (doc.Document as ISwDocument3D).Configurations["Default"].Properties.ToDictionary(p => p.Name, p => p.Value);
             }
 
             Assert.That(prps.ContainsKey("Prop1"));
@@ -162,10 +162,10 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CustomProps1.SLDPRT"))
             {
-                r1 = m_App.Documents.Active.Properties.TryGet("Prop1", out prp1);
+                r1 = doc.Document.Properties.TryGet("Prop1", out prp1);
 
-                val = m_App.Documents.Active.Properties["Prop1"].Value;
-                valConf = (m_App.Documents.Active as ISwDocument3D).Configurations["Default"].Properties["Prop1"].Value;
+                val = doc.Document.Properties["Prop1"].Value;
+                valConf = (doc.Document as ISwDocument3D).Configurations["Default"].Properties["Prop1"].Value;
             }
 
             Assert.IsTrue(r1);
@@ -179,13 +179,13 @@ namespace SolidWorks.Tests.Integration
         {
             using (var doc = OpenDataDocument("CustomProps1.SLDPRT"))
             {
-                var r1 = m_App.Documents.Active.Properties.TryGet("Prop1_", out IXProperty prp1);
+                var r1 = doc.Document.Properties.TryGet("Prop1_", out IXProperty prp1);
 
                 Assert.IsFalse(r1);
                 Assert.IsNull(prp1);
 
-                Assert.Throws<CustomPropertyMissingException>(()=> { var p = m_App.Documents.Active.Properties["Prop1_"]; });
-                Assert.Throws<CustomPropertyMissingException>(() => { var p = (m_App.Documents.Active as ISwDocument3D).Configurations["Default"].Properties["Prop1_"]; });
+                Assert.Throws<CustomPropertyMissingException>(()=> { var p = doc.Document.Properties["Prop1_"]; });
+                Assert.Throws<CustomPropertyMissingException>(() => { var p = (doc.Document as ISwDocument3D).Configurations["Default"].Properties["Prop1_"]; });
             }
         }
 
@@ -195,9 +195,9 @@ namespace SolidWorks.Tests.Integration
             string newVal = null;
             string newConfVal = null;
 
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART)) 
+            using (var doc = NewDataDocument(swDocumentTypes_e.swDocPART)) 
             {
-                var part = (ISwDocument3D)m_App.Documents.Active;
+                var part = (ISwDocument3D)doc.Document;
                 var p1 = part.Properties.GetOrPreCreate("P1");
                 p1.Value = "A";
                 p1.Commit();
@@ -224,13 +224,13 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"AssmCutLists1\CutListConfs1.SLDPRT")) 
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 conf1Prps = ((IXPartConfiguration)part.Configurations.First(c => c.Name.StartsWith("Conf1"))).CutLists
                     ["Cut-List-Item1"].Properties
                     .ToDictionary(p => p.Name, p => p.Value);
 
-                if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
+                if (Application.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
                 {
                     //need to refresh configurations to update cut-lists
                     var activeConf = part.Model.ConfigurationManager.ActiveConfiguration.Name;
@@ -255,7 +255,7 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual("Conf1Val", conf1Prps["Prp1"]);
             Assert.AreEqual("Gen1Val", conf1Prps["Prp2"]);
 
-            if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
+            if (Application.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
             {
                 Assert.AreEqual(4, confDefPrps.Count);
                 Assert.That(confDefPrps.ContainsKey("Prp1"));
@@ -272,7 +272,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"AssmCutLists1\AssmCutLists1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 conf1Prps = ((ISwPartComponent)assm.Configurations.Active.Components["CutListConfs1-2"]).ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties
@@ -302,14 +302,14 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"AssmCutLists1\CutListConfs1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 var prp1 = part.Configurations["Conf1<As Machined>"].CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
                 prp1.Value = "NewValueConf1";
                 prp1.Commit();
 
-                if (m_App.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
+                if (Application.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
                 {
                     //need to refresh configurations to update cut-lists
                     var activeConf = part.Model.ConfigurationManager.ActiveConfiguration.Name;
@@ -352,7 +352,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"AssmCutLists1\AssmCutLists1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 var prp1 = ((ISwPartComponent)assm.Configurations.Active.Components["CutListConfs1-2"]).ReferencedConfiguration.CutLists
                     .First(c => c.Name == "Cut-List-Item1").Properties.GetOrPreCreate("Prp3");
@@ -399,7 +399,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CustomPropsExpression1.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (IXPart)doc.Document;
 
                 exp1 = part.Properties["Material"].Expression;
                 val1 = part.Properties["Material"].Value;
@@ -439,7 +439,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("PrpTypes.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (IXPart)doc.Document;
 
                 val1 = part.Properties["Text"].Value;
                 val2 = part.Properties["Double"].Value;
@@ -509,7 +509,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CustomPropsExpression1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 var prp = part.Properties.PreCreate();
 
@@ -541,9 +541,9 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("MultiConfNotUpdatePartPrps.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
-                var x = m_App.Sw.IActiveDoc2.Extension.CustomPropertyManager["Conf1"].Get6("Prp1", true, out string val, out string resVal, out _, out _);
+                var x = Application.Sw.IActiveDoc2.Extension.CustomPropertyManager["Conf1"].Get6("Prp1", true, out string val, out string resVal, out _, out _);
 
                 val1Def = part.Configurations["Default"].Properties["Prp1"].Value;
                 val2Def = part.Configurations["Default"].Properties["Prp2"].Value;
@@ -551,9 +551,9 @@ namespace SolidWorks.Tests.Integration
                 val1Conf1 = part.Configurations["Conf1"].Properties["Prp1"].Value;
                 val2Conf1 = part.Configurations["Conf1"].Properties["Prp2"].Value;
 
-                using (var assmDoc = NewDocument(swDocumentTypes_e.swDocASSEMBLY)) 
+                using (var assmDoc = NewDataDocument(swDocumentTypes_e.swDocASSEMBLY)) 
                 {
-                    var assm = (ISwAssembly)m_App.Documents.Active;
+                    var assm = (ISwAssembly)doc.Document;
                     assm.Assembly.AddComponent5(part.Path, (int)swAddComponentConfigOptions_e.swAddComponentConfigOptions_CurrentSelectedConfig, "", true, "Conf1", 0, 0, 0);
                     assm.Assembly.AddComponent5(part.Path, (int)swAddComponentConfigOptions_e.swAddComponentConfigOptions_CurrentSelectedConfig, "", true, "Default", 0, 0, 0);
                     assm.Model.EditRebuild3();

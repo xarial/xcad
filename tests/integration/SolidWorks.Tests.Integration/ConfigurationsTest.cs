@@ -27,7 +27,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Configs1.SLDPRT"))
             {
-                name = (m_App.Documents.Active as ISwDocument3D).Configurations.Active.Name;
+                name = (doc.Document as ISwDocument3D).Configurations.Active.Name;
             }
 
             Assert.AreEqual("Conf3", name);
@@ -40,10 +40,10 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Configs1.SLDPRT"))
             {
-                (m_App.Documents.Active as ISwDocument3D).Configurations.Active 
-                    = (ISwConfiguration)(m_App.Documents.Active as ISwDocument3D).Configurations["Conf1"];
+                (doc.Document as ISwDocument3D).Configurations.Active 
+                    = (ISwConfiguration)(doc.Document as ISwDocument3D).Configurations["Conf1"];
 
-                name = m_App.Documents.Active.Model.ConfigurationManager.ActiveConfiguration.Name;
+                name = doc.Document.Model.ConfigurationManager.ActiveConfiguration.Name;
             }
 
             Assert.AreEqual("Conf1", name);
@@ -56,13 +56,13 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Configs1.SLDPRT"))
             {
-                (m_App.Documents.Active as ISwDocument3D).Configurations.ConfigurationActivated
+                (doc.Document as ISwDocument3D).Configurations.ConfigurationActivated
                     += (IXDocument3D d, IXConfiguration newConf) => 
                     {
                         name += newConf.Name;
                     };
 
-                m_App.Documents.Active.Model.ShowConfiguration2("Conf1");
+                doc.Document.Model.ShowConfiguration2("Conf1");
             }
 
             Assert.AreEqual("Conf1", name);
@@ -74,14 +74,14 @@ namespace SolidWorks.Tests.Integration
             IConfiguration conf1;
             IConfiguration conf2;
 
-            using (var doc = NewDocument(swDocumentTypes_e.swDocPART)) 
+            using (var doc = NewDataDocument(swDocumentTypes_e.swDocPART)) 
             {
-                var part = m_App.Documents.Active as ISwDocument3D;
+                var part = doc.Document as ISwDocument3D;
                 var newConf = part.Configurations.PreCreate();
                 newConf.Name = "New Conf1";
                 newConf.Commit();
 
-                conf1 = m_App.Documents.Active.Model.IGetConfigurationByName("New Conf1");
+                conf1 = doc.Document.Model.IGetConfigurationByName("New Conf1");
                 conf2 = newConf.Configuration;
             }
 
@@ -105,7 +105,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Part2.sldprt"))
             {
-                var part = m_App.Documents.Active as ISwDocument3D;
+                var part = doc.Document as ISwDocument3D;
                 var newConf = part.Configurations.PreCreate();
 
                 newConf.Dimensions["D1@Sketch1"].Value = 0.123;
@@ -156,7 +156,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Part2.sldprt"))
             {
-                var part = m_App.Documents.Active as ISwDocument3D;
+                var part = doc.Document as ISwDocument3D;
                 var newConf = part.Configurations.PreCreate();
 
                 var prp1 = newConf.Properties.GetOrPreCreate("Prp1");
@@ -204,13 +204,13 @@ namespace SolidWorks.Tests.Integration
             using (var doc = OpenDataDocument("Configs1.SLDPRT"))
             {
                 var confsToDelete
-                    = (m_App.Documents.Active as ISwDocument3D).Configurations
+                    = (doc.Document as ISwDocument3D).Configurations
                     .Where(c => c.Name != "Conf2" && c.Name != "SubSubConf1").ToArray();
 
-                (m_App.Documents.Active as ISwDocument3D).Configurations.RemoveRange(confsToDelete);
+                (doc.Document as ISwDocument3D).Configurations.RemoveRange(confsToDelete);
 
-                count = m_App.Documents.Active.Model.GetConfigurationCount();
-                name = m_App.Documents.Active.Model.ConfigurationManager.ActiveConfiguration.Name;
+                count = doc.Document.Model.GetConfigurationCount();
+                name = doc.Document.Model.ConfigurationManager.ActiveConfiguration.Name;
             }
 
             Assert.AreEqual(1, count);
@@ -224,7 +224,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Configs1.SLDPRT"))
             {
-                confNames = (m_App.Documents.Active as ISwDocument3D).Configurations.Select(x => x.Name).ToArray();
+                confNames = (doc.Document as ISwDocument3D).Configurations.Select(x => x.Name).ToArray();
             }
 
             Assert.That(confNames.SequenceEqual(new string[] 
@@ -236,9 +236,14 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void IterateConfsUnloadedTest()
         {
-            var part = m_App.Documents.PreCreate<ISwPart>();
-            part.Path = GetFilePath("Configs1.SLDPRT");
-            var confNames = ((IEnumerable<IXConfiguration>)part.Configurations).Select(x => x.Name).ToArray();
+            string[] confNames;
+
+            using (var dataFile = GetDataFile("Configs1.SLDPRT"))
+            {
+                var part = Application.Documents.PreCreate<ISwPart>();
+                part.Path = dataFile.FilePath;
+                confNames = part.Configurations.Select(x => x.Name).ToArray();
+            }
 
             Assert.That(confNames.SequenceEqual(new string[]
             {
@@ -258,7 +263,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Configs1.SLDPRT"))
             {
-                var confs = (m_App.Documents.Active as ISwDocument3D).Configurations;
+                var confs = (doc.Document as ISwDocument3D).Configurations;
 
                 conf1 = confs["Conf1"];
                 r1 = confs.TryGet("Conf2", out conf2);
@@ -291,9 +296,9 @@ namespace SolidWorks.Tests.Integration
             bool r3;
             bool[] r;
 
-            using (var doc = OpenDataDocument(@"LdrAssembly1\TopAssem.SLDASM", true, s => { s.ViewOnly = true; }))
+            using (var doc = OpenDataDocument(@"LdrAssembly1\TopAssem.SLDASM", DocumentState_e.ViewOnly))
             {
-                var confs = (m_App.Documents.Active as ISwDocument3D).Configurations;
+                var confs = (doc.Document as ISwDocument3D).Configurations;
                 confNames = confs.Select(x => x.Name).ToArray();
                 r = confs.Select(x => x.IsCommitted).ToArray();
                 r1 = confs["Default"].IsCommitted;
@@ -334,7 +339,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("PartNumber1.SLDPRT"))
             {
-                var confs = (m_App.Documents.Active as ISwDocument3D).Configurations;
+                var confs = (doc.Document as ISwDocument3D).Configurations;
 
                 var p1 = confs["Default"].PartNumber;
                 var p2 = confs["Conf1"].PartNumber;
@@ -372,7 +377,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("BomChildrenDisplay.SLDASM"))
             {
-                var confs = (m_App.Documents.Active as IXDocument3D).Configurations;
+                var confs = (doc.Document as IXDocument3D).Configurations;
                 s1 = confs["Conf1"].BomChildrenSolving;
                 s2 = confs["Conf2"].BomChildrenSolving;
                 s3 = confs["Conf3"].BomChildrenSolving;
@@ -394,7 +399,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"ColorAssembly\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 var comp1Face = assm.Configurations.Active.Components["Part1-1"].Bodies.First().Faces.OfType<ISwCylindricalFace>().First();
                 var comp2Face = assm.Configurations.Active.Components["Part1-2"].Bodies.First().Faces.OfType<ISwCylindricalFace>().First();
@@ -436,7 +441,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly16\Part1.SLDPRT"))
             {
-                var part = m_App.Documents.Active as ISwDocument3D;
+                var part = doc.Document as ISwDocument3D;
 
                 c1 = part.Configurations["SubConfA"].Parent?.Name;
                 c2 = part.Configurations["SubConfA"].Parent.Parent?.Name;
@@ -465,7 +470,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly16\Assem1.SLDASM"))
             {
-                var assm = m_App.Documents.Active as ISwAssembly;
+                var assm = doc.Document as ISwAssembly;
                 var comp1 = assm.Configurations.Active.Components["Part1-1"];
                 var comp2 = assm.Configurations.Active.Components["Part1-2"];
                 var comp3 = assm.Configurations.Active.Components["SubAssem1-1"];
@@ -518,7 +523,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Material1.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (IXPart)doc.Document;
                 
                 var mat1 = ((IXPartConfiguration)part.Configurations["Default"]).Material;
                 matName1 = mat1.Name;
@@ -553,7 +558,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Material2.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (IXPart)doc.Document;
 
                 part.Configurations.Active = (IXPartConfiguration)part.Configurations["Default"];
                 var mat1 = part.Bodies["Boss-Extrude1"].Material;
@@ -592,11 +597,11 @@ namespace SolidWorks.Tests.Integration
             string mat4;
             string db4;
 
-            using (var doc = OpenDataDocument(@"Material2.SLDPRT", false))
+            using (var doc = OpenDataDocument(@"Material2.SLDPRT", DocumentState_e.Default))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
-                var mat = m_App.MaterialDatabases[""]["ABS PC"];
+                var mat = Application.MaterialDatabases[""]["ABS PC"];
 
                 part.Configurations.Active = part.Configurations["Default"];
                 part.Bodies["Boss-Extrude1"].Material = mat;
@@ -643,9 +648,9 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Material1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
-                var mat = m_App.MaterialDatabases[""]["ABS PC"];
+                var mat = Application.MaterialDatabases[""]["ABS PC"];
 
                 part.Configurations["Default"].Material = mat;
 

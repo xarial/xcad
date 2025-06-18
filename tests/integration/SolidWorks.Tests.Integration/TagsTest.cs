@@ -32,7 +32,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("EntitiesBodies1.SLDPRT"))
             {
-                var part = m_App.Documents.Active as ISwPart;
+                var part = doc.Document as ISwPart;
 
                 var f1 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE1", (int)swSelectType_e.swSelFACES));
 
@@ -74,7 +74,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("EntitiesBodies1.SLDPRT"))
             {
-                var part = m_App.Documents.Active as ISwPart;
+                var part = doc.Document as ISwPart;
 
                 var f1 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE1", (int)swSelectType_e.swSelFACES));
 
@@ -100,7 +100,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("EntitiesBodies1.SLDPRT"))
             {
-                var part = m_App.Documents.Active as ISwPart;
+                var part = doc.Document as ISwPart;
 
                 var f1 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE1", (int)swSelectType_e.swSelFACES));
 
@@ -126,30 +126,31 @@ namespace SolidWorks.Tests.Integration
             int c4;
             int c5;
 
-            var tagsReg = (GlobalTagsRegistry)m_App.GetType().GetProperty("TagsRegistry", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(m_App);
+            var tagsReg = (GlobalTagsRegistry)Application.GetType().GetProperty("TagsRegistry", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(Application);
             c1 = tagsReg.Count;
 
-            var part = (ISwPart)m_App.Documents.Open(GetFilePath("EntitiesBodies1.SLDPRT"), Xarial.XCad.Documents.Enums.DocumentState_e.ReadOnly);
+            using (var doc = OpenDataDocument("EntitiesBodies1.SLDPRT"))
+            {
+                var part = (ISwPart)doc.Document;
 
-            var f1 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE1", (int)swSelectType_e.swSelFACES));
-            f1.Tags.Put("Tag1", "Test1");
+                var f1 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE1", (int)swSelectType_e.swSelFACES));
+                f1.Tags.Put("Tag1", "Test1");
 
-            c2 = tagsReg.Count;
+                c2 = tagsReg.Count;
 
-            var t1 = f1.Tags.Pop<string>("Tag1");
+                var t1 = f1.Tags.Pop<string>("Tag1");
 
-            c3 = tagsReg.Count;
+                c3 = tagsReg.Count;
 
-            var f2 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE2", (int)swSelectType_e.swSelFACES));
+                var f2 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE2", (int)swSelectType_e.swSelFACES));
 
-            f2.Tags.Put("Tag1", "Test1");
-            f2.Tags.Put("Tag2", "Test2");
+                f2.Tags.Put("Tag1", "Test1");
+                f2.Tags.Put("Tag2", "Test2");
 
-            c4 = tagsReg.Count;
+                c4 = tagsReg.Count;
 
-            part.Close();
-
-            c5 = tagsReg.Count;
+                c5 = tagsReg.Count;
+            }
 
             Assert.AreEqual(0, c1);
             Assert.AreEqual(1, c2);

@@ -27,7 +27,7 @@ namespace SolidWorks.Tests.Integration
             double yieldStrength;
             double hardeningFactor;
 
-            var db = (ISwMaterialsDatabase)m_App.MaterialDatabases[""];
+            var db = (ISwMaterialsDatabase)Application.MaterialDatabases[""];
             dbFileName = Path.GetFileName(db.FilePath);
 
             var absPcMat = db["ABS PC"];

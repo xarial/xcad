@@ -31,12 +31,15 @@ namespace Xarial.XCad.Tests.Common
 
         protected virtual void Dispose(bool disposing) 
         {
-            try
+            if (!string.IsNullOrEmpty(WorkFolderPath))
             {
-                Directory.Delete(WorkFolderPath, true);
-            }
-            catch
-            {
+                try
+                {
+                    Directory.Delete(WorkFolderPath, true);
+                }
+                catch
+                {
+                }
             }
         }
     }

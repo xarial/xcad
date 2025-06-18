@@ -20,7 +20,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("SheetMetal1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
                 var cutLists = part.Configurations.Active.CutLists;
                 cutListData = cutLists.ToDictionary(c => c.Name, c => new Tuple<CutListType_e, string[]>(c.Type, c.Bodies.Select(b => b.Name).ToArray()));
             }
@@ -43,7 +43,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CutListTypes_2021.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
                 var cutLists = part.Configurations.Active.CutLists;
                 cutListData = cutLists.ToDictionary(c => c.Name, c => c.Type);
             }
@@ -67,7 +67,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Weldment1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
                 var cutLists = part.Configurations.Active.CutLists;
                 cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Select(b => b.Name).ToArray());
             }
@@ -87,7 +87,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CutListsOutdated.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
                 var cutLists = part.Configurations.Active.CutLists;
                 cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Select(b => b.Name).ToArray());
             }
@@ -111,7 +111,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CutListExcludeBom.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
                 var cutLists = part.Configurations.Active.CutLists;
                 cutListData = cutLists.ToDictionary(c => c.Name, c => c.Status);
             }
@@ -128,7 +128,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"CutListsAssembly1\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
                 cutListData1 = ((ISwPartComponent)assm.Configurations.Active.Components["Part1-1"]).ReferencedConfiguration.CutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
                 cutListData2 = ((ISwPartComponent)assm.Configurations.Active.Components["Part1-2"]).ReferencedConfiguration.CutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
             }
@@ -149,7 +149,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Weldment2.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
                 var cutLists = part.Configurations.Active.CutLists;
                 cutListData = cutLists.ToDictionary(c => c.Name, c => c.Bodies.Count());
             }
@@ -180,7 +180,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CutListReordered1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
                 cutListNames1 = part.Configurations.Active.CutLists.Select(c => c.Name).ToArray();
                 cutListNames2 = ((ISwCutListItemCollection)part.Configurations.Active.CutLists).Unordered.Select(c => c.Name).ToArray();
             }

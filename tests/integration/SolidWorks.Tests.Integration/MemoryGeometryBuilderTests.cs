@@ -29,25 +29,25 @@ namespace SolidWorks.Tests.Integration
             int faceCount;
             double[] massPrps;
 
-            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
+            using (var doc = NewDataDocument(swDocumentTypes_e.swDocPART))
             {
-                var sweepCircle = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
+                var sweepCircle = Application.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
                 sweepCircle.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, 1)), 0.01);
                 sweepCircle.Commit();
 
-                var sweepLine = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+                var sweepLine = Application.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
                 sweepLine.Geometry = new Line(new Point(0, 0, 0), new Point(1, 1, 1));
                 sweepLine.Commit();
 
-                var sweep = m_App.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
-                sweep.Profiles = new IXPlanarRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
-                    m_App.MemoryGeometryBuilder.CreateRegionFromSegments(sweepCircle)).Bodies.First() };
+                var sweep = Application.MemoryGeometryBuilder.SolidBuilder.PreCreateSweep();
+                sweep.Profiles = new IXPlanarRegion[] { Application.MemoryGeometryBuilder.CreatePlanarSheet(
+                    Application.MemoryGeometryBuilder.CreateRegionFromSegments(sweepCircle)).Bodies.First() };
                 sweep.Path = sweepLine;
                 sweep.Commit();
 
                 var body = (sweep.Bodies.First() as ISwBody).Body;
 
-                var feat = (m_App.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0) as IFeature;
+                var feat = (doc.Document as ISwPart).Part.CreateFeatureFromBody3(body, false, 0) as IFeature;
 
                 faceCount = feat.GetFaceCount();
                 massPrps = feat.IGetBody2().GetMassProperties(0) as double[];
@@ -67,16 +67,16 @@ namespace SolidWorks.Tests.Integration
             int faceCount;
             double[] massPrps;
 
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
+            using (var doc = NewDataDocument(swDocumentTypes_e.swDocPART))
             {
-                var cone = m_App.MemoryGeometryBuilder.CreateSolidCone(
+                var cone = Application.MemoryGeometryBuilder.CreateSolidCone(
                     new Point(0, 0, 0),
                     new Vector(1, 1, 1),
                     0.1, 0.05, 0.2);
 
                 var body = (cone.Bodies.First() as ISwBody).Body;
 
-                var feat = (m_App.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0) as IFeature;
+                var feat = (doc.Document as ISwPart).Part.CreateFeatureFromBody3(body, false, 0) as IFeature;
 
                 faceCount = feat.GetFaceCount();
                 massPrps = feat.IGetBody2().GetMassProperties(0) as double[];
@@ -96,26 +96,26 @@ namespace SolidWorks.Tests.Integration
             int faceCount;
             double[] massPrps;
 
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocPART))
+            using (var doc = NewDataDocument(swDocumentTypes_e.swDocPART))
             {
-                var circle = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
+                var circle = Application.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
                 circle.Geometry = new Circle(new Axis(new Point(-0.1, 0, 0), new Vector(0, 0, 1)), 0.01);
                 circle.Commit();
 
-                var axis = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+                var axis = Application.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
                 axis.Geometry = new Line(new Point(0, 0, 0), new Point(0, 1, 0));
                 axis.Commit();
 
-                var rev = m_App.MemoryGeometryBuilder.SolidBuilder.PreCreateRevolve();
+                var rev = Application.MemoryGeometryBuilder.SolidBuilder.PreCreateRevolve();
                 rev.Angle = Math.PI * 2;
                 rev.Axis = axis;
-                rev.Profiles = new IXPlanarRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
-                    m_App.MemoryGeometryBuilder.CreateRegionFromSegments(circle)).Bodies.First() };
+                rev.Profiles = new IXPlanarRegion[] { Application.MemoryGeometryBuilder.CreatePlanarSheet(
+                    Application.MemoryGeometryBuilder.CreateRegionFromSegments(circle)).Bodies.First() };
                 rev.Commit();
 
                 var body = (rev.Bodies.First() as ISwBody).Body;
 
-                var feat = (m_App.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0) as IFeature;
+                var feat = (doc.Document as ISwPart).Part.CreateFeatureFromBody3(body, false, 0) as IFeature;
 
                 faceCount = feat.GetFaceCount();
                 massPrps = feat.IGetBody2().GetMassProperties(0) as double[];
@@ -135,9 +135,9 @@ namespace SolidWorks.Tests.Integration
             int faceCount;
             double[] massPrps;
 
-            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
+            using (var doc = NewDataDocument(swDocumentTypes_e.swDocPART))
             {
-                var box = m_App.MemoryGeometryBuilder.CreateSolidBox(
+                var box = Application.MemoryGeometryBuilder.CreateSolidBox(
                     new Point(0, 0, 0),
                     new Vector(1, 1, 1),
                     new Vector(1, 1, 1).CreateAnyPerpendicular(),
@@ -145,7 +145,7 @@ namespace SolidWorks.Tests.Integration
 
                 var body = (box.Bodies.First() as ISwBody).Body;
 
-                var feat = (m_App.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0) as IFeature;
+                var feat = (doc.Document as ISwPart).Part.CreateFeatureFromBody3(body, false, 0) as IFeature;
 
                 faceCount = feat.GetFaceCount();
                 massPrps = feat.IGetBody2().GetMassProperties(0) as double[];
@@ -165,9 +165,9 @@ namespace SolidWorks.Tests.Integration
             int faceCount;
             double[] massPrps;
 
-            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
+            using (var doc = NewDataDocument(swDocumentTypes_e.swDocPART))
             {
-                var polyline = m_App.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
+                var polyline = Application.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
                 polyline.Points = new Point[]
                 {
                     new Point(0, 0, 0),
@@ -177,16 +177,16 @@ namespace SolidWorks.Tests.Integration
                 };
                 polyline.Commit();
 
-                var extr = m_App.MemoryGeometryBuilder.SolidBuilder.PreCreateExtrusion();
+                var extr = Application.MemoryGeometryBuilder.SolidBuilder.PreCreateExtrusion();
                 extr.Depth = 0.5;
                 extr.Direction = new Vector(1, 1, 1);
-                extr.Profiles = new IXPlanarRegion[] { m_App.MemoryGeometryBuilder.CreatePlanarSheet(
-                    m_App.MemoryGeometryBuilder.CreateRegionFromSegments(polyline)).Bodies.First() };
+                extr.Profiles = new IXPlanarRegion[] { Application.MemoryGeometryBuilder.CreatePlanarSheet(
+                    Application.MemoryGeometryBuilder.CreateRegionFromSegments(polyline)).Bodies.First() };
                 extr.Commit();
 
                 var body = (extr.Bodies.First() as ISwBody).Body;
 
-                var feat = (m_App.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0) as IFeature;
+                var feat = (doc.Document as ISwPart).Part.CreateFeatureFromBody3(body, false, 0) as IFeature;
 
                 faceCount = feat.GetFaceCount();
                 massPrps = feat.IGetBody2().GetMassProperties(0) as double[];
@@ -203,57 +203,57 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void RegionPlaneTest()
         {
-            var plane1 = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(
-                m_App.MemoryGeometryBuilder.CreateLine(new Point(0, 0, 0), new Point(1, 0, 0)),
-                m_App.MemoryGeometryBuilder.CreateLine(new Point(1, 0, 0), new Point(1, 1, 0)),
-                m_App.MemoryGeometryBuilder.CreateLine(new Point(1, 1, 0), new Point(0, 1, 0)),
-                m_App.MemoryGeometryBuilder.CreateLine(new Point(0, 1, 0), new Point(0, 0, 0))
+            var plane1 = Application.MemoryGeometryBuilder.CreateRegionFromSegments(
+                Application.MemoryGeometryBuilder.CreateLine(new Point(0, 0, 0), new Point(1, 0, 0)),
+                Application.MemoryGeometryBuilder.CreateLine(new Point(1, 0, 0), new Point(1, 1, 0)),
+                Application.MemoryGeometryBuilder.CreateLine(new Point(1, 1, 0), new Point(0, 1, 0)),
+                Application.MemoryGeometryBuilder.CreateLine(new Point(0, 1, 0), new Point(0, 0, 0))
                 ).Plane;
 
-            var plane2 = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(
-                m_App.MemoryGeometryBuilder.CreateLine(new Point(0, 0, 0), new Point(0.5, 0, 0)),
-                m_App.MemoryGeometryBuilder.CreateLine(new Point(0.5, 0, 0), new Point(1, 0, 0)),
-                m_App.MemoryGeometryBuilder.CreateLine(new Point(1, 0, 0), new Point(1, 1, 0)),
-                m_App.MemoryGeometryBuilder.CreateLine(new Point(1, 1, 0), new Point(0, 1, 0)),
-                m_App.MemoryGeometryBuilder.CreateLine(new Point(0, 1, 0), new Point(0, 0, 0))
+            var plane2 = Application.MemoryGeometryBuilder.CreateRegionFromSegments(
+                Application.MemoryGeometryBuilder.CreateLine(new Point(0, 0, 0), new Point(0.5, 0, 0)),
+                Application.MemoryGeometryBuilder.CreateLine(new Point(0.5, 0, 0), new Point(1, 0, 0)),
+                Application.MemoryGeometryBuilder.CreateLine(new Point(1, 0, 0), new Point(1, 1, 0)),
+                Application.MemoryGeometryBuilder.CreateLine(new Point(1, 1, 0), new Point(0, 1, 0)),
+                Application.MemoryGeometryBuilder.CreateLine(new Point(0, 1, 0), new Point(0, 0, 0))
                 ).Plane;
 
-            var poly1 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
+            var poly1 = Application.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
             poly1.Points = new Point[] { new Point(0, 0, 0), new Point(1, 0, 0), new Point(1, 1, 0) };
             poly1.Mode = PolylineMode_e.Loop;
             poly1.Commit();
 
-            var plane3 = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(poly1).Plane;
+            var plane3 = Application.MemoryGeometryBuilder.CreateRegionFromSegments(poly1).Plane;
 
-            var poly2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
+            var poly2 = Application.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
             poly2.Points = new Point[] { new Point(0, 0, 0), new Point(0.5, 0, 0), new Point(1, 0, 0), new Point(1, 1, 0) };
             poly2.Mode = PolylineMode_e.Loop;
             poly2.Commit();
 
-            var plane4 = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(poly2).Plane;
+            var plane4 = Application.MemoryGeometryBuilder.CreateRegionFromSegments(poly2).Plane;
 
-            var circleCurve = (ISwCurve)m_App.MemoryGeometryBuilder.CreateCircle(new Point(0, 0, 0), new Vector(0, 0, 1), 0.1);
+            var circleCurve = (ISwCurve)Application.MemoryGeometryBuilder.CreateCircle(new Point(0, 0, 0), new Vector(0, 0, 1), 0.1);
             var bSplineCurve = circleCurve.Curves.First().ICopy().MakeBsplineCurve2();
 
-            var plane5 = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(
-                m_App.CreateObjectFromDispatch<ISwCurve>(bSplineCurve, null)).Plane;
+            var plane5 = Application.MemoryGeometryBuilder.CreateRegionFromSegments(
+                Application.CreateObjectFromDispatch<ISwCurve>(bSplineCurve, null)).Plane;
 
-            var poly3 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
+            var poly3 = Application.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
             poly3.Points = new Point[] { new Point(0, 0, 0), new Point(0.5, 0, 0), new Point(1, 0, 0) };
             poly3.Mode = PolylineMode_e.Loop;
             poly3.Commit();
 
             Assert.Throws<Exception>(() => 
             {
-                var p = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(poly3).Plane; 
+                var p = Application.MemoryGeometryBuilder.CreateRegionFromSegments(poly3).Plane; 
             });
 
             Assert.Throws<Exception>(() =>
             {
-                var p = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(
-                    m_App.MemoryGeometryBuilder.CreateLine(new Point(0, 0, 0), new Point(0.5, 0, 0)),
-                    m_App.MemoryGeometryBuilder.CreateLine(new Point(0.5, 0, 0), new Point(1, 0, 0)),
-                    m_App.MemoryGeometryBuilder.CreateLine(new Point(1, 0, 0), new Point(0, 0, 0))).Plane;
+                var p = Application.MemoryGeometryBuilder.CreateRegionFromSegments(
+                    Application.MemoryGeometryBuilder.CreateLine(new Point(0, 0, 0), new Point(0.5, 0, 0)),
+                    Application.MemoryGeometryBuilder.CreateLine(new Point(0.5, 0, 0), new Point(1, 0, 0)),
+                    Application.MemoryGeometryBuilder.CreateLine(new Point(1, 0, 0), new Point(0, 0, 0))).Plane;
             });
 
             var norm1 = plane1.Normal.Normalize();
@@ -286,7 +286,7 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void ExtrusionPolylineTest()
         {
-            var profile = m_App.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
+            var profile = Application.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
 
             profile.Points = new Point[]
             {
@@ -299,9 +299,9 @@ namespace SolidWorks.Tests.Integration
 
             profile.Commit();
 
-            var profileReg = m_App.MemoryGeometryBuilder.CreateRegionFromSegments(profile);
+            var profileReg = Application.MemoryGeometryBuilder.CreateRegionFromSegments(profile);
 
-            var ext = m_App.MemoryGeometryBuilder.CreateSolidExtrusion(0.1, new Vector(0, 0, 1), profileReg);
+            var ext = Application.MemoryGeometryBuilder.CreateSolidExtrusion(0.1, new Vector(0, 0, 1), profileReg);
 
             var body = (IXSolidBody)ext.Bodies.First();
 
@@ -315,14 +315,14 @@ namespace SolidWorks.Tests.Integration
             int faceCount;
             double[] massPrps;
 
-            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
+            using (var doc = NewDataDocument(swDocumentTypes_e.swDocPART))
             {
-                var cyl = m_App.MemoryGeometryBuilder.CreateSolidCylinder(
+                var cyl = Application.MemoryGeometryBuilder.CreateSolidCylinder(
                 new Point(0, 0, 0), new Vector(1, 0, 0), 0.1, 0.2);
 
                 var body = (cyl.Bodies.First() as ISwBody).Body;
 
-                var feat = (m_App.Documents.Active as ISwPart).Part.CreateFeatureFromBody3(body, false, 0) as IFeature;
+                var feat = (doc.Document as ISwPart).Part.CreateFeatureFromBody3(body, false, 0) as IFeature;
 
                 faceCount = feat.GetFaceCount();
                 massPrps = feat.IGetBody2().GetMassProperties(0) as double[];
@@ -345,13 +345,13 @@ namespace SolidWorks.Tests.Integration
             double[] normal;
             double[] circleParams;
 
-            using (var doc = NewDocument(swDocumentTypes_e.swDocPART))
+            using (var doc = NewDataDocument(swDocumentTypes_e.swDocPART))
             {
-                var arc = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
+                var arc = Application.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
                 arc.Geometry = new Circle(new Axis(new Point(0.75, 0.5, 0.15), new Vector(1E-16d, 0, 1)), 2.5);
                 arc.Commit();
-                var face = m_App.MemoryGeometryBuilder.CreatePlanarSheet(
-                    m_App.MemoryGeometryBuilder.CreateRegionFromSegments(arc)).Bodies.First().Faces.First();
+                var face = Application.MemoryGeometryBuilder.CreatePlanarSheet(
+                    Application.MemoryGeometryBuilder.CreateRegionFromSegments(arc)).Bodies.First().Faces.First();
                 isPlanar = face is IXPlanarFace;
                 edgeCount = (face as ISwFace).Face.GetEdgeCount();
                 isCircular = (((face as ISwFace).Face.GetEdges() as object[]).First() as IEdge).IGetCurve().IsCircle();
@@ -374,7 +374,7 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void PlanarSheetInnerLoops()
         {
-            var polyline = m_App.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
+            var polyline = Application.MemoryGeometryBuilder.WireBuilder.PreCreatePolyline();
             polyline.Mode = PolylineMode_e.Loop;
             polyline.Points = new Point[]
             {
@@ -385,15 +385,15 @@ namespace SolidWorks.Tests.Integration
             };
             polyline.Commit();
 
-            var outerLoop = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLoop();
+            var outerLoop = Application.MemoryGeometryBuilder.WireBuilder.PreCreateLoop();
             outerLoop.Segments = new IXSegment[] { polyline };
             outerLoop.Commit();
 
-            var innerSeg1 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
+            var innerSeg1 = Application.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
             innerSeg1.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, 1)), 0.01);
             innerSeg1.Commit();
 
-            var innerLoop1 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLoop();
+            var innerLoop1 = Application.MemoryGeometryBuilder.WireBuilder.PreCreateLoop();
             innerLoop1.Segments = new IXSegment[]
             {
                 innerSeg1
@@ -401,20 +401,20 @@ namespace SolidWorks.Tests.Integration
 
             innerLoop1.Commit();
 
-            var innerSeg2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+            var innerSeg2 = Application.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
             innerSeg2.Geometry = new Line(new Point(0.05, 0.05, 0), new Point(0.05, 0.07, 0));
             innerSeg2.Commit();
 
-            var innerSeg3 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+            var innerSeg3 = Application.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
             innerSeg3.Geometry = new Line(new Point(0.05, 0.07, 0), new Point(0.07, 0.07, 0));
             innerSeg3.Commit();
 
-            var innerSeg4 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+            var innerSeg4 = Application.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
             innerSeg4.Geometry = new Line(new Point(0.07, 0.07, 0), new Point(0.05, 0.05, 0));
             innerSeg4.Commit();
 
-            var innerLoop2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLoop();
-            innerLoop2.Segments = new Xarial.XCad.Geometry.Wires.IXSegment[]
+            var innerLoop2 = Application.MemoryGeometryBuilder.WireBuilder.PreCreateLoop();
+            innerLoop2.Segments = new IXSegment[]
             {
                 innerSeg2,
                 innerSeg3,
@@ -422,7 +422,7 @@ namespace SolidWorks.Tests.Integration
             };
             innerLoop2.Commit();
 
-            var reg = m_App.MemoryGeometryBuilder.PreCreatePlanarRegion();
+            var reg = Application.MemoryGeometryBuilder.PreCreatePlanarRegion();
             reg.OuterLoop = outerLoop;
             reg.InnerLoops = new IXLoop[] { innerLoop1, innerLoop2 };
             reg.Commit();
@@ -446,13 +446,13 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("SketchRegion1.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (IXPart)doc.Document;
 
                 var sketch1 = (IXSketch2D)part.Features["Sketch1"];
 
                 var reg1 = sketch1.Regions.First();
 
-                var surf1 = m_App.MemoryGeometryBuilder.CreatePlanarSheet(reg1);
+                var surf1 = Application.MemoryGeometryBuilder.CreatePlanarSheet(reg1);
 
                 area1 = surf1.Bodies.First().Faces.First().Area;
 
@@ -460,7 +460,7 @@ namespace SolidWorks.Tests.Integration
 
                 var reg2 = sketch2.Regions.First();
 
-                var surf2 = m_App.MemoryGeometryBuilder.CreatePlanarSheet(reg2);
+                var surf2 = Application.MemoryGeometryBuilder.CreatePlanarSheet(reg2);
 
                 area2 = surf2.Bodies.First().Faces.First().Area;
             }
@@ -479,7 +479,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Regions.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
                 var face = part.Bodies.First().Faces.First(f => ((ISwFace)f).Face.GetEdgeCount() == 8);
 
                 var skReg = ((ISwSketch2D)part.Features["Sketch1"]).Regions.First(r => r.Region.GetEdgesCount() == 8);
@@ -519,14 +519,14 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("FacePart.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 var face1 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE1", (int)swSelectType_e.swSelFACES));//0.00743892
                 var face2 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE2", (int)swSelectType_e.swSelFACES));//0.01130973
                 var face3 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE3", (int)swSelectType_e.swSelFACES));//0.01202536
                 var face4 = part.CreateObjectFromDispatch<ISwFace>(part.Part.GetEntityByName("FACE4", (int)swSelectType_e.swSelFACES));//0.01463892
 
-                var knit1 = m_App.MemoryGeometryBuilder.SheetBuilder.PreCreateKnit();
+                var knit1 = Application.MemoryGeometryBuilder.SheetBuilder.PreCreateKnit();
                 knit1.Regions = new IXRegion[] { face2, face3 };
                 knit1.Commit();
 
@@ -534,7 +534,7 @@ namespace SolidWorks.Tests.Integration
                 f1Count = knit1.Bodies[0].Faces.Count();
                 a1 = knit1.Bodies[0].Faces.Sum(f => f.Area);
 
-                var knit2 = m_App.MemoryGeometryBuilder.SheetBuilder.PreCreateKnit();
+                var knit2 = Application.MemoryGeometryBuilder.SheetBuilder.PreCreateKnit();
                 knit2.Regions = new IXRegion[] { face1, face3, face4 };
                 knit2.Commit();
 
@@ -563,20 +563,20 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Features1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 byte[] buffer;
 
                 using (var memStr = new MemoryStream())
                 {
                     var body = part.Bodies.First();
-                    m_App.MemoryGeometryBuilder.SerializeBody(body, memStr);
+                    Application.MemoryGeometryBuilder.SerializeBody(body, memStr);
                     buffer = memStr.ToArray();
                 }
 
                 using (var memStr = new MemoryStream(buffer))
                 {
-                    var body = (ISwBody)m_App.MemoryGeometryBuilder.DeserializeBody(memStr);
+                    var body = (ISwBody)Application.MemoryGeometryBuilder.DeserializeBody(memStr);
                     mass = (body.Body.GetMassProperties(0) as double[])[3];
                 }
 
@@ -593,13 +593,13 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("FacePart.sldprt"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
                 var edge = part.CreateObjectFromDispatch<ISwEdge>(part.Part.GetEntityByName("EDGE1", (int)swSelectType_e.swSelEDGES));
                 var curve1 = edge.Definition;
                 curve1Type = curve1.GetType();
                 curve1Length = curve1.Length;
 
-                var arc2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
+                var arc2 = Application.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
                 arc2.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, -1)), 0.01);
                 arc2.Start = new Point(-0.005, 0, 0);
                 arc2.End = new Point(0, 0.005, 0);
@@ -622,13 +622,13 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("FacePart.sldprt"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
                 var edge = part.CreateObjectFromDispatch<ISwEdge>(part.Part.GetEntityByName("EDGE2", (int)swSelectType_e.swSelEDGES));
                 var curve1 = edge.Definition;
                 curve1Type = curve1.GetType();
                 curve1Length = curve1.Length;
 
-                var circle2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
+                var circle2 = Application.MemoryGeometryBuilder.WireBuilder.PreCreateCircle();
                 circle2.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, -1)), 0.01);
                 circle2.Commit();
 
@@ -643,16 +643,16 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void CreateWireBodyTest()
         {
-            var line1 = (ISwLineCurve)m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+            var line1 = (ISwLineCurve)Application.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
             line1.Geometry = new Line(new Point(10, 10, 10), new Point(20, 20, 20));
             
-            var line2 = (ISwLineCurve)m_App.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
+            var line2 = (ISwLineCurve)Application.MemoryGeometryBuilder.WireBuilder.PreCreateLine();
             line2.Geometry = new Line(new Point(20, 20, 20), new Point(30, 40, 50));
             line2.Commit();
 
             var body1 = line1.CreateBody();
 
-            var body2 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateWireBody();
+            var body2 = Application.MemoryGeometryBuilder.WireBuilder.PreCreateWireBody();
             body2.Segments = new IXSegment[] { line1, line2 };
             body2.Commit();
 
@@ -684,18 +684,18 @@ namespace SolidWorks.Tests.Integration
             int faceCount2;
             double faceArea2;
 
-            var line1 = m_App.MemoryGeometryBuilder.CreateLine(new Point(-0.1, 0.01, 0.1), new Point(0.1, 0, 0.2));
-            var arc1 = m_App.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
+            var line1 = Application.MemoryGeometryBuilder.CreateLine(new Point(-0.1, 0.01, 0.1), new Point(0.1, 0, 0.2));
+            var arc1 = Application.MemoryGeometryBuilder.WireBuilder.PreCreateArc();
             arc1.Start = new Point(-0.1, 0, 0);
             arc1.End = new Point(0, 0.1, 0);
             arc1.Geometry = new Circle(new Axis(new Point(0, 0, 0), new Vector(0, 0, -1)), 0.2);
             arc1.Commit();
 
-            var loft1 = m_App.MemoryGeometryBuilder.SheetBuilder.PreCreateLoft();
+            var loft1 = Application.MemoryGeometryBuilder.SheetBuilder.PreCreateLoft();
             loft1.Profiles = new IXPlanarRegion[]
             {
-                m_App.MemoryGeometryBuilder.CreateRegionFromSegments(line1),
-                m_App.MemoryGeometryBuilder.CreateRegionFromSegments(arc1)
+                Application.MemoryGeometryBuilder.CreateRegionFromSegments(line1),
+                Application.MemoryGeometryBuilder.CreateRegionFromSegments(arc1)
             };
             loft1.Commit();
 
@@ -703,14 +703,14 @@ namespace SolidWorks.Tests.Integration
             faceCount1 = body1.GetFaceCount();
             faceArea1 = body1.IGetFirstFace().GetArea();
 
-            var circle2_1 = m_App.MemoryGeometryBuilder.CreateCircle(new Point(0, 0, 0), new Vector(0, 1, 0), 0.1);
-            var circle2_2 = m_App.MemoryGeometryBuilder.CreateCircle(new Point(0.1, 0.2, 0), new Vector(0, 1, 0), 0.05);
+            var circle2_1 = Application.MemoryGeometryBuilder.CreateCircle(new Point(0, 0, 0), new Vector(0, 1, 0), 0.1);
+            var circle2_2 = Application.MemoryGeometryBuilder.CreateCircle(new Point(0.1, 0.2, 0), new Vector(0, 1, 0), 0.05);
 
-            var loft2 = m_App.MemoryGeometryBuilder.SheetBuilder.PreCreateLoft();
+            var loft2 = Application.MemoryGeometryBuilder.SheetBuilder.PreCreateLoft();
             loft2.Profiles = new IXPlanarRegion[]
             {
-                m_App.MemoryGeometryBuilder.CreateRegionFromSegments(circle2_1),
-                m_App.MemoryGeometryBuilder.CreateRegionFromSegments(circle2_2)
+                Application.MemoryGeometryBuilder.CreateRegionFromSegments(circle2_1),
+                Application.MemoryGeometryBuilder.CreateRegionFromSegments(circle2_2)
             };
             loft2.Commit();
             var body2 = ((ISwBody)loft2.Bodies.First()).Body;

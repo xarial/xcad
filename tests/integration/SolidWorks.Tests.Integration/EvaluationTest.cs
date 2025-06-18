@@ -16,6 +16,7 @@ using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Exceptions;
 using Xarial.XCad.Geometry.Evaluation;
 using Xarial.XCad.Documents.Exceptions;
+using Xarial.XCad.Documents.Enums;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -36,7 +37,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Features1.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (IXPart)doc.Document;
 
                 v1 = ((IXSolidBody)part.Bodies["Boss-Extrude2"]).Volume;
             }
@@ -51,7 +52,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Drawing9\Part1.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (IXPart)doc.Document;
 
                 var bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.BestFit = true;
@@ -78,7 +79,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("BBox2.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (IXPart)doc.Document;
 
                 var bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
@@ -134,7 +135,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("BBox1.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (IXPart)doc.Document;
 
                 var body = (IXSolidBody)part.Bodies["Boss-Extrude1"];
 
@@ -192,7 +193,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("BBox1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 var body = (IXSolidBody)part.Bodies["Body-Move/Copy1"];
 
@@ -257,7 +258,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("BBox1.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (IXPart)doc.Document;
 
                 var bbox = part.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
@@ -290,7 +291,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"BBoxAssembly1\Assem1.SLDASM"))
             {
-                var assm = (IXAssembly)m_App.Documents.Active;
+                var assm = (IXAssembly)doc.Document;
 
                 var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
@@ -329,7 +330,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"BBoxAssembly4\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 var comps = assm.Configurations.Active.Components.ToArray();
 
@@ -395,7 +396,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"BBoxAssembly2\Assem1.SLDASM"))
             {
-                var assm = (IXAssembly)m_App.Documents.Active;
+                var assm = (IXAssembly)doc.Document;
 
                 var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = false;
@@ -441,7 +442,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"BBoxAssembly3\Assem1.SLDASM"))
             {
-                var assm = (IXAssembly)m_App.Documents.Active;
+                var assm = (IXAssembly)doc.Document;
 
                 var comps = new IXComponent[]
                 {
@@ -494,7 +495,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"BBoxAssembly1\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
@@ -530,7 +531,7 @@ namespace SolidWorks.Tests.Integration
         {
             using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 using (var bbox = assm.Evaluation.PreCreateBoundingBox())
                 {
@@ -557,9 +558,9 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void BoundingBoxEmptyAssemblyTest()
         {
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocASSEMBLY))
+            using (var doc = NewDataDocument(Interop.swconst.swDocumentTypes_e.swDocASSEMBLY))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 using (var bbox = assm.Evaluation.PreCreateBoundingBox())
                 {
@@ -583,7 +584,7 @@ namespace SolidWorks.Tests.Integration
         {
             using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Sketch.sldprt"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 using (var bbox = part.Evaluation.PreCreateBoundingBox())
                 {
@@ -616,7 +617,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpPart1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
                 
                 using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
@@ -679,7 +680,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpPart1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
                 
                 using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
@@ -742,7 +743,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpPart1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
@@ -805,7 +806,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpPart1.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
@@ -870,7 +871,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly1\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
@@ -933,7 +934,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly1\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
@@ -996,7 +997,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly1\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
@@ -1060,7 +1061,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly1\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
@@ -1123,7 +1124,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly1\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
@@ -1192,7 +1193,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly1\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
@@ -1252,7 +1253,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
@@ -1266,7 +1267,7 @@ namespace SolidWorks.Tests.Integration
                     cog1 = massPrps.CenterOfGravity;
                     pmoi1 = massPrps.PrincipalMomentOfInertia;
                     pai1 = massPrps.PrincipalAxesOfInertia;
-                    if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+                    if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
                     {
                         moi1 = massPrps.MomentOfInertia;
                     }
@@ -1296,7 +1297,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(pai1.Iz.X, 0.40824829);
             AssertCompareDoubles(pai1.Iz.Y, 0.40824829);
             AssertCompareDoubles(pai1.Iz.Z, -0.81649658);
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubles(moi1.Lx.X, 0.00000689);
                 AssertCompareDoubles(moi1.Lx.Y, -0.00000012);
@@ -1333,7 +1334,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly3\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
@@ -1444,7 +1445,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
@@ -1461,7 +1462,7 @@ namespace SolidWorks.Tests.Integration
                     cog1 = massPrps.CenterOfGravity;
                     pmoi1 = massPrps.PrincipalMomentOfInertia;
                     pai1 = massPrps.PrincipalAxesOfInertia;
-                    if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+                    if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
                     {
                         moi1 = massPrps.MomentOfInertia;
                     }
@@ -1491,7 +1492,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(pai1.Iz.X, -0.23063965);
             AssertCompareDoubles(pai1.Iz.Y, 0.41932932);
             AssertCompareDoubles(pai1.Iz.Z, -0.87804799);
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubles(moi1.Lx.X, 2628846.22823299);
                 AssertCompareDoubles(moi1.Lx.Y, -933979.23905004);
@@ -1515,7 +1516,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Overriden.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
@@ -1559,7 +1560,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Overriden.SLDPRT"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
@@ -1607,7 +1608,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly7\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
@@ -1661,7 +1662,7 @@ namespace SolidWorks.Tests.Integration
         {
             using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
@@ -1687,9 +1688,9 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void MassPropertyEmptyAssemblyTest()
         {
-            using (var doc = NewDocument(Interop.swconst.swDocumentTypes_e.swDocASSEMBLY))
+            using (var doc = NewDataDocument(Interop.swconst.swDocumentTypes_e.swDocASSEMBLY))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
@@ -1712,7 +1713,7 @@ namespace SolidWorks.Tests.Integration
         {
             using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Surface.sldprt"))
             {
-                var part = (ISwPart)m_App.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 using (var massPrps = part.Evaluation.PreCreateMassProperty())
                 {
@@ -1735,7 +1736,7 @@ namespace SolidWorks.Tests.Integration
         {
             using (var doc = OpenDataDocument(@"MassPrpsAssembly2\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 using (var massPrps = assm.Evaluation.PreCreateMassProperty())
                 {
@@ -1846,7 +1847,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly4\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 GetMassPropertyArrayData(assm, "COG_Overridden-1", true, false, true, out moi1, out mass1, out cog1, out pmoi1, out paoi1, out _, out _, out _);
                 GetMassPropertyArrayData(assm, "Mass_Overridden-2", true, false, true, out moi2, out mass2, out cog2, out pmoi2, out paoi2, out _, out _, out _);
@@ -1870,7 +1871,7 @@ namespace SolidWorks.Tests.Integration
             }
 
             AssertCompareDoubleArray((double[])moi1, new double[] { 732771.57070537, 207033.34471190, 284753.25397601, 207033.34471190, 1016744.10068294, 283072.44302186, 284753.25397601, 283072.44302186, 1170200.96290798 });
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])moi2, new double[] { 37977.36013703, -9549.44652330, -4965.19161883, -9549.44652330, 17440.37185897, 1988.87607517, -4965.19161883, 1988.87607517, 35024.94118039 });
                 AssertCompareDoubleArray((double[])moi3, new double[] { 1054.58171345, -84.46972878, -210.87298292, -84.46972878, 1130.72391154, -326.34343170, -210.87298292, -326.34343170, 1814.69437501 });
@@ -1883,7 +1884,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])moi4, new double[] { 953380.76757384, 221739.33836451, 355898.35534423, 221739.33836451, 1257823.94327966, 42062.10100616, 355898.35534423, 42062.10100616, 708511.92344279 });
 
             AssertCompareDoubleArray((double[])moi5, new double[] { 12582.55584223, 250.22092804, 148.85064148, 250.22092804, 21375.67770367, -5235.05710985, 148.85064148, -5235.05710985, 15689.65556923 });
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])moi6, new double[] { 3207.83128782, -70.58035199, 50.22342169, -70.58035199, 5220.98393895, 1434.27367730, 50.22342169, 1434.27367730, 4225.95731532 });
                 AssertCompareDoubleArray((double[])moi7, new double[] { 1054.58171345, -84.46972878, -210.87298292, -84.46972878, 1130.72391154, -326.34343170, -210.87298292, -326.34343170, 1814.69437501 });
@@ -1895,7 +1896,7 @@ namespace SolidWorks.Tests.Integration
             }
             AssertCompareDoubleArray((double[])moi8, new double[] { 20444.14131853, -5636.36285550, -349.56564420, -5636.36285550, 16612.77720078, -250.39444679, -349.56564420, -250.39444679, 12590.97059582 });
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])moi9, new double[] { 2055493.59519249, 1473733.62357906, 209311.83240675, 1473733.62357906, 1144281.88776368, 284502.22693767, 209311.83240675, 284502.22693767, 3094248.38970080 });
                 AssertCompareDoubleArray((double[])moi10, new double[] { 768793.19616025, 104754.95861837, 314872.85703145, 104754.95861837, 834722.70323284, 227762.09556753, 314872.85703145, 227762.09556753, 223073.39439345 });
@@ -1909,7 +1910,7 @@ namespace SolidWorks.Tests.Integration
             }
             AssertCompareDoubleArray((double[])moi12, new double[] { 14712236.09617482, 4987667.80184248, 3855648.81964258, 4987667.80184248, 8226946.56763011, 7118485.74938377, 3855648.81964258, 7118485.74938377, 11915270.93498221 });
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])moi13, new double[] { 18169538.72272953, 11995399.31901705, 1683580.55358953, 11995399.31901705, 10041778.53972001, 1993318.14300060, 1683580.55358953, 1993318.14300060, 26090270.31616359 });
                 AssertCompareDoubleArray((double[])moi14, new double[] { 429678.07221692, -53952.39135083, 328772.98457456, -53952.39135083, 700029.78915353, -43384.18746203, 328772.98457456, -43384.18746203, 325063.83301430 });
@@ -1972,7 +1973,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])pmoi3, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
             AssertCompareDoubleArray((double[])pmoi4, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])pmoi2, new double[] { 13058.78440949, 33786.36810946, 43597.52065745 });
                 AssertCompareDoubleArray((double[])pmoi6, new double[] { 3205.35980219, 3205.35980219, 6244.05293771 });
@@ -2110,7 +2111,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly5\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, false, true, out moi1, out mass1, out cog1, out pmoi1, out paoi1, out _, out _, out _);
                 GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, false, true, out moi2, out mass2, out cog2, out pmoi2, out paoi2, out _, out _, out _);
@@ -2138,7 +2139,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])moi3, new double[] { 1054.58171345, -84.46972878, -210.87298292, -84.46972878, 1130.72391154, -326.34343170, -210.87298292, -326.34343170, 1814.69437501 });
             AssertCompareDoubleArray((double[])moi4, new double[] { 953380.76757384, 221739.33836451, 355898.35534423, 221739.33836451, 1257823.94327966, 42062.10100616, 355898.35534423, 42062.10100616, 708511.92344279 });
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])moi5, new double[] { 12582.55584223, 250.22092804, 148.85064148, 250.22092804, 21375.67770367, -5235.05710985, 148.85064148, -5235.05710985, 15689.65556923 });
                 AssertCompareDoubleArray((double[])moi6, new double[] { 3207.83128782, -70.58035199, 50.22342169, -70.58035199, 5220.98393895, 1434.27367730, 50.22342169, 1434.27367730, 4225.95731532 });
@@ -2173,7 +2174,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(322.82511471125844, (double)mass3);
             AssertCompareDoubles(322.82511471125844, (double)mass4);
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubles(39.2325416754816, (double)mass5);
                 AssertCompareDoubles(10, (double)mass6);
@@ -2208,7 +2209,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])cog3, new double[] { -139.23655151, 45.30273096, 193.49523334 });
             AssertCompareDoubleArray((double[])cog4, new double[] { -391.50242124, 152.80074381, 410.94934022 });
             
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])cog5, new double[] { 76.82290986, -0.07532937, -278.77174281 });
                 AssertCompareDoubleArray((double[])cog6, new double[] { -217.44164968, -1.76969527, 145.08869196 });
@@ -2243,7 +2244,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])pmoi3, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
             AssertCompareDoubleArray((double[])pmoi4, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])pmoi5, new double[] { 12575.44120243, 12575.44120243, 24497.00671027 });
                 AssertCompareDoubleArray((double[])pmoi6, new double[] { 3205.35980219, 3205.35980219, 6244.05293771 });
@@ -2278,7 +2279,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])paoi3, new double[] { 0.64086508, 0.64086508, -0.42259189, -0.73123884, 0.67717652, -0.08198608, 0.23362730, 0.36155762, 0.90260422 });
             AssertCompareDoubleArray((double[])paoi4, new double[] { 0.60088528, 0.19827816, 0.77435306, 0.55652280, 0.59160768, -0.58333758, -0.57377631, 0.78146409, 0.24514203 });
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])paoi5, new double[] { 0.65641077, -0.37181957, 0.65641077, 0.75400803, 0.35152849, -0.55488703, -0.02442923, 0.85917282, 0.51110203 }, 7);
                 AssertCompareDoubleArray((double[])paoi6, new double[] { 0.63787041, 0.43155844, 0.63787041, 0.76961549, -0.38786325, -0.50720222, 0.02851909, 0.81444423, -0.57954055 });
@@ -2399,7 +2400,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"MassPrpsAssembly6\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 GetMassPropertyArrayData(assm, "COG_Overridden_Assm-1", true, false, true, out moi1, out mass1, out cog1, out pmoi1, out paoi1, out _, out _, out _);
                 GetMassPropertyArrayData(assm, "Mass_Overridden_Assm-2", true, false, true, out moi2, out mass2, out cog2, out pmoi2, out paoi2, out _, out _, out _);
@@ -2422,7 +2423,7 @@ namespace SolidWorks.Tests.Integration
                 GetMassPropertyArrayData(assm, "None_Overridden_Assm-2", true, true, true, out moi16, out mass16, out cog16, out pmoi16, out paoi16, out _, out _, out _);
             }
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])moi1, new double[] { 732771.57070537, 207033.34471190, 284753.25397601, 207033.34471190, 1016744.10068294, 283072.44302186, 284753.25397601, 283072.44302186, 1170200.96290798 });
                 AssertCompareDoubleArray((double[])moi2, new double[] { 37977.36013703, -9549.44652330, -4965.19161883, -9549.44652330, 17440.37185897, 1988.87607517, -4965.19161883, 1988.87607517, 35024.94118039 });
@@ -2436,7 +2437,7 @@ namespace SolidWorks.Tests.Integration
             }
             AssertCompareDoubleArray((double[])moi4, new double[] { 953380.76757384, 221739.33836451, 355898.35534423, 221739.33836451, 1257823.94327966, 42062.10100616, 355898.35534423, 42062.10100616, 708511.92344279 });
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])moi5, new double[] { 12582.55584223, 250.22092804, 148.85064148, 250.22092804, 21375.67770367, -5235.05710985, 148.85064148, -5235.05710985, 15689.65556923 });
                 AssertCompareDoubleArray((double[])moi6, new double[] { 3207.83128782, -70.58035199, 50.22342169, -70.58035199, 5220.98393895, 1434.27367730, 50.22342169, 1434.27367730, 4225.95731532 });
@@ -2451,7 +2452,7 @@ namespace SolidWorks.Tests.Integration
                 Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(moi8);
             }
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])moi9, new double[] { 2055493.59519249, 1473733.62357906, 209311.83240675, 1473733.62357906, 1144281.88776368, 284502.22693767, 209311.83240675, 284502.22693767, 3094248.38970080 });
                 AssertCompareDoubleArray((double[])moi10, new double[] { 768793.19616025, 104754.95861837, 314872.85703145, 104754.95861837, 834722.70323284, 227762.09556753, 314872.85703145, 227762.09556753, 223073.39439345 });
@@ -2466,7 +2467,7 @@ namespace SolidWorks.Tests.Integration
                 Assert.IsInstanceOf<MassPropertiesHiddenComponentBodiesNotSupported>(moi12);
             }
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])moi13, new double[] { 18169538.72272953, 11995399.31901705, 1683580.55358953, 11995399.31901705, 10041778.53972001, 1993318.14300060, 1683580.55358953, 1993318.14300060, 26090270.31616359 });
                 AssertCompareDoubleArray((double[])moi14, new double[] { 429678.07221692, -53952.39135083, 328772.98457456, -53952.39135083, 700029.78915353, -43384.18746203, 328772.98457456, -43384.18746203, 325063.83301430 });
@@ -2488,7 +2489,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles(10, (double)mass6);
             AssertCompareDoubles(10, (double)mass10);
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubles(39.2325416754816, (double)mass5);
                 AssertCompareDoubles(39.2325416754816, (double)mass7);
@@ -2522,7 +2523,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])cog5, new double[] { 76.82290986, -0.07532937, -278.77174281 });
             AssertCompareDoubleArray((double[])cog9, new double[] { -165.93855976, -225.86082420, -32.13831180 });
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])cog6, new double[] { -217.44164968, -1.76969527, 145.08869196 });
                 AssertCompareDoubleArray((double[])cog7, new double[] { -138.52048542, 181.89475797, 170.54909351 });
@@ -2551,7 +2552,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])pmoi3, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
             AssertCompareDoubleArray((double[])pmoi4, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])pmoi1, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
                 AssertCompareDoubleArray((double[])pmoi2, new double[] { 13058.78440949, 33786.36810946, 43597.52065745 });
@@ -2591,7 +2592,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray((double[])pmoi15, new double[] { 1000.00000000, 1000.00000000, 2000.00000000 });
             AssertCompareDoubleArray((double[])pmoi16, new double[] { 421570.35749821, 1090708.81606145, 1407437.46073663 });
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubleArray((double[])paoi1, new double[] { 0.74428291, 0.47984159, 0.46453740, -0.63704755, 0.71891902, 0.27807527, -0.20053269, -0.50289908, 0.84076106 });
                 AssertCompareDoubleArray((double[])paoi2, new double[] { -0.38183860, 0.90872286, 0.16858839, -0.34497319, -0.30935881, 0.88616625, 0.85743384, 0.28021401, 0.43161016 });
@@ -2656,19 +2657,15 @@ namespace SolidWorks.Tests.Integration
             object area2;
             object volume2;
 
-            using (var doc = OpenDataDocument(@"MassPrpsAssembly1\Assem1.SLDASM", true, s =>
+            using (var doc = OpenDataDocument(@"MassPrpsAssembly1\Assem1.SLDASM", DocumentState_e.ReadOnly | DocumentState_e.Lightweight))
             {
-                s.LightWeight = true;
-                s.UseLightWeightDefault = false;
-            }))
-            {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 GetMassPropertyArrayData(assm, "Part1-1", false, false, false, out moi1, out mass1, out cog1, out pmoi1, out pai1, out density1, out area1, out volume1);
                 GetMassPropertyArrayData(assm, "SubAssem1-1", false, false, false, out moi2, out mass2, out cog2, out pmoi2, out pai2, out density2, out area2, out volume2);
             }
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubles((double)density1, 7300.00000000);
                 AssertCompareDoubleArray((double[])cog1, new double[] { 0.03260240, 0.06212415, 0.00000000 });
@@ -2692,7 +2689,7 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubles((double)area1, 0.03850408);
             AssertCompareDoubles((double)volume1, 0.00030905);
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2020))
             {
                 AssertCompareDoubles((double)density2, 4553.1112368995864);
                 AssertCompareDoubleArray((double[])cog2, new double[] { -0.00177216, 0.01832142, 0.04575921 });
@@ -2724,7 +2721,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("RayIntersectionAssem1.SLDASM")) 
             {
-                var assm = (IXAssembly)m_App.Documents.Active;
+                var assm = (IXAssembly)doc.Document;
 
                 var rayInters = assm.Evaluation.PreCreateRayIntersection();
                 
@@ -2880,7 +2877,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("TessPart1.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (IXPart)doc.Document;
                 var tess = part.Evaluation.PreCreateTessellation();
                 tess.Commit();
                 triangs = tess.EnumerateTriangles().ToArray();
@@ -2923,7 +2920,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("TessAssm1.SLDASM"))
             {
-                var assm = (IXAssembly)m_App.Documents.Active;
+                var assm = (IXAssembly)doc.Document;
                 var tess = assm.Evaluation.PreCreateTessellation();
                 tess.Commit();
                 triangs = tess.EnumerateTriangles().ToArray();
@@ -2967,7 +2964,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CollisionPart1.SLDPRT"))
             {
-                var part = (IXPart)m_App.Documents.Active;
+                var part = (IXPart)doc.Document;
                 var collDet1 = part.Evaluation.PreCreateCollisionDetection();
                 collDet1.Scope = new IXBody[]
                 {
@@ -3029,7 +3026,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CollisionAssm1\\Assem1.SLDASM"))
             {
-                var assm = (IXAssembly)m_App.Documents.Active;
+                var assm = (IXAssembly)doc.Document;
                 var collDet1 = (IXCollisionDetection)assm.Evaluation.PreCreateCollisionDetection();
                 collDet1.Scope = new IXBody[]
                 {
@@ -3063,7 +3060,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CollisionAssm2\\Assem1.SLDASM"))
             {
-                var assm = (IXAssembly)m_App.Documents.Active;
+                var assm = (IXAssembly)doc.Document;
                 var collDet1 = assm.Evaluation.PreCreateCollisionDetection();
                 collDet1.Scope = new IXComponent[]
                 {
@@ -3097,7 +3094,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("CollisionAssm2\\Assem1.SLDASM"))
             {
-                var assm = (IXAssembly)m_App.Documents.Active;
+                var assm = (IXAssembly)doc.Document;
                 var collDet1 = assm.Evaluation.PreCreateCollisionDetection();
                 collDet1.VisibleOnly = true;
 

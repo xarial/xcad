@@ -3,6 +3,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Xarial.XCad.Base;
@@ -29,13 +30,13 @@ namespace SolidWorks.Tests.Integration
             string drw2SheetName;
             double[] drw2Prps;
 
-            var drw1 = m_App.Documents.PreCreate<ISwDrawing>();
+            var drw1 = Application.Documents.PreCreate<ISwDrawing>();
             drw1.Commit();
 
             drw1SheetsCount = (drw1.Drawing.GetSheetNames() as string[]).Length;
             drw1Prps = (double[])drw1.Drawing.Sheet[(drw1.Drawing.GetSheetNames() as string[]).First()].GetProperties2();
 
-            var drw2 = m_App.Documents.PreCreate<ISwDrawing>();
+            var drw2 = Application.Documents.PreCreate<ISwDrawing>();
             drw2.Sheets.First().PaperSize = new PaperSize(StandardPaperSize_e.A2Landscape);
             drw2.Sheets.First().Scale = new Scale(5, 3);
             drw2.Sheets.First().Name = "My Sheet 1";
@@ -65,7 +66,7 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void NewDrawingCustomSheetsTest()
         {
-            var drw = m_App.Documents.PreCreate<ISwDrawing>();
+            var drw = Application.Documents.PreCreate<ISwDrawing>();
 
             var sheet1 = drw.Sheets.PreCreate<ISwSheet>();
             sheet1.Name = "TestSheet1";
@@ -113,7 +114,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
             {
-                name = (m_App.Documents.Active as ISwDrawing).Sheets.Active.Name;
+                name = (doc.Document as ISwDrawing).Sheets.Active.Name;
             }
 
             Assert.AreEqual("Sheet2", name);
@@ -126,7 +127,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
             {
-                confNames = (m_App.Documents.Active as ISwDrawing).Sheets.Select(x => x.Name).ToArray();
+                confNames = (doc.Document as ISwDrawing).Sheets.Select(x => x.Name).ToArray();
             }
 
             Assert.That(confNames.SequenceEqual(new string[] 
@@ -147,7 +148,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
             {
-                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
+                var sheets = (doc.Document as ISwDrawing).Sheets;
 
                 sheet1 = sheets["Sheet1"];
                 r1 = sheets.TryGet("Sheet2", out sheet2);
@@ -184,7 +185,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing1.SLDDRW"))
             {
-                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
+                var sheets = (doc.Document as ISwDrawing).Sheets;
 
                 var sheet1 = sheets["Sheet1"];
                 var sheet2 = sheets["Sheet2"];
@@ -232,13 +233,17 @@ namespace SolidWorks.Tests.Integration
             string o8;
             string o9;
 
+            string workFolder;
+
             using (var doc = OpenDataDocument("Selections1.SLDPRT"))
             {
-                var partDoc = m_App.Documents.Active as IXDocument3D;
+                workFolder = doc.WorkFolderPath;
+
+                var partDoc = doc.Document as IXDocument3D;
                 
-                using(var drw = NewDocument(swDocumentTypes_e.swDocDRAWING))
+                using(var drw = NewDataDocument(swDocumentTypes_e.swDocDRAWING))
                 {
-                    var drwDoc = m_App.Documents.Active as ISwDrawing;
+                    var drwDoc = doc.Document as ISwDrawing;
 
                     var v1 = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(partDoc.ModelViews[StandardViewType_e.Back]);
                     var v2 = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(partDoc.ModelViews[StandardViewType_e.Bottom]);
@@ -264,7 +269,7 @@ namespace SolidWorks.Tests.Integration
                 }
             }
 
-            Assert.AreEqual(GetFilePath("Selections1.SLDPRT"), refDocPathName);
+            Assert.That(string.Equals(Path.Combine(workFolder, "Selections1.SLDPRT"), refDocPathName, StringComparison.CurrentCultureIgnoreCase));
             Assert.AreEqual("*Back", o1);
             Assert.AreEqual("*Bottom", o2);
             Assert.AreEqual("*Dimetric", o3);
@@ -283,21 +288,24 @@ namespace SolidWorks.Tests.Integration
             string view1Conf;
             int edgeCount1;
 
-            using (var drw = NewDocument(swDocumentTypes_e.swDocDRAWING))
+            using (var dataFile = GetDataFile("FlatPattern1.SLDPRT"))
             {
-                var drwDoc = m_App.Documents.Active as ISwDrawing;
+                using (var drw = NewDataDocument(swDocumentTypes_e.swDocDRAWING))
+                {
+                    var drwDoc = Application.Documents.Active as ISwDrawing;
 
-                var drwView1 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                    var drwView1 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
 
-                var refDoc = m_App.Documents.PreCreate<IXPart>();
-                refDoc.Path = GetFilePath("FlatPattern1.SLDPRT");
+                    var refDoc = Application.Documents.PreCreate<IXPart>();
+                    refDoc.Path = dataFile.FilePath;
 
-                drwView1.ReferencedDocument = refDoc;
-                drwView1.Commit();
+                    drwView1.ReferencedDocument = refDoc;
+                    drwView1.Commit();
 
-                view1IsFlatPattern = drwView1.DrawingView.IsFlatPatternView();
-                view1Conf = drwView1.DrawingView.ReferencedConfiguration;
-                edgeCount1 = drwView1.DrawingView.GetVisibleEntityCount2((Component2)(drwView1.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+                    view1IsFlatPattern = drwView1.DrawingView.IsFlatPatternView();
+                    view1Conf = drwView1.DrawingView.ReferencedConfiguration;
+                    edgeCount1 = drwView1.DrawingView.GetVisibleEntityCount2((Component2)(drwView1.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+                }
             }
 
             Assert.IsTrue(view1IsFlatPattern);
@@ -319,11 +327,11 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("FlatPattern2.SLDPRT"))
             {
-                var partDoc = m_App.Documents.Active as IXPart;
+                var partDoc = doc.Document as IXPart;
 
-                using (var drw = NewDocument(swDocumentTypes_e.swDocDRAWING))
+                using (var drw = NewDataDocument(swDocumentTypes_e.swDocDRAWING))
                 {
-                    var drwDoc = m_App.Documents.Active as ISwDrawing;
+                    var drwDoc = doc.Document as ISwDrawing;
                     
                     var drwView1 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
                     drwView1.SheetMetalBody = (IXSolidBody)partDoc.Bodies["Edge-Flange2"];
@@ -366,16 +374,16 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"SheetMetalAssembly1\Assem1.SLDASM"))
             {
-                var assmDoc = m_App.Documents.Active as IXAssembly;
+                var assmDoc = doc.Document as IXAssembly;
 
                 var comp1 = assmDoc.Configurations.Active.Components["Part1-1"];
                 var comp2 = assmDoc.Configurations.Active.Components["Part1-2"];
 
                 var partDoc = (IXPart)assmDoc.Dependencies.First();
 
-                using (var drw = NewDocument(swDocumentTypes_e.swDocDRAWING))
+                using (var drw = NewDataDocument(swDocumentTypes_e.swDocDRAWING))
                 {
-                    var drwDoc = m_App.Documents.Active as ISwDrawing;
+                    var drwDoc = doc.Document as ISwDrawing;
 
                     var drwView1 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
                     drwView1.SheetMetalBody = (IXSolidBody)comp1.Bodies["Cut-Extrude1"];
@@ -422,11 +430,11 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("SheetMetal2.SLDPRT"))
             {
-                var partDoc = m_App.Documents.Active as IXPart;
+                var partDoc = Application.Documents.Active as IXPart;
 
-                using (var drw = NewDocument(swDocumentTypes_e.swDocDRAWING))
+                using (var drw = NewDataDocument(swDocumentTypes_e.swDocDRAWING))
                 {
-                    var drwDoc = m_App.Documents.Active as ISwDrawing;
+                    var drwDoc = doc.Document as ISwDrawing;
 
                     var drwView1 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
                     drwView1.ReferencedDocument = partDoc;
@@ -488,65 +496,71 @@ namespace SolidWorks.Tests.Integration
             int view5BendLinesCount;
             int view5BendNotesCount;
 
-            using (var drw = NewDocument(swDocumentTypes_e.swDocDRAWING))
+            using (var dataFile1 = GetDataFile("SheetMetal3.SLDPRT"))
             {
-                var drwDoc = m_App.Documents.Active as ISwDrawing;
+                using (var dataFile2 = GetDataFile("SheetMetal4.SLDPRT"))
+                {
+                    using (var drw = NewDataDocument(swDocumentTypes_e.swDocDRAWING))
+                    {
+                        var drwDoc = Application.Documents.Active as ISwDrawing;
 
-                var refDoc1 = m_App.Documents.PreCreate<IXPart>();
-                refDoc1.Path = GetFilePath("SheetMetal3.SLDPRT");
+                        var refDoc1 = Application.Documents.PreCreate<IXPart>();
+                        refDoc1.Path = dataFile1.FilePath;
 
-                var drwView1 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
-                drwView1.ReferencedDocument = refDoc1;
-                drwView1.Options = FlatPatternViewOptions_e.BendNotes | FlatPatternViewOptions_e.BendLines;
-                drwView1.Commit();
+                        var drwView1 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                        drwView1.ReferencedDocument = refDoc1;
+                        drwView1.Options = FlatPatternViewOptions_e.BendNotes | FlatPatternViewOptions_e.BendLines;
+                        drwView1.Commit();
 
-                var drwView2 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
-                drwView2.ReferencedDocument = refDoc1;
-                drwView2.Options = FlatPatternViewOptions_e.Default;
-                drwView2.Commit();
+                        var drwView2 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                        drwView2.ReferencedDocument = refDoc1;
+                        drwView2.Options = FlatPatternViewOptions_e.Default;
+                        drwView2.Commit();
 
-                var refDoc2 = m_App.Documents.PreCreate<IXPart>();
-                refDoc2.Path = GetFilePath("SheetMetal4.SLDPRT");
+                        var refDoc2 = Application.Documents.PreCreate<IXPart>();
+                        refDoc2.Path = dataFile2.FilePath;
 
-                var drwView3 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
-                drwView3.ReferencedDocument = refDoc2;
-                drwView3.Options = FlatPatternViewOptions_e.BendNotes | FlatPatternViewOptions_e.BendLines;
-                drwView3.Commit();
+                        var drwView3 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                        drwView3.ReferencedDocument = refDoc2;
+                        drwView3.Options = FlatPatternViewOptions_e.BendNotes | FlatPatternViewOptions_e.BendLines;
+                        drwView3.Commit();
 
-                var drwView4 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
-                drwView4.ReferencedDocument = refDoc2;
-                drwView4.Options = FlatPatternViewOptions_e.BendLines;
-                drwView4.Commit();
+                        var drwView4 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                        drwView4.ReferencedDocument = refDoc2;
+                        drwView4.Options = FlatPatternViewOptions_e.BendLines;
+                        drwView4.Commit();
 
-                var drwView5 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
-                drwView5.ReferencedDocument = refDoc2;
-                drwView5.Options = FlatPatternViewOptions_e.Default;
-                drwView5.Commit();
+                        var drwView5 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
+                        drwView5.ReferencedDocument = refDoc2;
+                        drwView5.Options = FlatPatternViewOptions_e.Default;
+                        drwView5.Commit();
 
-                view1IsFlatPattern = drwView1.DrawingView.IsFlatPatternView();
-                view1EdgeCount = drwView1.DrawingView.GetVisibleEntityCount2((Component2)(drwView1.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
-                view1BendLinesCount = drwView1.DrawingView.GetBendLineCount();
-                view1BendNotesCount = GenBendNotesCount(drwView1.DrawingView);
+                        view1IsFlatPattern = drwView1.DrawingView.IsFlatPatternView();
+                        view1EdgeCount = drwView1.DrawingView.GetVisibleEntityCount2((Component2)(drwView1.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+                        view1BendLinesCount = drwView1.DrawingView.GetBendLineCount();
+                        view1BendNotesCount = GenBendNotesCount(drwView1.DrawingView);
 
-                view2IsFlatPattern = drwView2.DrawingView.IsFlatPatternView();
-                view2EdgeCount = drwView2.DrawingView.GetVisibleEntityCount2((Component2)(drwView2.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
-                view2BendLinesCount = drwView2.DrawingView.GetBendLineCount();
-                view2BendNotesCount = GenBendNotesCount(drwView2.DrawingView);
+                        view2IsFlatPattern = drwView2.DrawingView.IsFlatPatternView();
+                        view2EdgeCount = drwView2.DrawingView.GetVisibleEntityCount2((Component2)(drwView2.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+                        view2BendLinesCount = drwView2.DrawingView.GetBendLineCount();
+                        view2BendNotesCount = GenBendNotesCount(drwView2.DrawingView);
 
-                view3IsFlatPattern = drwView3.DrawingView.IsFlatPatternView();
-                view3EdgeCount = drwView3.DrawingView.GetVisibleEntityCount2((Component2)(drwView3.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
-                view3BendLinesCount = drwView3.DrawingView.GetBendLineCount();
-                view3BendNotesCount = GenBendNotesCount(drwView3.DrawingView);
+                        view3IsFlatPattern = drwView3.DrawingView.IsFlatPatternView();
+                        view3EdgeCount = drwView3.DrawingView.GetVisibleEntityCount2((Component2)(drwView3.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+                        view3BendLinesCount = drwView3.DrawingView.GetBendLineCount();
+                        view3BendNotesCount = GenBendNotesCount(drwView3.DrawingView);
 
-                view4IsFlatPattern = drwView4.DrawingView.IsFlatPatternView();
-                view4EdgeCount = drwView4.DrawingView.GetVisibleEntityCount2((Component2)(drwView4.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
-                view4BendLinesCount = drwView4.DrawingView.GetBendLineCount();
-                view4BendNotesCount = GenBendNotesCount(drwView4.DrawingView);
+                        view4IsFlatPattern = drwView4.DrawingView.IsFlatPatternView();
+                        view4EdgeCount = drwView4.DrawingView.GetVisibleEntityCount2((Component2)(drwView4.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+                        view4BendLinesCount = drwView4.DrawingView.GetBendLineCount();
+                        view4BendNotesCount = GenBendNotesCount(drwView4.DrawingView);
 
-                view5IsFlatPattern = drwView5.DrawingView.IsFlatPatternView();
-                view5EdgeCount = drwView5.DrawingView.GetVisibleEntityCount2((Component2)(drwView5.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
-                view5BendLinesCount = drwView5.DrawingView.GetBendLineCount();
-                view5BendNotesCount = GenBendNotesCount(drwView5.DrawingView);
+                        view5IsFlatPattern = drwView5.DrawingView.IsFlatPatternView();
+                        view5EdgeCount = drwView5.DrawingView.GetVisibleEntityCount2((Component2)(drwView5.DrawingView.GetVisibleComponents() as object[]).First(), (int)swViewEntityType_e.swViewEntityType_Edge);
+                        view5BendLinesCount = drwView5.DrawingView.GetBendLineCount();
+                        view5BendNotesCount = GenBendNotesCount(drwView5.DrawingView);
+                    }
+                }
             }
 
             Assert.IsTrue(view1IsFlatPattern);
@@ -598,7 +612,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing4\\Drawing4.slddrw"))
             {
-                var drwDoc = m_App.Documents.Active as ISwDrawing;
+                var drwDoc = doc.Document as ISwDrawing;
 
                 var sheet = drwDoc.Sheets["Sheet1"];
 
@@ -705,7 +719,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing7\\Drawing7.slddrw"))
             {
-                var drwDoc = m_App.Documents.Active as ISwDrawing;
+                var drwDoc = doc.Document as ISwDrawing;
 
                 var sheet = drwDoc.Sheets["Sheet1"];
 
@@ -796,7 +810,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing5\\Drawing5.slddrw"))
             {
-                var drwDoc = m_App.Documents.Active as ISwDrawing;
+                var drwDoc = doc.Document as ISwDrawing;
 
                 var sheet = drwDoc.Sheets["Sheet1"];
 
@@ -823,7 +837,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing5\\Drawing5.slddrw"))
             {
-                var drwDoc = m_App.Documents.Active as ISwDrawing;
+                var drwDoc = doc.Document as ISwDrawing;
 
                 var sheet = drwDoc.Sheets["Sheet1"];
 
@@ -850,14 +864,14 @@ namespace SolidWorks.Tests.Integration
 
             using (var part = OpenDataDocument(@"Drawing9\Part1.sldprt"))
             {
-                var partDoc = m_App.Documents.Active as ISwPart;
+                var partDoc = Application.Documents.Active as ISwPart;
 
                 var face1 = partDoc.CreateObjectFromDispatch<ISwPlanarFace>(partDoc.Part.GetEntityByName("FACE1", (int)swSelectType_e.swSelFACES));
                 var face2 = partDoc.CreateObjectFromDispatch<ISwPlanarFace>(partDoc.Part.GetEntityByName("FACE2", (int)swSelectType_e.swSelFACES));
 
-                using (var doc = NewDocument(swDocumentTypes_e.swDocDRAWING))
+                using (var doc = NewDataDocument(swDocumentTypes_e.swDocDRAWING))
                 {
-                    var drwDoc = m_App.Documents.Active as ISwDrawing;
+                    var drwDoc = doc.Document as ISwDrawing;
 
                     var sheet = drwDoc.Sheets.First();
 
@@ -887,38 +901,54 @@ namespace SolidWorks.Tests.Integration
             string view3RefDoc;
             string view4RefDoc;
 
-            using (var part = OpenDataDocument("TessPart1.SLDPRT"))
+            string workFolder1;
+            string workFolder2;
+            string workFolder3;
+
+            using (var dataFile1 = GetDataFile("Selections1.SLDPRT"))
             {
-                var part1 = (ISwPart)m_App.Documents.Active;
+                workFolder1 = dataFile1.WorkFolderPath;
 
-                using (var doc = OpenDataDocument("Drawing2.slddrw"))
+                using (var dataFile2 = GetDataFile(@"Assembly1\TopAssem1.SLDASM"))
                 {
-                    var drwDoc = m_App.Documents.Active as ISwDrawing;
+                    workFolder2 = dataFile2.WorkFolderPath;
 
-                    var sheet1 = drwDoc.Sheets["Sheet1"];
-                    var sheet2 = drwDoc.Sheets["Sheet2"];
+                    using (var part = OpenDataDocument("TessPart1.SLDPRT"))
+                    {
+                        workFolder3 = part.WorkFolderPath;
 
-                    var view1 = sheet1.DrawingViews["Drawing View1"];
-                    var view2 = sheet1.DrawingViews["Drawing View2"];
-                    var view3 = sheet1.DrawingViews["Drawing View3"];
-                    var view4 = sheet2.DrawingViews["Drawing View4"];
+                        var part1 = (ISwPart)Application.Documents.Active;
 
-                    view1RefDocOrig = view1.ReferencedDocument?.Path;
-                    view2RefDocOrig = view2.ReferencedDocument?.Path;
-                    view3RefDocOrig = view3.ReferencedDocument?.Path;
-                    view4RefDocOrig = view4.ReferencedDocument?.Path;
+                        using (var doc = OpenDataDocument("Drawing2.slddrw"))
+                        {
+                            var drwDoc = doc.Document as ISwDrawing;
 
-                    var part2 = (ISwPart)m_App.Documents.PreCreateFromPath(GetFilePath("Selections1.SLDPRT"));
-                    var assm3 = (ISwAssembly)m_App.Documents.PreCreateFromPath(GetFilePath(@"Assembly1\TopAssem1.SLDASM"));
+                            var sheet1 = drwDoc.Sheets["Sheet1"];
+                            var sheet2 = drwDoc.Sheets["Sheet2"];
 
-                    view1.ReferencedDocument = part1;
-                    view3.ReferencedDocument = part2;
-                    view4.ReferencedDocument = assm3;
+                            var view1 = sheet1.DrawingViews["Drawing View1"];
+                            var view2 = sheet1.DrawingViews["Drawing View2"];
+                            var view3 = sheet1.DrawingViews["Drawing View3"];
+                            var view4 = sheet2.DrawingViews["Drawing View4"];
 
-                    view1RefDoc = view1.ReferencedDocument?.Path;
-                    view2RefDoc = view2.ReferencedDocument?.Path;
-                    view3RefDoc = view3.ReferencedDocument?.Path;
-                    view4RefDoc = view4.ReferencedDocument?.Path;
+                            view1RefDocOrig = view1.ReferencedDocument?.Path;
+                            view2RefDocOrig = view2.ReferencedDocument?.Path;
+                            view3RefDocOrig = view3.ReferencedDocument?.Path;
+                            view4RefDocOrig = view4.ReferencedDocument?.Path;
+
+                            var part2 = (ISwPart)Application.Documents.PreCreateFromPath(dataFile1.FilePath);
+                            var assm3 = (ISwAssembly)Application.Documents.PreCreateFromPath(dataFile2.FilePath);
+
+                            view1.ReferencedDocument = part1;
+                            view3.ReferencedDocument = part2;
+                            view4.ReferencedDocument = assm3;
+
+                            view1RefDoc = view1.ReferencedDocument?.Path;
+                            view2RefDoc = view2.ReferencedDocument?.Path;
+                            view3RefDoc = view3.ReferencedDocument?.Path;
+                            view4RefDoc = view4.ReferencedDocument?.Path;
+                        }
+                    }
                 }
             }
            
@@ -927,10 +957,10 @@ namespace SolidWorks.Tests.Integration
             Assert.IsNull(view3RefDocOrig);
             Assert.IsNull(view4RefDocOrig);
 
-            Assert.That(string.Equals(view1RefDoc, GetFilePath("TessPart1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
-            Assert.That(string.Equals(view2RefDoc, GetFilePath("TessPart1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
-            Assert.That(string.Equals(view3RefDoc, GetFilePath("Selections1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
-            Assert.That(string.Equals(view4RefDoc, GetFilePath(@"Assembly1\TopAssem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view1RefDoc, Path.Combine(workFolder3, "TessPart1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view2RefDoc, Path.Combine(workFolder1, "TessPart1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view3RefDoc, Path.Combine(workFolder1, "Selections1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view4RefDoc, Path.Combine(workFolder2, @"Assembly1\TopAssem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase));
         }
 
         [Test]
@@ -940,25 +970,32 @@ namespace SolidWorks.Tests.Integration
             string view1RefConf;
             int view1RefConfType;
 
-            using (var doc = OpenDataDocument(@"FlatPatternDraw1\FlatPatternDraw1.slddrw"))
+            string workFolder;
+
+            using (var dataFile = GetDataFile("FlatPattern1.SLDPRT"))
             {
-                var drwDoc = m_App.Documents.Active as ISwDrawing;
+                workFolder = dataFile.WorkFolderPath;
 
-                var sheet1 = drwDoc.Sheets["Sheet1"];
+                using (var doc = OpenDataDocument(@"FlatPatternDraw1\FlatPatternDraw1.slddrw"))
+                {
+                    var drwDoc = doc.Document as ISwDrawing;
 
-                var view1 = sheet1.DrawingViews["Drawing View1"];
+                    var sheet1 = drwDoc.Sheets["Sheet1"];
 
-                var part1 = (ISwPart)m_App.Documents.PreCreateFromPath(GetFilePath("FlatPattern1.SLDPRT"));
+                    var view1 = sheet1.DrawingViews["Drawing View1"];
 
-                view1.ReferencedDocument = part1;
-                view1.ReferencedConfiguration = part1.Configurations["Default"];
+                    var part1 = (ISwPart)Application.Documents.PreCreateFromPath(dataFile.FilePath);
 
-                view1RefDoc = ((ISwDrawingView)view1).DrawingView.ReferencedDocument.GetPathName();
-                view1RefConf = ((ISwDrawingView)view1).DrawingView.ReferencedConfiguration;
-                view1RefConfType = ((ISwDrawingView)view1).DrawingView.ReferencedDocument.IGetConfigurationByName(view1RefConf).Type;
+                    view1.ReferencedDocument = part1;
+                    view1.ReferencedConfiguration = part1.Configurations["Default"];
+
+                    view1RefDoc = ((ISwDrawingView)view1).DrawingView.ReferencedDocument.GetPathName();
+                    view1RefConf = ((ISwDrawingView)view1).DrawingView.ReferencedConfiguration;
+                    view1RefConfType = ((ISwDrawingView)view1).DrawingView.ReferencedDocument.IGetConfigurationByName(view1RefConf).Type;
+                }
             }
 
-            Assert.That(string.Equals(view1RefDoc, GetFilePath("FlatPattern1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view1RefDoc, Path.Combine(workFolder, "FlatPattern1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
             Assert.That(string.Equals(view1RefConf, "DefaultSM-FLAT-PATTERN", StringComparison.CurrentCultureIgnoreCase));
             Assert.AreEqual(view1RefConfType, (int)swConfigurationType_e.swConfiguration_SheetMetal);
         }
@@ -971,7 +1008,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Sheets1.SLDDRW"))
             {
-                var draw = (ISwDrawing)m_App.Documents.Active;
+                var draw = (ISwDrawing)doc.Document;
 
                 draw.Sheets.SheetActivated += (d, s) =>
                 {
@@ -982,7 +1019,7 @@ namespace SolidWorks.Tests.Integration
                 var feat = (IFeature)draw.Drawing.FeatureByName("MySheet");
                 feat.Select2(false, -1);
                 const int swCommands_Activate_Sheet = 1206;
-                m_App.Sw.RunCommand(swCommands_Activate_Sheet, "");
+                Application.Sw.RunCommand(swCommands_Activate_Sheet, "");
             }
 
             Assert.AreEqual(1, sheetActiveCount);
@@ -997,7 +1034,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing1\\Drawing1.SLDDRW"))
             {
-                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
+                var sheets = (doc.Document as ISwDrawing).Sheets;
                 sheet1Views = sheets["Sheet1"].DrawingViews.Select(v => v.Name).ToArray();
                 sheet2Views = sheets["Sheet2"].DrawingViews.Select(v => v.Name).ToArray();
             }
@@ -1021,9 +1058,13 @@ namespace SolidWorks.Tests.Integration
             string view4Conf;
             string view5Conf;
 
+            string workFolder;
+
             using (var doc = OpenDataDocument("Drawing1\\Drawing1.SLDDRW"))
             {
-                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
+                workFolder = doc.WorkFolderPath;
+
+                var sheets = (doc.Document as ISwDrawing).Sheets;
                 
                 var v1 = sheets["Sheet1"].DrawingViews["Drawing View1"];
                 var v2 = sheets["Sheet1"].DrawingViews["Drawing View2"];
@@ -1044,10 +1085,10 @@ namespace SolidWorks.Tests.Integration
                 view5Conf = v5.ReferencedConfiguration != null ? v5.ReferencedConfiguration.Name : "";
             }
 
-            Assert.That(string.Equals(view1DocPath, GetFilePath("Drawing1\\Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
-            Assert.That(string.Equals(view2DocPath, GetFilePath("Drawing1\\Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
-            Assert.That(string.Equals(view3DocPath, GetFilePath("Drawing1\\Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
-            Assert.That(string.Equals(view4DocPath, GetFilePath("Drawing1\\Part2.sldprt"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view1DocPath, Path.Combine(workFolder, @"Drawing1\Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view2DocPath, Path.Combine(workFolder, @"Drawing1\Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view3DocPath, Path.Combine(workFolder, @"Drawing1\Part1.sldprt"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view4DocPath, Path.Combine(workFolder, @"Drawing1\Part2.sldprt"), StringComparison.CurrentCultureIgnoreCase));
             Assert.That(string.IsNullOrEmpty(view5DocPath));
 
             Assert.That(string.Equals(view1Conf, "Conf1", StringComparison.CurrentCultureIgnoreCase));
@@ -1073,7 +1114,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing2\\Drawing2.SLDDRW"))
             {
-                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
+                var sheets = (doc.Document as ISwDrawing).Sheets;
 
                 var sheet1 = sheets["Sheet1"];
                 var sheet2 = sheets["Sheet2"];
@@ -1138,7 +1179,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing2\\Drawing2.SLDDRW"))
             {
-                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
+                var sheets = (doc.Document as ISwDrawing).Sheets;
 
                 var sheet1 = sheets["Sheet1"];
                 var sheet2 = sheets["Sheet2"];
@@ -1197,7 +1238,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing2\\Drawing2.SLDDRW"))
             {
-                var sheets = (m_App.Documents.Active as ISwDrawing).Sheets;
+                var sheets = (doc.Document as ISwDrawing).Sheets;
 
                 var sheet1 = sheets["Sheet1"];
                 var sheet2 = sheets["Sheet2"];
@@ -1270,7 +1311,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing3\\Drawing3.SLDDRW"))
             {
-                var sheet = (m_App.Documents.Active as ISwDrawing).Sheets.First();
+                var sheet = (doc.Document as ISwDrawing).Sheets.First();
 
                 t1 = sheet.DrawingViews["Drawing View1"].GetType();
                 t2 = sheet.DrawingViews["Drawing View2"].GetType();
@@ -1311,7 +1352,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing3\\Drawing3.SLDDRW"))
             {
-                var sheet = (m_App.Documents.Active as ISwDrawing).Sheets.First();
+                var sheet = (doc.Document as ISwDrawing).Sheets.First();
 
                 d1 = sheet.DrawingViews["Drawing View1"].DependentViews.Select(v => v.Name).ToArray();
                 d2 = sheet.DrawingViews["Drawing View4"].DependentViews.Select(v => v.Name).ToArray();
@@ -1344,7 +1385,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing6\\Drawing6.slddrw"))
             {
-                var drwDoc = m_App.Documents.Active as ISwDrawing;
+                var drwDoc = doc.Document as ISwDrawing;
 
                 var sheet = drwDoc.Sheets["Sheet1"];
 
@@ -1388,9 +1429,13 @@ namespace SolidWorks.Tests.Integration
 
             string newSheetName;
 
+            string workFolder;
+
             using (var doc = OpenDataDocument("Drawing3.slddrw"))
             {
-                var drwDoc = m_App.Documents.Active as ISwDrawing;
+                workFolder = doc.WorkFolderPath;
+
+                var drwDoc = doc.Document as ISwDrawing;
 
                 var sheetNames = (string[])drwDoc.Drawing.GetSheetNames();
 
@@ -1401,13 +1446,13 @@ namespace SolidWorks.Tests.Integration
 
                 const int swCommands_Insert_Sheet = 857;
 
-                m_App.Sw.RunCommand(swCommands_Insert_Sheet, "");
+                Application.Sw.RunCommand(swCommands_Insert_Sheet, "");
 
                 newSheetName = ((string[])drwDoc.Drawing.GetSheetNames()).Except(sheetNames).First();
             }
 
             Assert.AreEqual(1, res1.Count);
-            Assert.AreEqual(GetFilePath("Drawing3.slddrw").ToLower(), res1[0].Item1.ToLower());
+            Assert.That(string.Equals(Path.Combine(workFolder, "Drawing3.slddrw"), res1[0].Item1.ToLower(), StringComparison.CurrentCultureIgnoreCase));
             Assert.AreEqual(newSheetName, res1[0].Item2);
         }
 
@@ -1420,39 +1465,49 @@ namespace SolidWorks.Tests.Integration
             string view1;
             string view2;
 
-            using (var doc = OpenDataDocument("Drawing3.slddrw"))
+            string workFolder;
+
+            using (var dataFile1 = GetDataFile(@"Drawing9\Part1.sldprt"))
             {
-                var drwDoc = m_App.Documents.Active as ISwDrawing;
-
-                var sheet1 = drwDoc.Sheets["Sheet1"];
-                var sheet2 = drwDoc.Sheets["Sheet2"];
-
-                sheet1.DrawingViews.ViewCreated += (d, s, v) =>
+                using (var dataFile2 = GetDataFile("Cylinder1.sldprt"))
                 {
-                    res1.Add(new Tuple<string, string, string>(d.Path, s.Name, v.Name));
-                };
+                    using (var doc = OpenDataDocument("Drawing3.slddrw"))
+                    {
+                        workFolder = doc.WorkFolderPath;
 
-                sheet2.DrawingViews.ViewCreated += (d, s, v) =>
-                {
-                    res2.Add(new Tuple<string, string, string>(d.Path, s.Name, v.Name));
-                };
+                        var drwDoc = doc.Document as ISwDrawing;
 
-                drwDoc.Drawing.ActivateSheet("Sheet1");
-                
-                view1 = drwDoc.Drawing.CreateDrawViewFromModelView3(GetFilePath(@"Drawing9\Part1.sldprt"), "*Front", 0, 0, 0).Name;
+                        var sheet1 = drwDoc.Sheets["Sheet1"];
+                        var sheet2 = drwDoc.Sheets["Sheet2"];
 
-                drwDoc.Drawing.ActivateSheet("Sheet2");
+                        sheet1.DrawingViews.ViewCreated += (d, s, v) =>
+                        {
+                            res1.Add(new Tuple<string, string, string>(d.Path, s.Name, v.Name));
+                        };
 
-                view2 = drwDoc.Drawing.CreateDrawViewFromModelView3(GetFilePath("Cylinder1.sldprt"), "*Front", 0, 0, 0).Name;
+                        sheet2.DrawingViews.ViewCreated += (d, s, v) =>
+                        {
+                            res2.Add(new Tuple<string, string, string>(d.Path, s.Name, v.Name));
+                        };
+
+                        drwDoc.Drawing.ActivateSheet("Sheet1");
+
+                        view1 = drwDoc.Drawing.CreateDrawViewFromModelView3(dataFile1.FilePath, "*Front", 0, 0, 0).Name;
+
+                        drwDoc.Drawing.ActivateSheet("Sheet2");
+
+                        view2 = drwDoc.Drawing.CreateDrawViewFromModelView3(dataFile2.FilePath, "*Front", 0, 0, 0).Name;
+                    }
+                }
             }
 
             Assert.AreEqual(1, res1.Count);
-            Assert.AreEqual(GetFilePath("Drawing3.slddrw").ToLower(), res1[0].Item1.ToLower());
+            Assert.That(string.Equals(Path.Combine(workFolder, "Drawing3.slddrw").ToLower(), res1[0].Item1.ToLower(), StringComparison.CurrentCultureIgnoreCase));
             Assert.AreEqual("Sheet1", res1[0].Item2);
             Assert.AreEqual(view1, res1[0].Item3);
 
             Assert.AreEqual(1, res2.Count);
-            Assert.AreEqual(GetFilePath("Drawing3.slddrw").ToLower(), res2[0].Item1.ToLower());
+            Assert.That(string.Equals(Path.Combine(workFolder, "Drawing3.slddrw").ToLower(), res2[0].Item1.ToLower(), StringComparison.CurrentCultureIgnoreCase));
             Assert.AreEqual("Sheet2", res2[0].Item2);
             Assert.AreEqual(view2, res2[0].Item3);
         }
@@ -1466,7 +1521,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Drawing3.slddrw"))
             {
-                var drwDoc = m_App.Documents.Active as ISwDrawing;
+                var drwDoc = doc.Document as ISwDrawing;
                 
                 var sheetNames = (string[])drwDoc.Drawing.GetSheetNames();
 

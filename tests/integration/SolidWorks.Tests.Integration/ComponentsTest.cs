@@ -31,7 +31,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
             {
-                compNames = ((ISwAssembly)m_App.Documents.Active).Configurations.Active.Components.Select(c => c.Name).ToArray();
+                compNames = ((ISwAssembly)doc.Document).Configurations.Active.Components.Select(c => c.Name).ToArray();
             }
 
             CollectionAssert.AreEquivalent(new string[] { "Part1-1", "Part1-2", "SubAssem1-1", "SubAssem1-2", "SubAssem2-1", "Part1-3" }, compNames);
@@ -44,7 +44,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
                 var comp = assm.Configurations.Active.Components["SubAssem1-1"];
                 compNames = comp.Children.Select(c => c.FullName).ToArray();
             }
@@ -60,8 +60,8 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly13\Assem13.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
-                rootCompNames = ((ISwAssembly)m_App.Documents.Active).Configurations.Active.Components.Select(c => c.Name).ToArray();
+                var assm = (ISwAssembly)doc.Document;
+                rootCompNames = ((ISwAssembly)doc.Document).Configurations.Active.Components.Select(c => c.Name).ToArray();
                 subCompNames = assm.Configurations.Active.Components["SubAssem1-1"].Children.Select(c => c.FullName).ToArray();
             }
 
@@ -77,8 +77,8 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly14\Assem14.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
-                rootCompNames = ((ISwAssembly)m_App.Documents.Active).Configurations.Active.Components.Select(c => c.Name).ToArray();
+                var assm = (ISwAssembly)doc.Document;
+                rootCompNames = ((ISwAssembly)doc.Document).Configurations.Active.Components.Select(c => c.Name).ToArray();
                 subCompNames = assm.Configurations.Active.Components["SubAssem1-1"].Children.Select(c => c.FullName).ToArray();
             }
 
@@ -93,7 +93,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly17\Assem17.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
                 flattenCompNames = assm.Configurations.Active.Components.TryFlatten().Select(c => c.FullName).ToArray();
 
                 Assert.Throws<SpeedPakConfigurationComponentsException>(() => assm.Configurations.Active.Components["SubAssem1-1"].Children.ToArray());                
@@ -112,15 +112,15 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 var doc1 = assm.Configurations.Active.Components["Part1-1"].ReferencedDocument;
                 doc1FileName = Path.GetFileName(doc1.Path);
-                doc1Contains = m_App.Documents.Contains(doc1, new XObjectEqualityComparer<IXDocument>());
+                doc1Contains = Application.Documents.Contains(doc1, new XObjectEqualityComparer<IXDocument>());
 
                 var doc2 = assm.Configurations.Active.Components["SubAssem1-1"].ReferencedDocument;
                 doc2FileName = Path.GetFileName(doc2.Path);
-                doc2Contains = m_App.Documents.Contains(doc2, new XObjectEqualityComparer<IXDocument>());
+                doc2Contains = Application.Documents.Contains(doc2, new XObjectEqualityComparer<IXDocument>());
 
                 var d = assm.Configurations.Active.Components["Part1-2"].ReferencedDocument;
 
@@ -142,7 +142,7 @@ namespace SolidWorks.Tests.Integration
         {
             using (var doc = OpenDataDocument(@"Assembly2\TopAssem.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 var doc1 = assm.Configurations.Active.Components["Part1-1"].ReferencedDocument;
                 var doc2 = assm.Configurations.Active.Components["Assem2-1"].ReferencedDocument;
@@ -171,7 +171,7 @@ namespace SolidWorks.Tests.Integration
         {
             using (var doc = OpenDataDocument(@"Assembly2\TopAssem.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 var conf1 = assm.Configurations.Active.Components["Part1-1"].ReferencedConfiguration;
                 var conf2 = assm.Configurations.Active.Components["Assem2-1"].ReferencedConfiguration;
@@ -200,9 +200,9 @@ namespace SolidWorks.Tests.Integration
             string doc1FileName;
             bool doc1IsCommitted;
 
-            using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM", false, s => s.ViewOnly = true))
+            using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM", DocumentState_e.ViewOnly))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 assm.Model.Extension.SelectByID2("Part1-1@TopAssem1", "COMPONENT", 0, 0, 0, false, 0, null, 0);
 
@@ -226,7 +226,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
             {
-                var comp = ((ISwAssembly)m_App.Documents.Active).Configurations.Active.Components["Part1-1"];
+                var comp = ((ISwAssembly)doc.Document).Configurations.Active.Components["Part1-1"];
 
                 foreach (var feat in comp.Features)
                 {
@@ -239,7 +239,7 @@ namespace SolidWorks.Tests.Integration
                 "Directional1", "Directional2", "Directional3", "Markups", "Equations", "Material <not specified>", "Front Plane",
                 "Top Plane", "Right Plane", "Origin", "Sketch1", "Boss-Extrude1" };
 
-            if (m_App.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2024))
+            if (Application.IsVersionNewerOrEqual(Xarial.XCad.SolidWorks.Enums.SwVersion_e.Sw2024))
             {
                 //NOTE: SW 2024, 'Lights, Cameras and Themes' feature is renamed to 'Lights and Cameras' (index 11)
                 expected[11] = "Lights and Cameras";
@@ -258,7 +258,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"VirtAssem1.SLDASM"))
             {
-                var comps = ((ISwAssembly)m_App.Documents.Active).Configurations.Active.Components;
+                var comps = ((ISwAssembly)doc.Document).Configurations.Active.Components;
                 compNames = comps.Select(c => c.Name).ToArray();
                 var docs = comps.Select(c => c.ReferencedDocument).ToArray();
                 foreach (var compDoc in docs) 
@@ -298,7 +298,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
                 count = assm.Configurations.Active.Components.Count;
                 totalCount = assm.Configurations.Active.Components.TotalCount;
             }
@@ -354,7 +354,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly4\Assembly1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
                 c1_def = assm.Configurations["Default"].Components["SubAssem1-1"].ReferencedConfiguration.Name;
                 s1_def = assm.Configurations["Default"].Components["SubAssem1-1"].State.HasFlag(ComponentState_e.Suppressed);
                 c2_def = assm.Configurations["Default"].Components["Part1-1"].ReferencedConfiguration.Name;
@@ -454,7 +454,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly5\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 s1 = assm.Configurations.Active.Components["Part1-1"].State;
                 s2 = assm.Configurations.Active.Components["Part1-2"].State;
@@ -487,7 +487,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly10\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 var c1 = assm.Configurations.Active.Components.First();
                 var c2 = c1.Children.First();
@@ -515,7 +515,7 @@ namespace SolidWorks.Tests.Integration
         {
             using (var doc = OpenDataDocument(@"Assembly5\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 var c1 = (ISwComponent)assm.Configurations.Active.Components["Part1-1"];
                 var c2 = (ISwComponent)assm.Configurations.Active.Components["Part1-2"];
@@ -556,7 +556,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"AssemTransform1\Assem1.SLDASM"))
             {
-                var assm = (IXAssembly)m_App.Documents.Active;
+                var assm = (IXAssembly)doc.Document;
                 m1 = assm.Configurations.Active.Components["Part1-1"].Transformation;
                 m2 = assm.Configurations.Active.Components["Assem2-1"].Transformation;
                 m3 = assm.Configurations.Active.Components["Assem2-1"].Children["Part1-1"].Transformation;
@@ -626,7 +626,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"ColorAssembly\Assem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 c1 = assm.Configurations.Active.Components["Part1-1"].Color;
                 c2 = assm.Configurations.Active.Components["Part1-2"].Color;
@@ -664,109 +664,112 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void AddComponentsTest()
         {
-            using (var partDoc = OpenDataDocument("Box1.sldprt"))
+            using (var dataFile = GetDataFile("Cylinder1.sldprt"))
             {
-                var doc4 = (IXPart)m_App.Documents.Active;
-
-                using (var doc = NewDocument(swDocumentTypes_e.swDocASSEMBLY))
+                using (var partDoc = OpenDataDocument("Box1.sldprt"))
                 {
-                    var assm = (ISwAssembly)m_App.Documents.Active;
+                    var doc4 = (IXPart)Application.Documents.Active;
 
-                    var doc1 = (IXPart)m_App.Documents.PreCreateFromPath(GetFilePath("Cylinder1.sldprt"));
-                    var doc2 = m_App.Documents.PreCreatePart();
-                    var doc3 = m_App.Documents.PreCreateAssembly();
+                    using (var doc = NewDataDocument(swDocumentTypes_e.swDocASSEMBLY))
+                    {
+                        var assm = (ISwAssembly)doc.Document;
 
-                    var comp1 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
-                    comp1.ReferencedDocument = doc1;
-                    comp1.State = ComponentState_e.Fixed;
+                        var doc1 = (IXPart)Application.Documents.PreCreateFromPath(dataFile.FilePath);
+                        var doc2 = Application.Documents.PreCreatePart();
+                        var doc3 = Application.Documents.PreCreateAssembly();
 
-                    var comp2 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
-                    comp2.ReferencedDocument = doc1;
-                    comp2.ReferencedConfiguration = (IXPartConfiguration)doc1.Configurations["Conf1"];
-                    comp2.Transformation = TransformMatrix.CreateFromTranslation(new Vector(0.1, 0.2, 0.3));
-                    comp2.State = ComponentState_e.Fixed;
+                        var comp1 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
+                        comp1.ReferencedDocument = doc1;
+                        comp1.State = ComponentState_e.Fixed;
 
-                    var comp3 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
-                    comp3.ReferencedDocument = doc2;
-                    comp3.State = ComponentState_e.Embedded;
+                        var comp2 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
+                        comp2.ReferencedDocument = doc1;
+                        comp2.ReferencedConfiguration = (IXPartConfiguration)doc1.Configurations["Conf1"];
+                        comp2.Transformation = TransformMatrix.CreateFromTranslation(new Vector(0.1, 0.2, 0.3));
+                        comp2.State = ComponentState_e.Fixed;
 
-                    var comp4 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
-                    comp4.ReferencedDocument = doc2;
-                    comp4.State = ComponentState_e.Embedded;
-                    comp4.Transformation = TransformMatrix.CreateFromRotationAroundAxis(new Vector(1, 0, 0), Math.PI / 4, new Point(0, 0, 0));
+                        var comp3 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
+                        comp3.ReferencedDocument = doc2;
+                        comp3.State = ComponentState_e.Embedded;
 
-                    var comp5 = assm.Configurations.Active.Components.PreCreate<IXAssemblyComponent>();
-                    comp5.ReferencedDocument = doc3;
-                    comp5.State = ComponentState_e.Embedded;
+                        var comp4 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
+                        comp4.ReferencedDocument = doc2;
+                        comp4.State = ComponentState_e.Embedded;
+                        comp4.Transformation = TransformMatrix.CreateFromRotationAroundAxis(new Vector(1, 0, 0), Math.PI / 4, new Point(0, 0, 0));
 
-                    var comp6 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
-                    comp6.ReferencedDocument = doc4;
-                    comp6.State = ComponentState_e.Suppressed;
+                        var comp5 = assm.Configurations.Active.Components.PreCreate<IXAssemblyComponent>();
+                        comp5.ReferencedDocument = doc3;
+                        comp5.State = ComponentState_e.Embedded;
 
-                    var comp7 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
-                    comp7.ReferencedDocument = doc4;
-                    comp7.State = ComponentState_e.ExcludedFromBom;
+                        var comp6 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
+                        comp6.ReferencedDocument = doc4;
+                        comp6.State = ComponentState_e.Suppressed;
 
-                    var comp8 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
-                    comp8.ReferencedDocument = doc4;
-                    comp8.State = ComponentState_e.Hidden;
+                        var comp7 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
+                        comp7.ReferencedDocument = doc4;
+                        comp7.State = ComponentState_e.ExcludedFromBom;
 
-                    assm.Configurations.Active.Components.AddRange(new IXComponent[] { comp1, comp2, comp3, comp4, comp5, comp6, comp7, comp8 });
+                        var comp8 = assm.Configurations.Active.Components.PreCreate<IXPartComponent>();
+                        comp8.ReferencedDocument = doc4;
+                        comp8.State = ComponentState_e.Hidden;
 
-                    var comp3ModelDoc = (IModelDoc2)((ISwComponent)comp3).Component.GetModelDoc2();
+                        assm.Configurations.Active.Components.AddRange(new IXComponent[] { comp1, comp2, comp3, comp4, comp5, comp6, comp7, comp8 });
 
-                    Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp1).Component.GetModelDoc2()).GetPathName()), "Cylinder1.sldprt", StringComparison.CurrentCultureIgnoreCase));
-                    Assert.That(((ISwComponent)comp1).Component.IsFixed());
-                    Assert.That(comp1.ReferencedDocument.IsCommitted);
+                        var comp3ModelDoc = (IModelDoc2)((ISwComponent)comp3).Component.GetModelDoc2();
 
-                    Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp2).Component.GetModelDoc2()).GetPathName()), "Cylinder1.sldprt", StringComparison.CurrentCultureIgnoreCase));
-                    Assert.That(((ISwComponent)comp2).Component.IsFixed());
-                    Assert.AreEqual("Conf1", ((ISwComponent)comp2).Component.ReferencedConfiguration);
-                    AssertCompareDoubleArray((double[])((ISwComponent)comp2).Component.Transform2.ArrayData, new double[] { 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0.2, 0.3, 1, 0, 0, 0 });
-                    Assert.That(comp2.ReferencedDocument.IsCommitted);
+                        Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp1).Component.GetModelDoc2()).GetPathName()), "Cylinder1.sldprt", StringComparison.CurrentCultureIgnoreCase));
+                        Assert.That(((ISwComponent)comp1).Component.IsFixed());
+                        Assert.That(comp1.ReferencedDocument.IsCommitted);
 
-                    Assert.That(!((ISwComponent)comp3).Component.IsFixed());
-                    Assert.AreEqual((int)swDocumentTypes_e.swDocPART, comp3ModelDoc.GetType());
-                    Assert.That(((ISwComponent)comp3).Component.IsVirtual);
-                    Assert.That(comp4.ReferencedDocument.IsCommitted);
+                        Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp2).Component.GetModelDoc2()).GetPathName()), "Cylinder1.sldprt", StringComparison.CurrentCultureIgnoreCase));
+                        Assert.That(((ISwComponent)comp2).Component.IsFixed());
+                        Assert.AreEqual("Conf1", ((ISwComponent)comp2).Component.ReferencedConfiguration);
+                        AssertCompareDoubleArray((double[])((ISwComponent)comp2).Component.Transform2.ArrayData, new double[] { 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0.2, 0.3, 1, 0, 0, 0 });
+                        Assert.That(comp2.ReferencedDocument.IsCommitted);
 
-                    Assert.That(!((ISwComponent)comp4).Component.IsFixed());
-                    Assert.AreEqual(comp3ModelDoc, (IModelDoc2)((ISwComponent)comp4).Component.GetModelDoc2());
-                    Assert.That(((ISwComponent)comp4).Component.IsVirtual);
-                    AssertCompareDoubleArray((double[])((ISwComponent)comp4).Component.Transform2.ArrayData, new double[] { 1, 0, 0, 0, 0.70710678118654757, 0.70710678118654746, 0, -0.70710678118654746, 0.70710678118654757, 0, 0, 0, 1, 0, 0, 0 });
-                    Assert.That(comp5.ReferencedDocument.IsCommitted);
+                        Assert.That(!((ISwComponent)comp3).Component.IsFixed());
+                        Assert.AreEqual((int)swDocumentTypes_e.swDocPART, comp3ModelDoc.GetType());
+                        Assert.That(((ISwComponent)comp3).Component.IsVirtual);
+                        Assert.That(comp4.ReferencedDocument.IsCommitted);
 
-                    Assert.That(!((ISwComponent)comp5).Component.IsFixed());
-                    Assert.AreEqual((int)swDocumentTypes_e.swDocASSEMBLY, ((IModelDoc2)((ISwComponent)comp5).Component.GetModelDoc2()).GetType());
-                    Assert.That(((ISwComponent)comp5).Component.IsVirtual);
-                    Assert.That(comp6.ReferencedDocument.IsCommitted);
+                        Assert.That(!((ISwComponent)comp4).Component.IsFixed());
+                        Assert.AreEqual(comp3ModelDoc, (IModelDoc2)((ISwComponent)comp4).Component.GetModelDoc2());
+                        Assert.That(((ISwComponent)comp4).Component.IsVirtual);
+                        AssertCompareDoubleArray((double[])((ISwComponent)comp4).Component.Transform2.ArrayData, new double[] { 1, 0, 0, 0, 0.70710678118654757, 0.70710678118654746, 0, -0.70710678118654746, 0.70710678118654757, 0, 0, 0, 1, 0, 0, 0 });
+                        Assert.That(comp5.ReferencedDocument.IsCommitted);
 
-                    Assert.That(string.Equals(Path.GetFileName(comp6.ReferencedDocument.Path), "Box1.sldprt", StringComparison.CurrentCultureIgnoreCase));
-                    Assert.That(((ISwComponent)comp6).Component.IsSuppressed());
-                    Assert.That(comp7.ReferencedDocument.IsCommitted);
+                        Assert.That(!((ISwComponent)comp5).Component.IsFixed());
+                        Assert.AreEqual((int)swDocumentTypes_e.swDocASSEMBLY, ((IModelDoc2)((ISwComponent)comp5).Component.GetModelDoc2()).GetType());
+                        Assert.That(((ISwComponent)comp5).Component.IsVirtual);
+                        Assert.That(comp6.ReferencedDocument.IsCommitted);
 
-                    Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp7).Component.GetModelDoc2()).GetPathName()), "Box1.sldprt", StringComparison.CurrentCultureIgnoreCase));
-                    Assert.That(((ISwComponent)comp7).Component.ExcludeFromBOM);
-                    Assert.That(comp7.ReferencedDocument.IsCommitted);
+                        Assert.That(string.Equals(Path.GetFileName(comp6.ReferencedDocument.Path), "Box1.sldprt", StringComparison.CurrentCultureIgnoreCase));
+                        Assert.That(((ISwComponent)comp6).Component.IsSuppressed());
+                        Assert.That(comp7.ReferencedDocument.IsCommitted);
 
-                    Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp8).Component.GetModelDoc2()).GetPathName()), "Box1.sldprt", StringComparison.CurrentCultureIgnoreCase));
-                    Assert.That(((ISwComponent)comp8).Component.IsHidden(false));
-                    Assert.That(comp8.ReferencedDocument.IsCommitted);
+                        Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp7).Component.GetModelDoc2()).GetPathName()), "Box1.sldprt", StringComparison.CurrentCultureIgnoreCase));
+                        Assert.That(((ISwComponent)comp7).Component.ExcludeFromBOM);
+                        Assert.That(comp7.ReferencedDocument.IsCommitted);
 
-                    Assert.AreEqual(5, m_App.Documents.Count);
-                    Assert.That(m_App.Documents.Contains(assm, new XObjectEqualityComparer<IXDocument>()));
-                    Assert.That(m_App.Documents.Contains(doc1, new XObjectEqualityComparer<IXDocument>()));
-                    Assert.That(m_App.Documents.Contains(doc2, new XObjectEqualityComparer<IXDocument>()));
-                    Assert.That(m_App.Documents.Contains(doc3, new XObjectEqualityComparer<IXDocument>()));
-                    Assert.That(m_App.Documents.Contains(doc4, new XObjectEqualityComparer<IXDocument>()));
-                    Assert.That(doc1.Equals(comp1.ReferencedDocument));
-                    Assert.That(doc1.Equals(comp2.ReferencedDocument));
-                    Assert.That(doc2.Equals(comp3.ReferencedDocument));
-                    Assert.That(doc2.Equals(comp4.ReferencedDocument));
-                    Assert.That(doc3.Equals(comp5.ReferencedDocument));
-                    Assert.That(doc4.Equals(comp6.ReferencedDocument));
-                    Assert.That(doc4.Equals(comp7.ReferencedDocument));
-                    Assert.That(doc4.Equals(comp8.ReferencedDocument));
+                        Assert.That(string.Equals(Path.GetFileName(((IModelDoc2)((ISwComponent)comp8).Component.GetModelDoc2()).GetPathName()), "Box1.sldprt", StringComparison.CurrentCultureIgnoreCase));
+                        Assert.That(((ISwComponent)comp8).Component.IsHidden(false));
+                        Assert.That(comp8.ReferencedDocument.IsCommitted);
+
+                        Assert.AreEqual(5, Application.Documents.Count);
+                        Assert.That(Application.Documents.Contains(assm, new XObjectEqualityComparer<IXDocument>()));
+                        Assert.That(Application.Documents.Contains(doc1, new XObjectEqualityComparer<IXDocument>()));
+                        Assert.That(Application.Documents.Contains(doc2, new XObjectEqualityComparer<IXDocument>()));
+                        Assert.That(Application.Documents.Contains(doc3, new XObjectEqualityComparer<IXDocument>()));
+                        Assert.That(Application.Documents.Contains(doc4, new XObjectEqualityComparer<IXDocument>()));
+                        Assert.That(doc1.Equals(comp1.ReferencedDocument));
+                        Assert.That(doc1.Equals(comp2.ReferencedDocument));
+                        Assert.That(doc2.Equals(comp3.ReferencedDocument));
+                        Assert.That(doc2.Equals(comp4.ReferencedDocument));
+                        Assert.That(doc3.Equals(comp5.ReferencedDocument));
+                        Assert.That(doc4.Equals(comp6.ReferencedDocument));
+                        Assert.That(doc4.Equals(comp7.ReferencedDocument));
+                        Assert.That(doc4.Equals(comp8.ReferencedDocument));
+                    }
                 }
             }
         }
@@ -779,9 +782,9 @@ namespace SolidWorks.Tests.Integration
             int bodyCount;
             double[] vols;
 
-            using (var doc = OpenDataDocument(@"Assembly5\Assem1.SLDASM", false))
+            using (var doc = OpenDataDocument(@"Assembly5\Assem1.SLDASM", DocumentState_e.Default))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 var comp = assm.Configurations.Active.Components["Part1-1"];
 
@@ -792,7 +795,7 @@ namespace SolidWorks.Tests.Integration
                     editComp2 = assm.EditingComponent?.Name;
 
                     var dumbBodyFeat = comp.Features.PreCreateDumbBody();
-                    dumbBodyFeat.BaseBody = m_App.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0), new Vector(1, 0, 0), new Vector(0, 1, 0), 0.1, 0.2, 0.3).Bodies.First();
+                    dumbBodyFeat.BaseBody = Application.MemoryGeometryBuilder.CreateSolidBox(new Point(0, 0, 0), new Vector(1, 0, 0), new Vector(0, 1, 0), 0.1, 0.2, 0.3).Bodies.First();
                     dumbBodyFeat.Commit();
                 }
 
@@ -813,9 +816,13 @@ namespace SolidWorks.Tests.Integration
             var res = new List<Tuple<string, string>>();
             string compName;
 
+            string workFolder;
+
             using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                workFolder = doc.WorkFolderPath;
+
+                var assm = (ISwAssembly)doc.Document;
 
                 assm.ComponentInserted += (a, c) => 
                 {
@@ -824,13 +831,13 @@ namespace SolidWorks.Tests.Integration
 
                 using (var partDoc = OpenDataDocument("BBox1.SLDPRT"))
                 {
-                    var part = (ISwPart)m_App.Documents.Active;
+                    var part = (ISwPart)doc.Document;
                     compName = assm.Assembly.AddComponent5(part.Path, (int)swAddComponentConfigOptions_e.swAddComponentConfigOptions_CurrentSelectedConfig, "", false, "", 0, 0, 0).Name2;
                 }
             }
 
             Assert.AreEqual(1, res.Count);
-            Assert.AreEqual(GetFilePath(@"Assembly1\TopAssem1.SLDASM").ToLower(), res[0].Item1.ToLower());
+            Assert.AreEqual(Path.Combine(workFolder, @"Assembly1\TopAssem1.SLDASM").ToLower(), res[0].Item1.ToLower());
             Assert.AreEqual(compName, res[0].Item2);
         }
 
@@ -840,22 +847,29 @@ namespace SolidWorks.Tests.Integration
             var res = new List<Tuple<string, string>>();
             string[] compNames;
 
-            using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
+            string workDir;
+
+            using (var dataFile = GetDataFile("BBox1.SLDPRT"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
-
-                assm.ComponentInserted += (a, c) =>
+                using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
                 {
-                    res.Add(new Tuple<string, string>(a.Path, c.Name));
-                };
 
-                compNames = ((object[])assm.Assembly.AddComponents3(
-                    Enumerable.Repeat(GetFilePath("BBox1.SLDPRT"), 3).ToArray(),
-                    Enumerable.Repeat(new double[] { 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 }, 3).SelectMany(x => x).ToArray(),
-                    Enumerable.Repeat("", 3).ToArray())).Cast<IComponent2>().Select(c => c.Name2).ToArray();
+                    workDir = doc.WorkFolderPath;
+                    var assm = (ISwAssembly)doc.Document;
+
+                    assm.ComponentInserted += (a, c) =>
+                    {
+                        res.Add(new Tuple<string, string>(a.Path, c.Name));
+                    };
+
+                    compNames = ((object[])assm.Assembly.AddComponents3(
+                        Enumerable.Repeat(dataFile.FilePath, 3).ToArray(),
+                        Enumerable.Repeat(new double[] { 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 }, 3).SelectMany(x => x).ToArray(),
+                        Enumerable.Repeat("", 3).ToArray())).Cast<IComponent2>().Select(c => c.Name2).ToArray();
+                }
             }
 
-            var assmPath = GetFilePath(@"Assembly1\TopAssem1.SLDASM");
+            var assmPath = Path.Combine(workDir, @"Assembly1\TopAssem1.SLDASM");
 
             Assert.AreEqual(3, res.Count);
             Assert.AreEqual(assmPath.ToLower(), res[0].Item1.ToLower());
@@ -874,9 +888,13 @@ namespace SolidWorks.Tests.Integration
             var resDeleting = new List<Tuple<string, string>>();
             var resDeleted = new List<Tuple<string, IXComponent>>();
 
+            string workDir;
+
             using (var doc = OpenDataDocument(@"Assembly1\TopAssem1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                workDir = doc.WorkFolderPath;
+
+                var assm = (ISwAssembly)doc.Document;
 
                 comps = new IXComponent[]
                 {
@@ -899,7 +917,7 @@ namespace SolidWorks.Tests.Integration
                 assm.Model.Extension.DeleteSelection2((int)swDeleteSelectionOptions_e.swDelete_Absorbed);
             }
 
-            var assmPath = GetFilePath(@"Assembly1\TopAssem1.SLDASM");
+            var assmPath = Path.Combine(workDir, @"Assembly1\TopAssem1.SLDASM");
 
             Assert.AreEqual(3, resDeleting.Count);
             Assert.AreEqual(3, resDeleted.Count);
@@ -926,7 +944,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"SuppressedCompsPattern1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 var comps = assm.Configurations.Active.Components.TryFlatten().ToArray();
 
@@ -963,7 +981,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"AssemPatternDiffConf1.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 var compsDef = assm.Configurations["Default"].Components.TryFlatten().ToArray();
                 var compsConf1 = assm.Configurations["Conf1"].Components.TryFlatten().ToArray();
@@ -1016,7 +1034,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Assembly15\Assem15.SLDASM"))
             {
-                var assm = (ISwAssembly)m_App.Documents.Active;
+                var assm = (ISwAssembly)doc.Document;
 
                 r1 = assm.Configurations.Active.Components["Part1-1"].Reference;
                 r2 = assm.Configurations.Active.Components["Part1-2"].Reference;

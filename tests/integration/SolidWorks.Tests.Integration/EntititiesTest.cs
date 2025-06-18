@@ -24,7 +24,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("EntitiesBodies1.SLDPRT"))
             {
-                var part = m_App.Documents.Active as ISwPart;
+                var part = doc.Document as ISwPart;
                 
                 var b1 = (ISwBody)part.Bodies["BODY1"];
                 var b2 = (ISwBody)part.Bodies["BODY2"];

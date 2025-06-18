@@ -23,7 +23,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Dimensions1.sldprt"))
             {
-                dimNames = m_App.Documents.Active.Dimensions.Select(c => c.Name).ToArray();
+                dimNames = doc.Document.Dimensions.Select(c => c.Name).ToArray();
             }
 
             CollectionAssert.AreEquivalent(dimNames,
@@ -37,7 +37,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Drawing9\Drawing9.SLDDRW"))
             {
-                dimNames = m_App.Documents.Active.Dimensions.Select(c => c.Name).ToArray();
+                dimNames = doc.Document.Dimensions.Select(c => c.Name).ToArray();
             }
 
             CollectionAssert.AreEquivalent(dimNames, 
@@ -51,7 +51,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("Dimensions1.sldprt"))
             {
-                dimNames = m_App.Documents.Active.Features["Sketch1"].Dimensions.Select(c => c.Name).ToArray();
+                dimNames = doc.Document.Features["Sketch1"].Dimensions.Select(c => c.Name).ToArray();
             }
 
             CollectionAssert.AreEquivalent(dimNames,
@@ -77,33 +77,33 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"DimensionsAssem2\Dimensions2.sldprt"))
             {
-                swDim = (IDimension)m_App.Documents.Active.Model.Parameter("D1@Sketch1");
+                swDim = (IDimension)doc.Document.Model.Parameter("D1@Sketch1");
 
-                var dim = ((ISwDocument3D)m_App.Documents.Active).Configurations.Active.Dimensions["D1@Sketch1"];
+                var dim = ((ISwDocument3D)doc.Document).Configurations.Active.Dimensions["D1@Sketch1"];
 
                 dim.Value = 0.1d;
                 v1 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swThisConfiguration, null) as double[])[0];
 
-                ((ISwDocument3D)m_App.Documents.Active).Configurations["Conf2"].Dimensions["D1@Sketch1"].Value = 0.2d;
+                ((ISwDocument3D)doc.Document).Configurations["Conf2"].Dimensions["D1@Sketch1"].Value = 0.2d;
                 v2 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf2" }) as double[])[0];
                 v2_1 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" }) as double[])[0];
 
-                ((ISwDocument3D)m_App.Documents.Active).Configurations["Default"].Dimensions["D1@Sketch1"].Value = 0.5d;
+                ((ISwDocument3D)doc.Document).Configurations["Default"].Dimensions["D1@Sketch1"].Value = 0.5d;
                 v3 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" }) as double[])[0];
                 v3_1 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf2" }) as double[])[0];
                 v3_2 = (swDim.GetValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "SubConf1" }) as double[])[0];
 
-                ((ISwDocument3D)m_App.Documents.Active).Configurations["Conf2"].ConvertObject(dim).Value = 0.6d;
+                ((ISwDocument3D)doc.Document).Configurations["Conf2"].ConvertObject(dim).Value = 0.6d;
                 v4 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf2" }) as double[])[0];
                 v4_1 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" }) as double[])[0];
 
-                ((ISwDocument3D)m_App.Documents.Active).Configurations["SubConf1"].ConvertObject(dim).Value = 0.7d;
+                ((ISwDocument3D)doc.Document).Configurations["SubConf1"].ConvertObject(dim).Value = 0.7d;
                 v5 = (swDim.GetValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf2" }) as double[])[0];
                 v5_1 = (swDim.GetValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" }) as double[])[0];
                 v5_2 = (swDim.GetValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "SubConf1" }) as double[])[0];
 
-                Assert.Throws<EntityNotFoundException>(() => ((ISwDocument3D)m_App.Documents.Active).Dimensions["D2@Sketch1"].Value = 0.3d);
-                Assert.Throws<EntityNotFoundException>(() => ((ISwDocument3D)m_App.Documents.Active).Configurations["Conf2"].Dimensions["D2@Sketch1"].Value = 0.4d);
+                Assert.Throws<EntityNotFoundException>(() => ((ISwDocument3D)doc.Document).Dimensions["D2@Sketch1"].Value = 0.3d);
+                Assert.Throws<EntityNotFoundException>(() => ((ISwDocument3D)doc.Document).Configurations["Conf2"].Dimensions["D2@Sketch1"].Value = 0.4d);
             }
             
             Assert.That(0.1, Is.EqualTo(v1).Within(0.001).Percent);
@@ -135,20 +135,20 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"DimensionsAssem2\Dimensions2.sldprt"))
             {
-                var dim = m_App.Documents.Active.Dimensions["D1@Sketch1"];
+                var dim = doc.Document.Dimensions["D1@Sketch1"];
 
                 r1 = dim.Value;
-                r2 = ((ISwDocument3D)m_App.Documents.Active).Configurations["Conf2"].Dimensions["D1@Sketch1"].Value;
-                r2_1 = ((ISwDocument3D)m_App.Documents.Active).Configurations["Conf2"].ConvertObject(dim).Value;
-                r3 = ((ISwDocument3D)m_App.Documents.Active).Configurations["Default"].Dimensions["D1@Sketch1"].Value;
-                r3_1 = ((ISwDocument3D)m_App.Documents.Active).Configurations["Default"].ConvertObject(dim).Value;
-                r4 = ((ISwDocument3D)m_App.Documents.Active).Configurations["SubConf1"].Dimensions["D1@Sketch1"].Value;
-                r4_1 = ((ISwDocument3D)m_App.Documents.Active).Configurations["SubConf1"].ConvertObject(dim).Value;
-                r5 = ((ISwDocument3D)m_App.Documents.Active).Configurations["SubConf1"].Dimensions["D1@Sketch2"].Value;
-                r5_1 = ((ISwDocument3D)m_App.Documents.Active).Configurations["SubConf1"].ConvertObject(dim).Value;
-                r6 = ((ISwDocument3D)m_App.Documents.Active).Configurations["SubConf1"].Dimensions["D2@Sketch2"].Value;
-                Assert.Throws<EntityNotFoundException>(() => { var r7 = ((ISwDocument3D)m_App.Documents.Active).Configurations["Default"].Dimensions["D2@Sketch1"].Value; });
-                Assert.Throws<EntityNotFoundException>(() => { var r8 = ((ISwDocument3D)m_App.Documents.Active).Configurations["Conf2"].Dimensions["D2@Sketch1"].Value; });
+                r2 = ((ISwDocument3D)doc.Document).Configurations["Conf2"].Dimensions["D1@Sketch1"].Value;
+                r2_1 = ((ISwDocument3D)doc.Document).Configurations["Conf2"].ConvertObject(dim).Value;
+                r3 = ((ISwDocument3D)doc.Document).Configurations["Default"].Dimensions["D1@Sketch1"].Value;
+                r3_1 = ((ISwDocument3D)doc.Document).Configurations["Default"].ConvertObject(dim).Value;
+                r4 = ((ISwDocument3D)doc.Document).Configurations["SubConf1"].Dimensions["D1@Sketch1"].Value;
+                r4_1 = ((ISwDocument3D)doc.Document).Configurations["SubConf1"].ConvertObject(dim).Value;
+                r5 = ((ISwDocument3D)doc.Document).Configurations["SubConf1"].Dimensions["D1@Sketch2"].Value;
+                r5_1 = ((ISwDocument3D)doc.Document).Configurations["SubConf1"].ConvertObject(dim).Value;
+                r6 = ((ISwDocument3D)doc.Document).Configurations["SubConf1"].Dimensions["D2@Sketch2"].Value;
+                Assert.Throws<EntityNotFoundException>(() => { var r7 = ((ISwDocument3D)doc.Document).Configurations["Default"].Dimensions["D2@Sketch1"].Value; });
+                Assert.Throws<EntityNotFoundException>(() => { var r8 = ((ISwDocument3D)doc.Document).Configurations["Conf2"].Dimensions["D2@Sketch1"].Value; });
             }
 
             Assert.That(0.125, Is.EqualTo(r1).Within(0.001).Percent);
@@ -172,11 +172,11 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Drawing9\Drawing9.SLDDRW"))
             {
-                r1 = m_App.Documents.Active.Dimensions["D1@Sketch1"].Value;
+                r1 = doc.Document.Dimensions["D1@Sketch1"].Value;
 
-                if (m_App.Documents.Active.Model.Extension.SelectByID2("D2@Sketch1@Drawing9.SLDDRW", "DIMENSION", 0, 0, 0, false, 0, null, 0))
+                if (doc.Document.Model.Extension.SelectByID2("D2@Sketch1@Drawing9.SLDDRW", "DIMENSION", 0, 0, 0, false, 0, null, 0))
                 {
-                    var dim1 = m_App.Documents.Active.Selections.OfType<IXDimension>().First();
+                    var dim1 = doc.Document.Selections.OfType<IXDimension>().First();
                     r2 = dim1.Value;
                 }
                 else
@@ -184,7 +184,7 @@ namespace SolidWorks.Tests.Integration
                     throw new Exception();
                 }
 
-                r3 = m_App.Documents.Active.Dimensions["RD1@Drawing View1"].Value;
+                r3 = doc.Document.Dimensions["RD1@Drawing View1"].Value;
             }
 
             Assert.That(0.05, Is.EqualTo(r1).Within(0.001).Percent);
@@ -200,11 +200,11 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Drawing9\Drawing9.SLDDRW"))
             {
-                m_App.Documents.Active.Dimensions["D1@Sketch1"].Value = 0.123;
+                doc.Document.Dimensions["D1@Sketch1"].Value = 0.123;
 
-                if (m_App.Documents.Active.Model.Extension.SelectByID2("D2@Sketch1@Drawing9.SLDDRW", "DIMENSION", 0, 0, 0, false, 0, null, 0))
+                if (doc.Document.Model.Extension.SelectByID2("D2@Sketch1@Drawing9.SLDDRW", "DIMENSION", 0, 0, 0, false, 0, null, 0))
                 {
-                    var dim1 = m_App.Documents.Active.Selections.OfType<IXDimension>().First();
+                    var dim1 = doc.Document.Selections.OfType<IXDimension>().First();
                     dim1.Value = 0.234;
                 }
                 else
@@ -212,12 +212,12 @@ namespace SolidWorks.Tests.Integration
                     throw new Exception();
                 }
 
-                Assert.Throws<NotEditableDrivenDimensionException>(() => m_App.Documents.Active.Dimensions["RD1@Drawing View1"].Value = 0.345);
+                Assert.Throws<NotEditableDrivenDimensionException>(() => doc.Document.Dimensions["RD1@Drawing View1"].Value = 0.345);
                 
-                m_App.Documents.Active.Rebuild();
+                doc.Document.Rebuild();
 
-                r1 = m_App.Documents.Active.Model.IParameter("D1@Sketch1").SystemValue;
-                r2 = m_App.Documents.Active.Model.IParameter("D2@Sketch1").SystemValue;
+                r1 = doc.Document.Model.IParameter("D1@Sketch1").SystemValue;
+                r2 = doc.Document.Model.IParameter("D2@Sketch1").SystemValue;
             }
 
             Assert.That(0.123, Is.EqualTo(r1).Within(0.001).Percent);
@@ -241,27 +241,27 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"DimensionsAssem2\DimensionsAssem2.SLDASM"))
             {
-                var assmConf = ((ISwAssembly)m_App.Documents.Active).Configurations.Active;
+                var assmConf = ((ISwAssembly)doc.Document).Configurations.Active;
 
                 swDim = (IDimension)((ISwDocument)assmConf.Components["Dimensions2-1"].ReferencedDocument).Model.Parameter("D1@Sketch1");
 
                 assmConf.Components["Dimensions2-1"].Dimensions["D1@Sketch1"].Value = 0.1d;
-                m_App.Documents.Active.Rebuild();
+                doc.Document.Rebuild();
                 v1 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swThisConfiguration, null) as double[])[0];
 
                 assmConf.Components["Dimensions2-2"].ReferencedConfiguration.Dimensions["D1@Sketch1"].Value = 0.2d;
-                m_App.Documents.Active.Rebuild();
+                doc.Document.Rebuild();
                 v2 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf2" }) as double[])[0];
                 v2_1 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" }) as double[])[0];
 
                 assmConf.Components["Dimensions2-1"].ReferencedConfiguration.Dimensions["D1@Sketch1"].Value = 0.5d;
-                m_App.Documents.Active.Rebuild();
+                doc.Document.Rebuild();
                 v3 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" }) as double[])[0];
                 v3_1 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf2" }) as double[])[0];
                 v3_2 = (swDim.GetValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "SubConf1" }) as double[])[0];
 
                 assmConf.Components["Dimensions2-3"].ReferencedConfiguration.Dimensions["D1@Sketch1"].Value = 0.7d;
-                m_App.Documents.Active.Rebuild();
+                doc.Document.Rebuild();
                 v4 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" }) as double[])[0];
                 v4_1 = (swDim.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf2" }) as double[])[0];
                 v4_2 = (swDim.GetValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "SubConf1" }) as double[])[0];
@@ -293,7 +293,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"DimensionsAssem2\DimensionsAssem2.SLDASM"))
             {
-                var assmConf = ((ISwAssembly)m_App.Documents.Active).Configurations.Active;
+                var assmConf = ((ISwAssembly)doc.Document).Configurations.Active;
 
                 r1 = assmConf.Components["Dimensions2-1"].ReferencedConfiguration.Dimensions["D1@Sketch1"].Value;
                 r2 = assmConf.Components["Dimensions2-2"].Dimensions["D1@Sketch1"].Value;
@@ -322,7 +322,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("VirtAssem2.SLDASM"))
             {
-                var assm = m_App.Documents.Active;
+                var assm = doc.Document;
 
                 if (assm.Model.Extension.SelectByID2("D1@Sketch1@Part2^VirtAssem2-1@VirtAssem2", "DIMENSION", 0, 0, 0, false, 0, null, 0))
                 {
@@ -358,7 +358,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument("VirtAssem2.SLDASM"))
             {
-                var assm = m_App.Documents.Active;
+                var assm = doc.Document;
 
                 IXDimension dim1;
                 IXDimension dim2;
@@ -383,7 +383,7 @@ namespace SolidWorks.Tests.Integration
                     throw new Exception();
                 }
 
-                m_App.Documents.Active.Rebuild();
+                doc.Document.Rebuild();
                 r1 = (((ISwDimension)dim1).Dimension.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Default" }) as double[])[0];
                 r2 = (((ISwDimension)dim2).Dimension.GetSystemValue3((int)swInConfigurationOpts_e.swSpecifyConfiguration, new string[] { "Conf1" }) as double[])[0];
             }

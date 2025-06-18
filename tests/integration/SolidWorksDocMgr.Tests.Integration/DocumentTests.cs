@@ -261,7 +261,7 @@ namespace SolidWorksDocMgr.Tests.Integration
         [Test]
         public void DocumentAllDependenciesReadOnlyState()
         {
-            using (var doc = OpenDataDocument(@"Assembly6\Assem1.SLDASM", false))
+            using (var doc = OpenDataDocument(@"Assembly6\Assem1.SLDASM", DocumentState_e.Default))
             {
                 var deps = doc.Document.Dependencies.All.ToArray();
 
@@ -277,7 +277,7 @@ namespace SolidWorksDocMgr.Tests.Integration
                 }
             }
 
-            using (var doc = OpenDataDocument(@"Assembly6\Assem1.SLDASM", true))
+            using (var doc = OpenDataDocument(@"Assembly6\Assem1.SLDASM", DocumentState_e.ReadOnly))
             {
                 var deps = doc.Document.Dependencies.All.ToArray();
 
