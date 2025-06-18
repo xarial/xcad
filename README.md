@@ -185,7 +185,7 @@ private static void IterateComponentsRecursively(IXComponentRepository compsRepo
 
 ## Target Frameworks
 
-xCAD.NET is compatible with multiple target frameworks: .NET Framework 4.6.1, .NET Core 3.1, .NET 6.0, .NET 7.0 and number of additional computed target frameworks (e.g. .NET Framework 4.8)
+xCAD.NET is compatible with multiple target frameworks: .NET Framework 4.6.1, .NET Core 3.1, .NET 6.0-9.0 and number of additional computed target frameworks (e.g. .NET Framework 4.8)
 
 When building the SOLIDWORKS add-ins see the information below
 
@@ -196,7 +196,7 @@ When building the SOLIDWORKS add-ins see the information below
 * Build the solution. Add-in will be automatically registered. Clean the solution to unregister the add-in.
 * Set the **Embed Interop** option to **True** for all SOLIDWORKS type libraries (e.g. **SolidWorks.Interop.SldWorks.tlb**, **SolidWorks.Interop.SwConst.tlb**, **SolidWorks.Interop.SwPublished.tlb**). Note this might not be required as nuget will set this flag automatically.
 
-### .NET Core/.NET 6/.NET 7
+### .NET Core/.NET 6-9
 
 * Run Visual Studio as an Administrator
 * Install [Xarial.XCad.SolidWorks](https://www.nuget.org/packages/Xarial.XCad.SolidWorks) package from the nuget and create add-in class as shown above
@@ -236,8 +236,7 @@ Solution contains unit and integration tests
 
 To execute integration tests
 
-* Download the [Test Data](https://1drv.ms/u/s!AjSRTGmPuUunpFTsZGgl4gfyjLRg?e=kZuO5c)
-* Unzip into the folder
-* Create an environment variable **XCAD_TEST_DATA** and set its value to the path of the folder above
+* Download the [Test Data File](https://1drv.ms/u/c/a74bb98f694c9134/ERUgrHlnZzJNjVXOArC7yEABYvrhPpbJ-DLHTieZ5Am5Zw?e=sENBBa)
+* Create an environment variable **XCAD_TEST_DATA** and set its value to the path of the zip file downloaded above
 * To test SOLIDWORKS Document Manager, add an environment variable **SW_DM_KEY** and set its value to your [Document Manager Key](https://www.codestack.net/solidworks-document-manager-api/getting-started/create-connection#activating-document-manager)
 * Run tests
