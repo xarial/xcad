@@ -38,6 +38,11 @@ namespace Xarial.XCad.Documents
         /// <param name="source">Source dependency to replace</param>
         /// <param name="target">New dependency</param>
         void Replace(IXDocument3D source, IXDocument3D target);
+
+        /// <summary>
+        /// Returns all dependencies (recursive)
+        /// </summary>
+        IEnumerable<IXDocument3D> All { get; }
     }
 
     /// <summary>
@@ -175,7 +180,7 @@ namespace Xarial.XCad.Documents
             {
             }
 
-            foreach (var dep in depDocs ?? new IXDocument3D[0])
+            foreach (var dep in depDocs ?? Array.Empty<IXDocument3D>())
             {
                 if (!usedPaths.Contains(dep.Path, StringComparer.CurrentCultureIgnoreCase))
                 {

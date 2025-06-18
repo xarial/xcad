@@ -20,7 +20,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         new ISwDmPartConfigurationCollection Configurations { get; }
     }
 
-    internal class SwDmPart : SwDmDocument3D, ISwDmPart
+    internal class SwDmPart : SwDmDocument3D, ISwDmPart, ISwDmVirtualDocument3D
     {
         #region Not Supported
         public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }

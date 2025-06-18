@@ -31,7 +31,6 @@ namespace Xarial.XCad.Toolkit
             IntArr
         }
 
-        private readonly object m_Object;
         private readonly DateTime m_UtcDate;
         private readonly long m_Long;
         private readonly int m_Int;

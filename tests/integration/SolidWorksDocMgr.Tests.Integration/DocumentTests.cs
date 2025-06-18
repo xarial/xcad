@@ -54,6 +54,17 @@ namespace SolidWorksDocMgr.Tests.Integration
             bool activeIsDoc21;
             bool activeIsNull1;
 
+            foreach (var doc in Application.Documents.ToArray()) 
+            {
+                try
+                {
+                    doc.Close();
+                }
+                catch 
+                {
+                }
+            }
+
             c1 = Application.Documents.Count;
             activeIsNull = Application.Documents.Active == null;
 
@@ -144,7 +155,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = doc.Document;
 
-                var deps = assm.Dependencies.TryIterateAll().ToArray();
+                var deps = assm.Dependencies.All.ToArray();
 
                 var dir = Path.GetDirectoryName(assm.Path);
 
@@ -166,7 +177,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = doc.Document;
 
-                var deps = assm.Dependencies.TryIterateAll().ToArray();
+                var deps = assm.Dependencies.All.ToArray();
 
                 var dir = Path.GetDirectoryName(assm.Path);
 
@@ -214,7 +225,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = doc.Document;
 
-                titles = assm.Dependencies.TryIterateAll().Select(d => Path.GetFileNameWithoutExtension(d.Title)).ToArray();
+                titles = assm.Dependencies.All.Select(d => Path.GetFileNameWithoutExtension(d.Title)).ToArray();
             }
 
             Assert.AreEqual(7, titles.Length);
@@ -238,7 +249,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
             using (var assm = OpenDataDocument(@"Assembly9\Assem1.SLDASM"))
             {
-                var deps = assm.Document.Dependencies.TryIterateAll().ToArray();
+                var deps = assm.Document.Dependencies.All.ToArray();
                 r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
             }
 
@@ -250,42 +261,25 @@ namespace SolidWorksDocMgr.Tests.Integration
         [Test]
         public void DocumentAllDependenciesReadOnlyState()
         {
-            var destPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-
-            Directory.CreateDirectory(destPath);
-
-            using (var dataFile = GetDataFile(@"Assembly6\Assem1.SLDASM"))
+            using (var doc = OpenDataDocument(@"Assembly6\Assem1.SLDASM", false))
             {
-                foreach (var srcFile in Directory.GetFiles(Path.Combine(dataFile.WorkFolderPath, "Assembly6"), "*.*"))
+                var deps = doc.Document.Dependencies.All.ToArray();
+
+                Assert.AreEqual(8, deps.Length);
+                Assert.That(deps.All(d => !d.State.HasFlag(DocumentState_e.ReadOnly)));
+
+                foreach (var dep in deps)
                 {
-                    File.Copy(srcFile, Path.Combine(destPath, Path.GetFileName(srcFile)));
+                    if (dep.IsCommitted)
+                    {
+                        dep.Close();
+                    }
                 }
             }
-
-            var assm = Application.Documents.Open(Path.Combine(destPath, "Assem1.SLDASM"));
-
-            var deps = assm.Dependencies.TryIterateAll().ToArray();
-
-            Assert.AreEqual(8, deps.Length);
-            Assert.That(deps.All(d => !d.State.HasFlag(DocumentState_e.ReadOnly)));
-
-            foreach (var dep in deps)
-            {
-                if (dep.IsCommitted)
-                {
-                    dep.Close();
-                }
-            }
-
-            assm.Close();
-
-            Directory.Delete(destPath, true);
 
             using (var doc = OpenDataDocument(@"Assembly6\Assem1.SLDASM", true))
             {
-                assm = doc.Document;
-
-                deps = assm.Dependencies.TryIterateAll().ToArray();
+                var deps = doc.Document.Dependencies.All.ToArray();
 
                 Assert.AreEqual(8, deps.Length);
                 Assert.That(deps.All(d => d.State.HasFlag(DocumentState_e.ReadOnly)));
@@ -305,19 +299,14 @@ namespace SolidWorksDocMgr.Tests.Integration
         {
             var destPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
-            Directory.CreateDirectory(destPath);
-
             using (var dataFile = GetDataFile(@"Assembly6\Assem1.SLDASM"))
             {
-                foreach (var srcFile in Directory.GetFiles(Path.Combine(dataFile.WorkFolderPath, "Assembly6"), "*.*"))
-                {
-                    File.Copy(srcFile, Path.Combine(destPath, Path.GetFileName(srcFile)));
-                }
+                CopyDirectory(Path.Combine(dataFile.WorkFolderPath, "Assembly6"), destPath);
             }
 
             var assm = Application.Documents.Open(Path.Combine(destPath, "Assem1.SLDASM"));
 
-            var deps = assm.Dependencies.TryIterateAll().ToArray();
+            var deps = assm.Dependencies.All.ToArray();
 
             var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileName(d.Path), "_temp_Part1^Assem1.sldprt",
                 StringComparison.CurrentCultureIgnoreCase));
@@ -417,42 +406,37 @@ namespace SolidWorksDocMgr.Tests.Integration
             Dictionary<string, bool> refs;
 
             var destPath = Path.Combine(tempPath, "_Assembly11");
-            var tempSrcAssmPath = Path.Combine(tempPath, "Assembly11");
+
+            string workFolder;
 
             try
             {
                 using (var dataFile = GetDataFile(@"Assembly11\TopLevel\Assem1.sldasm"))
                 {
-                    var srcPath = Path.Combine(dataFile.WorkFolderPath, "Assembly11");
+                    workFolder = dataFile.WorkFolderPath;
 
-                    CopyDirectory(srcPath, tempSrcAssmPath);
-                    UpdateSwReferences(tempSrcAssmPath, "TopLevel\\Assem1.sldasm", "SubAssemblies\\Assem3.SLDASM", "SubAssemblies\\A\\Assem2.SLDASM");
+                    UpdateSwReferences(dataFile.FilePath, workFolder);
 
-                    CopyDirectory(tempSrcAssmPath, destPath);
+                    CopyDirectory(Path.Combine(workFolder, "Assembly11"), destPath);
 
-                    File.Delete(Path.Combine(destPath, "Parts\\Part4.sldprt"));
-                    File.Delete(Path.Combine(destPath, "SubAssemblies\\Part2.sldprt"));
-                    File.Delete(Path.Combine(tempSrcAssmPath, "Parts\\Part4.sldprt"));
-                }
+                    File.Delete(Path.Combine(destPath, @"Parts\Part4.sldprt"));
+                    File.Delete(Path.Combine(destPath, @"SubAssemblies\Part2.sldprt"));
+                    File.Delete(Path.Combine(workFolder, @"Assembly11\Parts\Part4.sldprt"));
 
-                var assm = (ISwDmAssembly)Application.Documents.Open(Path.Combine(destPath, "TopLevel\\Assem1.sldasm"));
+                    var assm = (ISwDmAssembly)Application.Documents.Open(Path.Combine(destPath, @"TopLevel\Assem1.sldasm"));
 
-                try
-                {
-                    var deps = assm.Dependencies.TryIterateAll().ToArray();
+                    var deps = assm.Dependencies.All.ToArray();
 
                     refs = deps.ToDictionary(x => x.Path, x => x.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
 
-                    foreach (var refDoc in assm.Dependencies.TryIterateAll().ToArray())
+                    foreach (var refDoc in assm.Dependencies.All.ToArray())
                     {
                         if (refDoc.IsCommitted && refDoc.IsAlive)
                         {
                             refDoc.Close();
                         }
                     }
-                }
-                finally 
-                {
+
                     assm.Close();
                 }
             }
@@ -466,7 +450,13 @@ namespace SolidWorksDocMgr.Tests.Integration
                 {
                     foreach (var file in Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories))
                     {
-                        File.Delete(file);
+                        try
+                        {
+                            File.Delete(file);
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
             }
@@ -481,8 +471,8 @@ namespace SolidWorksDocMgr.Tests.Integration
             Assert.That(!string.IsNullOrEmpty(virtComp.Key));
             Assert.AreEqual(virtComp.Value, true);
             Assert.AreEqual(refs[Path.Combine(destPath, @"SubAssemblies\A\Part3.SLDPRT")], true);
-            Assert.AreEqual(refs[Path.Combine(tempSrcAssmPath, @"Parts\Part4.SLDPRT")], false);
-            Assert.AreEqual(refs[Path.Combine(tempSrcAssmPath, @"SubAssemblies\Part2.SLDPRT")], true);
+            Assert.AreEqual(refs[Path.Combine(workFolder, @"Assembly11\Parts\Part4.SLDPRT")], false);
+            Assert.AreEqual(refs[Path.Combine(workFolder, @"Assembly11\SubAssemblies\Part2.SLDPRT")], true);
             Assert.AreEqual(refs[Path.Combine(destPath, @"SubAssemblies\Part5.SLDPRT")], true);
         }
 
@@ -840,14 +830,18 @@ namespace SolidWorksDocMgr.Tests.Integration
         [Test]
         public void IdTest() 
         {
+            //1729551544
+            //Tuesday, 22 October 2024 9:59:04 AM
             var part1IdExp = new byte[]
             {
-                200, 234, 22, 103, 0, 0, 0, 0
+                184, 220, 22, 103, 0, 0, 0, 0
             };
 
+            //1729551663
+            //Tuesday, 22 October 2024 10:01:03 AM
             var part2IdExp = new byte[]
             {
-                63, 235, 22, 103, 0, 0, 0, 0
+                47, 221, 22, 103, 0, 0, 0, 0
             };
 
             byte[] id1;

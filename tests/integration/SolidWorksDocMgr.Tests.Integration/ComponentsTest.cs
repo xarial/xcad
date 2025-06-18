@@ -200,7 +200,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             using (var dataFile = GetDataFile(@"VirtAssm2\Assem1.sldasm"))
             {
                 var doc = Application.Documents.Open(dataFile.FilePath);
-                var deps = doc.Dependencies.TryIterateAll().ToArray();
+                var deps = doc.Dependencies.All.ToArray();
 
                 var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
                     "Part1^Assem1", StringComparison.CurrentCultureIgnoreCase));
@@ -225,7 +225,7 @@ namespace SolidWorksDocMgr.Tests.Integration
 
                 doc = Application.Documents.Open(dataFile.FilePath);
 
-                deps = doc.Dependencies.TryIterateAll().ToArray();
+                deps = doc.Dependencies.All.ToArray();
 
                 d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
                     "Part1^Assem1", StringComparison.CurrentCultureIgnoreCase));
@@ -590,39 +590,40 @@ namespace SolidWorksDocMgr.Tests.Integration
             Dictionary<string, Tuple<string, bool>> refs;
 
             var destPath = Path.Combine(tempPath, "_Assembly11");
-            var tempSrcAssmPath = Path.Combine(tempPath, "Assembly11");
+
+            string workFolder;
 
             try
             {
                 using (var dataFile = GetDataFile(@"Assembly11\TopLevel\Assem1.sldasm"))
                 {
-                    var srcPath = Path.Combine(dataFile.WorkFolderPath, "Assembly11");
+                    workFolder = dataFile.WorkFolderPath;
 
-                    CopyDirectory(srcPath, tempSrcAssmPath);
-                    UpdateSwReferences(tempSrcAssmPath, "TopLevel\\Assem1.sldasm", "SubAssemblies\\Assem3.SLDASM", "SubAssemblies\\A\\Assem2.SLDASM");
+                    UpdateSwReferences(dataFile.FilePath, workFolder);
 
-                    CopyDirectory(tempSrcAssmPath, destPath);
+                    CopyDirectory(Path.Combine(workFolder, "Assembly11"), destPath);
 
-                    File.Delete(Path.Combine(destPath, "Parts\\Part4.sldprt"));
-                    File.Delete(Path.Combine(destPath, "SubAssemblies\\Part2.sldprt"));
-                    File.Delete(Path.Combine(tempSrcAssmPath, "Parts\\Part4.sldprt"));
-                }
+                    File.Delete(Path.Combine(destPath, @"Parts\Part4.sldprt"));
+                    File.Delete(Path.Combine(destPath, @"SubAssemblies\Part2.sldprt"));
+                    File.Delete(Path.Combine(workFolder, @"Assembly11\Parts\Part4.sldprt"));
 
-                var assm = (ISwDmAssembly)Application.Documents.Open(Path.Combine(destPath, "TopLevel\\Assem1.sldasm"));
-                refs = assm.Configurations.Active.Components.TryFlatten()
-                    .ToDictionary(x => x.FullName, x => new Tuple<string, bool>(x.ReferencedDocument.Path.ToLower(), x.ReferencedDocument.IsCommitted), StringComparer.CurrentCultureIgnoreCase);
+                    var assm = (ISwDmAssembly)Application.Documents.Open(Path.Combine(destPath, @"TopLevel\Assem1.sldasm"));
 
-                foreach (var comp in assm.Configurations.Active.Components.TryFlatten().ToArray())
-                {
-                    var refDoc = comp.ReferencedDocument;
+                    refs = assm.Configurations.Active.Components.TryFlatten()
+                        .ToDictionary(x => x.FullName, x => new Tuple<string, bool>(x.ReferencedDocument.Path.ToLower(), x.ReferencedDocument.IsCommitted), StringComparer.CurrentCultureIgnoreCase);
 
-                    if (refDoc.IsCommitted && refDoc.IsAlive)
+                    foreach (var comp in assm.Configurations.Active.Components.TryFlatten().ToArray())
                     {
-                        refDoc.Close();
-                    }
-                }
+                        var refDoc = comp.ReferencedDocument;
 
-                assm.Close();
+                        if (refDoc.IsCommitted && refDoc.IsAlive)
+                        {
+                            refDoc.Close();
+                        }
+                    }
+
+                    assm.Close();
+                }
             }
             finally
             {
@@ -634,29 +635,35 @@ namespace SolidWorksDocMgr.Tests.Integration
                 {
                     foreach (var file in Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories))
                     {
-                        File.Delete(file);
+                        try
+                        {
+                            File.Delete(file);
+                        }
+                        catch 
+                        {
+                        }
                     }
                 }
             }
 
             Assert.AreEqual(13, refs.Count);
 
-            Assert.AreEqual(refs["Assem2-1"], new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\A\Assem2.SLDASM").ToLower(), true));
-            Assert.AreEqual(refs["Part1-1"], new Tuple<string, bool>(Path.Combine(destPath, @"Parts\Part1.SLDPRT").ToLower(), true));
-            Assert.AreEqual(refs["Assem3-1"], new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\Assem3.SLDASM").ToLower(), true));
+            Assert.AreEqual(new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\A\Assem2.SLDASM").ToLower(), true), refs["Assem2-1"]);
+            Assert.AreEqual(new Tuple<string, bool>(Path.Combine(destPath, @"Parts\Part1.SLDPRT").ToLower(), true), refs["Part1-1"]);
+            Assert.AreEqual(new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\Assem3.SLDASM").ToLower(), true), refs["Assem3-1"]);
             Assert.That(refs["Part6^Assem1-1"].Item1.EndsWith("Part6^Assem1.sldprt", StringComparison.CurrentCultureIgnoreCase));
-            Assert.AreEqual(refs["Part6^Assem1-1"].Item2, true);
+            Assert.AreEqual(true, refs["Part6^Assem1-1"].Item2);
 
-            Assert.AreEqual(refs["Assem2-1/Part3-1"], new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\A\Part3.SLDPRT").ToLower(), true));
-            Assert.AreEqual(refs["Assem2-1/Part1-1"], new Tuple<string, bool>(Path.Combine(destPath, @"Parts\Part1.SLDPRT").ToLower(), true));
-            Assert.AreEqual(refs["Assem2-1/Part4-1"], new Tuple<string, bool>(Path.Combine(tempSrcAssmPath, @"Parts\Part4.SLDPRT").ToLower(), false));
+            Assert.AreEqual(new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\A\Part3.SLDPRT").ToLower(), true), refs["Assem2-1/Part3-1"]);
+            Assert.AreEqual(new Tuple<string, bool>(Path.Combine(destPath, @"Parts\Part1.SLDPRT").ToLower(), true), refs["Assem2-1/Part1-1"]);
+            Assert.AreEqual(new Tuple<string, bool>(Path.Combine(workFolder, @"Assembly11\Parts\Part4.SLDPRT").ToLower(), false), refs["Assem2-1/Part4-1"]);
 
-            Assert.AreEqual(refs["Assem3-1/Assem2-1"], new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\A\Assem2.SLDASM").ToLower(), true));
-            Assert.AreEqual(refs["Assem3-1/Part2-1"], new Tuple<string, bool>(Path.Combine(tempSrcAssmPath, @"SubAssemblies\Part2.SLDPRT").ToLower(), true));
-            Assert.AreEqual(refs["Assem3-1/Part5-1"], new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\Part5.SLDPRT").ToLower(), true));
-            Assert.AreEqual(refs["Assem3-1/Assem2-1/Part3-1"], new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\A\Part3.SLDPRT").ToLower(), true));
-            Assert.AreEqual(refs["Assem3-1/Assem2-1/Part1-1"], new Tuple<string, bool>(Path.Combine(destPath, @"Parts\Part1.SLDPRT").ToLower(), true));
-            Assert.AreEqual(refs["Assem3-1/Assem2-1/Part4-1"], new Tuple<string, bool>(Path.Combine(tempSrcAssmPath, @"Parts\Part4.SLDPRT").ToLower(), false));
+            Assert.AreEqual(new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\A\Assem2.SLDASM").ToLower(), true), refs["Assem3-1/Assem2-1"]);
+            Assert.AreEqual(new Tuple<string, bool>(Path.Combine(workFolder, @"Assembly11\SubAssemblies\Part2.SLDPRT").ToLower(), true), refs["Assem3-1/Part2-1"]);
+            Assert.AreEqual(new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\Part5.SLDPRT").ToLower(), true), refs["Assem3-1/Part5-1"]);
+            Assert.AreEqual(new Tuple<string, bool>(Path.Combine(destPath, @"SubAssemblies\A\Part3.SLDPRT").ToLower(), true), refs["Assem3-1/Assem2-1/Part3-1"]);
+            Assert.AreEqual(new Tuple<string, bool>(Path.Combine(destPath, @"Parts\Part1.SLDPRT").ToLower(), true), refs["Assem3-1/Assem2-1/Part1-1"]);
+            Assert.AreEqual(new Tuple<string, bool>(Path.Combine(workFolder, @"Assembly11\Parts\Part4.SLDPRT").ToLower(), false), refs["Assem3-1/Assem2-1/Part4-1"]);
         }
 
         [Test]

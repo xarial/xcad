@@ -24,6 +24,9 @@ using Xarial.XCad.SwDocumentManager.Exceptions;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
+    /// <summary>
+    /// SOLIDWORKS Document Manager specific components collection
+    /// </summary>
     public interface ISwDmComponentCollection : IXComponentRepository 
     {
     }
@@ -37,7 +40,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         #endregion
 
         private readonly ISwDmConfiguration m_Conf;
-        private readonly SwDmAssembly m_ParentAssm;
+        private readonly SwDmAssembly m_RootAssm;
 
         private IFilePathResolver m_PathResolver;
 
@@ -45,14 +48,14 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         private readonly RepositoryHelper<IXComponent> m_RepoHelper;
 
-        internal SwDmComponentCollection(SwDmAssembly parentAssm, ISwDmConfiguration conf)
+        internal SwDmComponentCollection(SwDmAssembly rootAssm, ISwDmConfiguration conf)
         {
-            m_ParentAssm = parentAssm;
+            m_RootAssm = rootAssm;
             m_Conf = conf;
 
             m_RepoHelper = new RepositoryHelper<IXComponent>(this);
 
-            m_PathResolver = parentAssm.OwnerApplication.FilePathResolver;
+            m_PathResolver = rootAssm.OwnerApplication.FilePathResolver;
             m_ComponentsCache = new Dictionary<string, SwDmComponent>(StringComparer.CurrentCultureIgnoreCase);
         }
 
@@ -107,7 +110,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 {
                     try
                     {
-                        var path = m_PathResolver.ResolvePath(Path.GetDirectoryName(m_ParentAssm.Path), comp.PathName);
+                        var path = m_PathResolver.ResolvePath(Path.GetDirectoryName(m_RootAssm.Path), comp.PathName);
 
                         var confName = comp.ConfigurationName;
 
@@ -123,7 +126,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                             {
                                 int subTotalCount = 0;
 
-                                var subAssm = m_ParentAssm.OwnerApplication.SwDocMgr
+                                var subAssm = m_RootAssm.OwnerApplication.SwDocMgr
                                     .GetDocument(path, SwDmDocumentType.swDmDocumentAssembly, true, out SwDmDocumentOpenError err);
 
                                 try
@@ -182,7 +185,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
             if (!m_ComponentsCache.TryGetValue(compName, out SwDmComponent comp))
             {
-                comp = SwDmObjectFactory.FromDispatch<SwDmComponent>(dmComp, m_ParentAssm);
+                comp = SwDmObjectFactory.FromDispatch<SwDmComponent>(dmComp, m_RootAssm);
                 m_ComponentsCache.Add(compName, comp);
             }
 

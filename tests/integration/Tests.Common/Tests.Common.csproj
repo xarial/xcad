@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Base\Base.csproj" />
+    <ProjectReference Include="..\..\..\src\SolidWorks\SolidWorks.csproj" />
   </ItemGroup>
 
   <ItemGroup>

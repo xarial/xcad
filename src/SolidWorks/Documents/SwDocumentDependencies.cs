@@ -36,8 +36,10 @@ namespace Xarial.XCad.SolidWorks.Documents
             Cached = false;
         }
 
+        public IEnumerable<IXDocument3D> All => IterateDependencies(true);
+
         public IEnumerator<IXDocument3D> GetEnumerator() 
-            => IterateDependencies().GetEnumerator();
+            => IterateDependencies(false).GetEnumerator();
 
         public void Replace(IXDocument3D source, IXDocument3D target)
         {
@@ -47,19 +49,19 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private IEnumerable<SwDocument3D> IterateDependencies()
+        private IEnumerable<SwDocument3D> IterateDependencies(bool all)
         {
             string[] depsData;
 
             if (m_Doc.IsCommitted && !m_Doc.Model.IsOpenedViewOnly())
             {
-                depsData = m_Doc.Model.Extension.GetDependencies(false, !Cached, false, true, true) as string[];
+                depsData = m_Doc.Model.Extension.GetDependencies(all, !Cached, false, true, true) as string[];
             }
             else
             {
                 if (!string.IsNullOrEmpty(m_Doc.Path))
                 {
-                    depsData = m_Doc.OwnerApplication.Sw.GetDocumentDependencies2(m_Doc.Path, false, !Cached, false) as string[];
+                    depsData = m_Doc.OwnerApplication.Sw.GetDocumentDependencies2(m_Doc.Path, all, !Cached, false) as string[];
                 }
                 else
                 {

@@ -63,6 +63,23 @@ namespace Xarial.XCad.Tests.Common
             }
         }
 
+        public void CopyDirectory(string srcPath, string destPath)
+        {
+            foreach (var srcFile in Directory.GetFiles(srcPath, "*.*", SearchOption.AllDirectories))
+            {
+                var relPath = srcFile.Substring(srcPath.Length + 1);
+                var destFilePath = Path.Combine(destPath, relPath);
+                var destDir = Path.GetDirectoryName(destFilePath);
+
+                if (!Directory.Exists(destDir))
+                {
+                    Directory.CreateDirectory(destDir);
+                }
+
+                File.Copy(srcFile, destFilePath);
+            }
+        }
+
         private string ExtractDataFile(string name, out string workFolderPath)
         {
             workFolderPath = CreateDataFolder();

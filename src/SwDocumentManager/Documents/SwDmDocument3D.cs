@@ -21,6 +21,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         new ISwDmConfigurationCollection Configurations { get; }
     }
 
+    public interface ISwDmVirtualDocument3D : ISwDmDocument3D 
+    {
+    }
+
     internal abstract class SwDmDocument3D : SwDmDocument, ISwDmDocument3D
     {
         #region Not Supported

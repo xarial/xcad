@@ -49,7 +49,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         protected override bool IsDocumentTypeCompatible(SwDmDocumentType docType) => docType == SwDmDocumentType.swDmDocumentAssembly;
     }
 
-    internal class SwDmVirtualAssembly : SwDmAssembly
+    internal class SwDmVirtualAssembly : SwDmAssembly, ISwDmVirtualDocument3D
     {
         private readonly SwDmDocument m_Owner;
 
