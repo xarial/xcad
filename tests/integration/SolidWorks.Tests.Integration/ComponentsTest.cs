@@ -557,6 +557,7 @@ namespace SolidWorks.Tests.Integration
             using (var doc = OpenDataDocument(@"AssemTransform1\Assem1.SLDASM"))
             {
                 var assm = (IXAssembly)doc.Document;
+                assm.Rebuild();
                 m1 = assm.Configurations.Active.Components["Part1-1"].Transformation;
                 m2 = assm.Configurations.Active.Components["Assem2-1"].Transformation;
                 m3 = assm.Configurations.Active.Components["Assem2-1"].Children["Part1-1"].Transformation;
@@ -895,6 +896,7 @@ namespace SolidWorks.Tests.Integration
                 workDir = doc.WorkFolderPath;
 
                 var assm = (ISwAssembly)doc.Document;
+                assm.Rebuild();
 
                 comps = new IXComponent[]
                 {

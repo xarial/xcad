@@ -138,7 +138,7 @@ namespace StandAlone
 
             if (app is ISwDmApplication)
             {
-                foreach (var dep in assm.Dependencies.TryIterateAll()) 
+                foreach (var dep in assm.Dependencies.All) 
                 {
                     dep.Save();
                     dep.Close();

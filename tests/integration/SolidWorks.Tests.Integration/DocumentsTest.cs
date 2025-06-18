@@ -429,8 +429,8 @@ namespace SolidWorks.Tests.Integration
 
                 Assert.That(createdDocsTitles.OrderBy(d => d)
                     .SequenceEqual(new string[] { "part1", "part3", "part4", "foreign", "subsubassem1" }.OrderBy(d => d)));
-                Assert.AreEqual(d1ClosingCount, 1);
-                Assert.AreEqual(d2ClosingCount, 1);
+                Assert.AreEqual(1, d1ClosingCount);
+                Assert.AreEqual(1, d2ClosingCount);
                 Assert.AreEqual(activeDocTitle, "subsubassem1");
                 Assert.AreEqual(activeDocTitle1, "foreign");
             }
@@ -464,7 +464,7 @@ namespace SolidWorks.Tests.Integration
                 var assm = doc.Document;
                 assm.Closing += OnHiding;
 
-                foreach (var dep in assm.Dependencies.TryIterateAll())
+                foreach (var dep in assm.Dependencies.All)
                 {
                     dep.Closing += OnHiding;
                 }
@@ -749,7 +749,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var assm = OpenDataDocument(@"Assembly9\Assem1.SLDASM"))
             {
-                var deps = Application.Documents.Active.Dependencies.TryIterateAll().ToArray();
+                var deps = Application.Documents.Active.Dependencies.All.ToArray();
                 r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
             }
 
@@ -770,7 +770,7 @@ namespace SolidWorks.Tests.Integration
                 var assm = Application.Documents.PreCreate<ISwAssembly>();
                 assm.Path = dataFile.FilePath;
 
-                var deps = assm.Dependencies.TryIterateAll().ToArray();
+                var deps = assm.Dependencies.All.ToArray();
                 r1 = deps.ToDictionary(d => Path.GetFileName(d.Path), d => d.IsCommitted, StringComparer.CurrentCultureIgnoreCase);
             }
 
@@ -881,7 +881,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = Application.Documents.Active;
 
-                var deps = assm.Dependencies.TryIterateAll().ToArray();
+                var deps = assm.Dependencies.All.ToArray();
 
                 var dir = Path.GetDirectoryName(assm.Path);
 

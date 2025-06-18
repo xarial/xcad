@@ -1,4 +1,4 @@
-﻿//#define TESTING_MODE
+﻿#define TESTING_MODE
 
 using NUnit.Framework;
 using SolidWorks.Interop.swconst;
