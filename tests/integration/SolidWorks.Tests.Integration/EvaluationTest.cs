@@ -293,6 +293,8 @@ namespace SolidWorks.Tests.Integration
             {
                 var assm = (IXAssembly)doc.Document;
 
+                assm.Rebuild();
+
                 var bbox = assm.Evaluation.PreCreateBoundingBox();
                 bbox.Precise = true;
                 bbox.Scope = new IXComponent[]

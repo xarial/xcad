@@ -543,8 +543,6 @@ namespace SolidWorks.Tests.Integration
             {
                 var part = (ISwPart)doc.Document;
 
-                var x = Application.Sw.IActiveDoc2.Extension.CustomPropertyManager["Conf1"].Get6("Prp1", true, out string val, out string resVal, out _, out _);
-
                 val1Def = part.Configurations["Default"].Properties["Prp1"].Value;
                 val2Def = part.Configurations["Default"].Properties["Prp2"].Value;
 
@@ -553,7 +551,7 @@ namespace SolidWorks.Tests.Integration
 
                 using (var assmDoc = NewDataDocument(swDocumentTypes_e.swDocASSEMBLY)) 
                 {
-                    var assm = (ISwAssembly)doc.Document;
+                    var assm = (ISwAssembly)assmDoc.Document;
                     assm.Assembly.AddComponent5(part.Path, (int)swAddComponentConfigOptions_e.swAddComponentConfigOptions_CurrentSelectedConfig, "", true, "Conf1", 0, 0, 0);
                     assm.Assembly.AddComponent5(part.Path, (int)swAddComponentConfigOptions_e.swAddComponentConfigOptions_CurrentSelectedConfig, "", true, "Default", 0, 0, 0);
                     assm.Model.EditRebuild3();

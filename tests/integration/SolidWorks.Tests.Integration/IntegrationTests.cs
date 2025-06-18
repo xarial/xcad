@@ -1,4 +1,4 @@
-﻿#define TESTING_MODE
+﻿//#define TESTING_MODE
 
 using NUnit.Framework;
 using SolidWorks.Interop.swconst;
@@ -84,6 +84,13 @@ namespace SolidWorks.Tests.Integration
         [TearDown]
         public void TearDown() 
         {
+            try
+            {
+                Application.Sw.CloseAllDocuments(true);
+            }
+            catch 
+            {
+            }
         }
 
         [OneTimeTearDown]

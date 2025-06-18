@@ -149,6 +149,8 @@ namespace SolidWorks.Tests.Integration
 
                 c4 = tagsReg.Count;
 
+                part.Close();
+
                 c5 = tagsReg.Count;
             }
 

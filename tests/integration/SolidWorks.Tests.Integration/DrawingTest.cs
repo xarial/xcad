@@ -243,7 +243,7 @@ namespace SolidWorks.Tests.Integration
                 
                 using(var drw = NewDataDocument(swDocumentTypes_e.swDocDRAWING))
                 {
-                    var drwDoc = doc.Document as ISwDrawing;
+                    var drwDoc = drw.Document as ISwDrawing;
 
                     var v1 = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(partDoc.ModelViews[StandardViewType_e.Back]);
                     var v2 = (ISwModelBasedDrawingView)drwDoc.Sheets.Active.DrawingViews.CreateModelViewBased(partDoc.ModelViews[StandardViewType_e.Bottom]);
@@ -331,7 +331,7 @@ namespace SolidWorks.Tests.Integration
 
                 using (var drw = NewDataDocument(swDocumentTypes_e.swDocDRAWING))
                 {
-                    var drwDoc = doc.Document as ISwDrawing;
+                    var drwDoc = drw.Document as ISwDrawing;
                     
                     var drwView1 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
                     drwView1.SheetMetalBody = (IXSolidBody)partDoc.Bodies["Edge-Flange2"];
@@ -383,7 +383,7 @@ namespace SolidWorks.Tests.Integration
 
                 using (var drw = NewDataDocument(swDocumentTypes_e.swDocDRAWING))
                 {
-                    var drwDoc = doc.Document as ISwDrawing;
+                    var drwDoc = drw.Document as ISwDrawing;
 
                     var drwView1 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
                     drwView1.SheetMetalBody = (IXSolidBody)comp1.Bodies["Cut-Extrude1"];
@@ -434,7 +434,7 @@ namespace SolidWorks.Tests.Integration
 
                 using (var drw = NewDataDocument(swDocumentTypes_e.swDocDRAWING))
                 {
-                    var drwDoc = doc.Document as ISwDrawing;
+                    var drwDoc = drw.Document as ISwDrawing;
 
                     var drwView1 = drwDoc.Sheets.Active.DrawingViews.PreCreate<ISwFlatPatternDrawingView>();
                     drwView1.ReferencedDocument = partDoc;
@@ -917,7 +917,7 @@ namespace SolidWorks.Tests.Integration
                     {
                         workFolder3 = part.WorkFolderPath;
 
-                        var part1 = (ISwPart)Application.Documents.Active;
+                        var part1 = (ISwPart)part.Document;
 
                         using (var doc = OpenDataDocument("Drawing2.slddrw"))
                         {
@@ -958,7 +958,7 @@ namespace SolidWorks.Tests.Integration
             Assert.IsNull(view4RefDocOrig);
 
             Assert.That(string.Equals(view1RefDoc, Path.Combine(workFolder3, "TessPart1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
-            Assert.That(string.Equals(view2RefDoc, Path.Combine(workFolder1, "TessPart1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
+            Assert.That(string.Equals(view2RefDoc, Path.Combine(workFolder3, "TessPart1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
             Assert.That(string.Equals(view3RefDoc, Path.Combine(workFolder1, "Selections1.SLDPRT"), StringComparison.CurrentCultureIgnoreCase));
             Assert.That(string.Equals(view4RefDoc, Path.Combine(workFolder2, @"Assembly1\TopAssem1.SLDASM"), StringComparison.CurrentCultureIgnoreCase));
         }
@@ -1421,7 +1421,6 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual(false, view3BendNotes);
         }
 
-        //NOTE: this test may stuck on the sheet properties dialog opened and needs to be closed manually by the user
         [Test]
         public void SheetCreatedEventTest() 
         {

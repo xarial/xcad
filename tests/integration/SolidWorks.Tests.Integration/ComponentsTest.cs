@@ -831,7 +831,7 @@ namespace SolidWorks.Tests.Integration
 
                 using (var partDoc = OpenDataDocument("BBox1.SLDPRT"))
                 {
-                    var part = (ISwPart)doc.Document;
+                    var part = (ISwPart)partDoc.Document;
                     compName = assm.Assembly.AddComponent5(part.Path, (int)swAddComponentConfigOptions_e.swAddComponentConfigOptions_CurrentSelectedConfig, "", false, "", 0, 0, 0).Name2;
                 }
             }

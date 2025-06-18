@@ -212,7 +212,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var dataFile = GetDataFile(@"Assembly2\TopAssem.SLDASM"))
             {
-                workFolder = dataFile.FilePath;
+                workFolder = dataFile.WorkFolderPath;
 
                 var doc = Application.Documents.PreCreateFromPath(dataFile.FilePath);
                 doc.State = DocumentState_e.Silent | DocumentState_e.ReadOnly;
@@ -319,6 +319,8 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void UserOpenCloseDocumentTest()
         {
+            Application.Sw.CloseAllDocuments(true);
+
             int errs = -1;
             int warns = -1;
 
@@ -567,10 +569,8 @@ namespace SolidWorks.Tests.Integration
 
             TestData result = null;
 
-            using (var doc = OpenDataDocument(tempFile))
+            using (var part = Application.Documents.Open(tempFile))
             {
-                var part = Application.Documents.Active;
-
                 using (var stream = part.OpenStream(STREAM_NAME, false))
                 {
                     var xmlSer = new XmlSerializer(typeof(TestData));
@@ -680,10 +680,8 @@ namespace SolidWorks.Tests.Integration
             var txt = "";
             var number = 0;
 
-            using (var doc = OpenDataDocument(tempFile))
+            using (var part = Application.Documents.Open(tempFile))
             {
-                var part = Application.Documents.Active;
-
                 var path = SUB_STORAGE_PATH.Split('\\');
 
                 using (var storage = part.OpenStorage(path[0], false))
@@ -1149,7 +1147,7 @@ namespace SolidWorks.Tests.Integration
                     }
                 }
 
-                using (ISwPart part = (ISwPart)Application.Documents.Open(dataFile.FilePath))
+                using (ISwPart part = (ISwPart)Application.Documents.Open(dataFile.FilePath, DocumentState_e.ReadOnly))
                 {
                     try
                     {
@@ -1322,7 +1320,7 @@ namespace SolidWorks.Tests.Integration
         {
             var part1 = Application.Documents.PreCreate<ISwPart>();
 
-            var v1 = part1.Version;
+            ISwVersion v1;
             ISwVersion v2;
             ISwVersion v3;
             ISwVersion v4;
@@ -1331,8 +1329,9 @@ namespace SolidWorks.Tests.Integration
             using (var doc = OpenDataDocument("Part_2020.sldprt"))
             {
                 part1.Path = doc.FilePath;
+                v1 = part1.Version;
 
-                var part2 = Application.Documents.Active;
+                var part2 = doc.Document;
                 v2 = part2.Version;
             }
 
@@ -1350,10 +1349,9 @@ namespace SolidWorks.Tests.Integration
                 v4 = part4.Version;
 
                 part5.Path = doc.FilePath;
+                v5 = part5.Version;
             }
             
-            v5 = part5.Version;
-
             Assert.AreEqual(SwVersion_e.Sw2020, v1.Major);
             Assert.AreEqual(SwVersion_e.Sw2020, v2.Major);
             Assert.AreEqual(Application.Version.Major, v3.Major);
@@ -1694,7 +1692,7 @@ namespace SolidWorks.Tests.Integration
 
             using (var doc = OpenDataDocument(@"Drawing9\Part1.SLDPRT"))
             {
-                var part = (ISwPart)Application.Documents.Active;
+                var part = (ISwPart)doc.Document;
 
                 using (var oper = part.CreateOperationGroup("_Temp", true))
                 {
