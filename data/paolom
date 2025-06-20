@@ -1,0 +1,113 @@
+Name,ID,Language
+SW-Mass,13462,english
+SW-質量,13462,chinese 
+SW-质量,13462,chinese-simplified 
+SW-Hmotnost,13462,czech 
+SW-Masse,13462,french
+SW-Masse,13462,german
+SW-Massa,13462,italian
+SW-質量,13462,japanese
+SW-질량,13462,korean 
+SW-Masa,13462,polish 
+SW-Massa,13462,portuguese-brazilian
+SW-Масса,13462,russian
+SW-Masa,13462,spanish
+SW-Kütle,13462,turkish
+SW-Density,13463,english
+SW-密度,13463,chinese 
+SW-密度,13463,chinese-simplified 
+SW-Hustota,13463,czech 
+SW-Densité,13463,french 
+SW-Dichte,13463,german 
+SW-Densità,13463,italian 
+SW-密度,13463,japanese
+SW-밀도,13463,korean 
+SW-Gęstość,13463,polish 
+SW-Densidade,13463,portuguese-brazilian
+SW-Плотность,13463,russian 
+SW-Densidad,13463,spanish 
+SW-Yoğunluk,13463,turkish 
+SW-Volume,13464,english
+SW-體積,13464,chinese
+SW-体积,13464,chinese-simplified 
+SW-Objem,13464,czech 
+SW-Volume,13464,french 
+SW-Volumen,13464,german 
+SW-Volume,13464,italian
+SW-体積,13464,japanese
+SW-볼륨,13464,korean 
+SW-Objętość,13464,polish 
+SW-Volume,13464,portuguese-brazilian
+SW-Объем,13464,russian 
+SW-Volumen,13464,spanish 
+SW-Hacim,13464,turkish 
+SW-SurfaceArea,13465,english
+SW-表面積,13465,chinese
+SW-表面积,13465,chinese-simplified 
+SW-Povrchováplocha,13465,czech
+SW-Superficie,13465,french 
+SW-Oberfläche,13465,german 
+SW-AreaSuperficie,13465,italian
+SW-表面積,13465,japanese
+SW-곡면 면적,13465,korean 
+SW-Obszar powierzchni,13465,polish 
+SW-ÁreadeSuperfície,13465,portuguese-brazilian
+SW-Площадь поверхности,13465,russian 
+SW-Área de superficie,13465,spanish 
+SW-Yüzey Alanı,13465,turkish 
+SW-CenterofMassX,13466,english
+SW-質量中心X,13466,chinese
+SW-质量中心X,13466,chinese-simplified
+SW-TěžištěX,13466,czech 
+SW-Centre de gravitéX,13466,french 
+SW-MassenschwerpunktX,13466,german 
+SW-CentrodiMassaX,13466,italian
+SW-重心X,13466,japanese
+SW-질량X의 중심,13466,korean 
+SW-Środek masy X,13466,polish 
+SW-CentrodaMassaX,13466,portuguese-brazilian
+SW-Центр масс X,13466,russian
+SW-Centro de masa X,13466,spanish
+SW-KütleMerkeziX,13466,turkish
+SW-CenterofMassY,13467,english
+SW-質量中心Y,13467,chinese
+SW-质量中心Y,13467,chinese-simplified
+SW-TěžištěY,13467,czech 
+SW-Centre de gravitéY,13467,french 
+SW-MassenschwerpunktY,13467,german 
+SW-CentrodiMassaY,13467,italian
+SW-重心Y,13467,japanese
+SW-질량Y의 중심,13467,korean 
+SW-Środek masy Y,13467,polish 
+SW-CentrodaMassaY,13467,portuguese-brazilian
+SW-Центр масс Y,13467,russian 
+SW-Centro de masa Y,13467,spanish 
+SW-KütleMerkeziY,13467,turkish 
+SW-CenterofMassZ,13468,english
+SW-質量中心Z,13468,chinese
+SW-质量中心Z,13468,chinese-simplified
+SW-TěžištěZ,13468,czech 
+SW-Centre de gravitéZ,13468,french 
+SW-MassenschwerpunktZ,13468,german 
+SW-CentrodiMassaZ,13468,italian
+SW-重心Z,13468,japanese
+SW-질량Z의 중심,13468,korean
+SW-Środek masy Z,13468,polish 
+SW-CentrodaMassaZ,13468,portuguese-brazilian 
+SW-Центр масс Z,13468,russian 
+SW-Centro de masa Z,13468,spanish 
+SW-KütleMerkeziZ,13468,turkish 
+SW-FlattenedSmMass,29927,english
+SW-展平質量,29927,chinese 
+SW-平铺质量,29927,chinese-simplified 
+SW-RozvinutáHmotnost,29927,czech 
+SW-Masse à plat,29927,french 
+SW-Abgewickelte Masse,29927,german 
+SW-Massa appiattita,29927,italian
+SW-展開質量,29927,japanese
+SW-전개된 질량,29927,korean 
+SW-Masa spłaszczona,29927,polish 
+SW-MassaPlanificada,29927,portuguese-brazilian 
+SW-Развернутая масса,29927,russian 
+SW-Masa desplegada,29927,spanish 
+SW-Yassılaştırılmış-Kütle,29927,turkish 
