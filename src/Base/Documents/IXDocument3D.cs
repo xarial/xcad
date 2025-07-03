@@ -15,7 +15,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents 3D document (assembly or part)
     /// </summary>
-    public interface IXDocument3D : IXDocument, IXObjectContainer
+    public interface IXDocument3D : IXDocument, IXObjectContainer, IHasColor
     {
         /// <summary>
         /// Access to the document's evaluation features

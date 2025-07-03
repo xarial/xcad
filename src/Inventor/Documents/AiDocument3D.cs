@@ -38,6 +38,8 @@ namespace Xarial.XCad.Inventor.Documents
 
         IXModelView3DRepository IXDocument3D.ModelViews => throw new NotImplementedException();
 
+        public System.Drawing.Color? Color { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         IXDocument3DSaveOperation IXDocument3D.PreCreateSaveAsOperation(string filePath)
         {
             var translator = TryGetTranslator(filePath);

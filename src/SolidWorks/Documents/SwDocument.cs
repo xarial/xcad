@@ -542,11 +542,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private IModelDoc2 CreateDocument(CancellationToken cancellationToken)
         {
-            //if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(Path, out _))
-            //{
-            //    throw new DocumentAlreadyOpenedException(Path);
-            //}
-
             var docType = -1;
 
             if (DocumentType.HasValue)
@@ -788,7 +783,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IXAnnotationRepository Annotations => m_AnnotationsLazy.Value;
 
-        private IModelDoc2 CreateNewDocument() 
+        protected virtual IModelDoc2 CreateNewDocument() 
         {
             var docTemplate = Template;
 
@@ -1441,6 +1436,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IXConfigurationRepository Configurations => throw new NotImplementedException();
         public IXDocumentEvaluation Evaluation => throw new NotImplementedException();
         public IXDocumentGraphics Graphics => throw new NotImplementedException();
+        public Color? Color { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         ISwConfigurationCollection ISwDocument3D.Configurations => throw new NotImplementedException();
         IXConfigurationRepository IXDocument3D.Configurations => throw new NotImplementedException();
         ISwModelViews3DCollection ISwDocument3D.ModelViews => throw new NotImplementedException();

@@ -8,6 +8,7 @@
 using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Geometry;
@@ -28,19 +29,19 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal abstract class SwDmDocument3D : SwDmDocument, ISwDmDocument3D
     {
         #region Not Supported
-
         public new IXModelView3DRepository ModelViews => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
         IXDocument3DSaveOperation IXDocument3D.PreCreateSaveAsOperation(string filePath) => throw new NotSupportedException();
         public IXDocumentEvaluation Evaluation => throw new NotSupportedException();
         public IXDocumentGraphics Graphics => throw new NotSupportedException();
+        public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 
         #endregion
 
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
 
         public abstract ISwDmConfigurationCollection Configurations { get; }
-
+        
         public SwDmDocument3D(SwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler,
             bool? isReadOnly)

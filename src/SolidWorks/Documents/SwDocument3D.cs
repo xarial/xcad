@@ -21,6 +21,9 @@ using Xarial.XCad.Utils.Diagnostics;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
+    /// <summary>
+    /// SOLIDWORKS-sepcific 3D document
+    /// </summary>
     public interface ISwDocument3D : ISwDocument, IXDocument3D
     {
         new ISwConfigurationCollection Configurations { get; }
@@ -53,6 +56,53 @@ namespace Xarial.XCad.SolidWorks.Documents
         public abstract IXDocumentEvaluation Evaluation { get; }
 
         public IXDocumentGraphics Graphics { get; }
+
+        public System.Drawing.Color? Color
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return GetColor(Model);
+                }
+                else
+                {
+                    return m_Creator.CachedProperties.Get<System.Drawing.Color?>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    SetColor(Model, value);
+                }
+                else
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+            }
+        }
+
+        private System.Drawing.Color? GetColor(IModelDoc2 model) => SwColorHelper.GetColor(null,
+                (o, c) => model.Extension.GetMaterialPropertyValues((int)o, c) as double[]);
+
+        private void SetColor(IModelDoc2 model, System.Drawing.Color? color) => SwColorHelper.SetColor(color, null,
+                (m, o, c) => model.Extension.SetMaterialPropertyValues(m, (int)o, c),
+                (o, c) => model.Extension.RemoveMaterialProperty((int)o, c));
+
+        protected override IModelDoc2 CreateNewDocument()
+        {
+            var doc = base.CreateNewDocument();
+            
+            var userColor = Color;
+
+            if (userColor.HasValue)
+            {
+                SetColor(doc, userColor);
+            }
+
+            return doc;
+        }
 
         protected override void Dispose(bool disposing)
         {
