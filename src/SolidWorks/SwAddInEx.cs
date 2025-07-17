@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -249,8 +250,8 @@ namespace Xarial.XCad.SolidWorks
 
         private void LoadServices(IXServiceCollection svcCollection)
         {
+            svcCollection.RegisterCommon(m_Application, true, Path.GetDirectoryName(this.GetType().Assembly.Location));
             svcCollection.Add<IXLogger>(CreateDefaultLogger, ServiceLifetimeScope_e.Singleton);
-            svcCollection.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<IPropertyPageHandlerProvider, DataModelPropertyPageHandlerProvider>(ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<IDragArrowHandlerProvider, NotSetDragArrowHandlerProvider>(ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<ICalloutHandlerProvider, NotSetCalloutHandlerProvider>(ServiceLifetimeScope_e.Singleton);

@@ -36,11 +36,25 @@ using static Xarial.XCad.SwDocumentManager.Documents.SwDmDocument;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
+    /// <summary>
+    /// SW Document Manager specific component
+    /// </summary>
     public interface ISwDmComponent : IXComponent, ISwDmSelObject
     {
+        /// <summary>
+        /// Cached path of the component
+        /// </summary>
         string CachedPath { get; }
+
+        /// <summary>
+        /// Pointer to component
+        /// </summary>
         ISwDMComponent Component { get; }
+
+        /// <inheritdoc/>
         new ISwDmDocument3D ReferencedDocument { get; }
+
+        /// <inheritdoc/>
         new ISwDmConfiguration ReferencedConfiguration { get; }
     }
 
@@ -59,7 +73,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
         public IEditor<IXComponent> Edit() => throw new NotSupportedException();
-
+        public IXDisplayState DisplayState { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         #endregion
 
         IXDocument3D IXComponent.ReferencedDocument { get => ReferencedDocument; set => ReferencedDocument = (ISwDmDocument3D)value; }
@@ -466,6 +480,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public void Select(bool append) => throw new NotSupportedException();
         public void Serialize(Stream stream) => throw new NotSupportedException();
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
+        public IXDisplayState DisplayState { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         #endregion
 
         private readonly SwDmAssembly m_RootAssm;

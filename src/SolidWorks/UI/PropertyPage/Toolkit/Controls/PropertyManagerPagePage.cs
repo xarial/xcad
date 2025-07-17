@@ -16,6 +16,7 @@ using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 using Xarial.XCad.Utils.Reflection;
@@ -58,11 +59,15 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private readonly bool m_HasNavigation;
 
-        internal PropertyManagerPagePage(SwApplication app, IAttributeSet atts, IIconsCreator iconsConv, SwPropertyManagerPageHandler handler) 
+        private readonly IHelpLinkHandler m_HelpLinkHandler;
+
+        internal PropertyManagerPagePage(SwApplication app, IAttributeSet atts, IIconsCreator iconsConv, IHelpLinkHandler helpLinkHandler, SwPropertyManagerPageHandler handler) 
         {
             m_App = app;
 
             m_GroupExpandStates = new Dictionary<int, bool>();
+
+            m_HelpLinkHandler = helpLinkHandler;
 
             Handler = handler;
 
@@ -259,11 +264,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 "", "", 0, (int)swLinkString.swLinkStringNone, "", "");
         }
 
-        private void OnWhatsNewRequested()
-            => this.TryOpenLink(m_WhatsNewLink, m_App);
+        private void OnWhatsNewRequested() => m_HelpLinkHandler.OpenWhatsNewLink(m_WhatsNewLink);
 
-        private void OnHelpRequested()
-            => this.TryOpenLink(m_HelpLink, m_App);
+        private void OnHelpRequested() => m_HelpLinkHandler.OpenWhatsNewLink(m_HelpLink);
 
         private void OnTabClicked(int tabId)
             => ActiveTabId = tabId;

@@ -46,6 +46,11 @@ namespace Xarial.XCad.Documents
         string Comment { get; set; }
 
         /// <summary>
+        /// Returns display states of this configuration
+        /// </summary>
+        IXDisplayStateRepository DisplayStates { get; }
+
+        /// <summary>
         /// Returns part number of this configuration
         /// </summary>
         IPartNumber PartNumber { get; }

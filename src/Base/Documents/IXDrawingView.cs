@@ -35,6 +35,11 @@ namespace Xarial.XCad.Documents
         ViewDisplayMode_e? DisplayMode { get; set; }
 
         /// <summary>
+        /// Referenced display state
+        /// </summary>
+        IXDisplayState DisplayState { get; set; }
+
+        /// <summary>
         /// Bodies scope of this view
         /// </summary>
         IXBody[] Bodies { get; set; }

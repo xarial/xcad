@@ -29,6 +29,7 @@ using System.ComponentModel;
 using Xarial.XCad.Utils.PageBuilder;
 using Xarial.XCad.Utils.Reflection;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.UI.PropertyPage.Services;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
@@ -133,6 +134,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             m_IconsConv = m_SvcProvider.GetService<IIconsCreator>();
 
+            var helpLinkHandler = m_SvcProvider.GetService<IHelpLinkHandler>();
+
             Handler = handler;
 
             ValidateHandler(Handler);
@@ -145,7 +148,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             Handler.NextPage += OnNextPage;
             Handler.Closed += OnClosed;
             Handler.Closing += OnClosing;
-            m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, Handler, pageSpec, m_Logger);
+            m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, helpLinkHandler, Handler, pageSpec, m_Logger);
 
             m_ContextProvider = new BaseContextProvider();
 

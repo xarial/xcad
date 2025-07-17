@@ -13,7 +13,7 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
     /// <summary>
     /// Provides the additional help links for the page
     /// </summary>
-    /// <remarks>Applied to the model class</remarks>
+    /// <remarks>Applied to the model class. Register the <see cref="Services.IHelpLinkHandler"/> service to provide a custom handler of links</remarks>
     public class HelpAttribute : Attribute, IAttribute
     {
         /// <summary>

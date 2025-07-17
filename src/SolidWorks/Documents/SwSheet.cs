@@ -35,8 +35,14 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
+    /// <summary>
+    /// SOLIDWORKS-specific sheet
+    /// </summary>
     public interface ISwSheet : ISwSelObject, IXSheet
     {
+        /// <summary>
+        /// Pointer to sheet
+        /// </summary>
         ISheet Sheet { get; }
     }
 

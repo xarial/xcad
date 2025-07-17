@@ -418,11 +418,11 @@ namespace Xarial.XCad.SolidWorks
             {
                 m_CustomServices = customServices;
 
+                customServices.RegisterCommon(this, false, Path.GetDirectoryName(this.GetType().Assembly.Location));
                 customServices.Add<IXLogger>(() => new TraceLogger("xCAD.SwApplication"), ServiceLifetimeScope_e.Singleton, false);
                 customServices.Add<IMemoryGeometryBuilderDocumentProvider>(() => new DefaultMemoryGeometryBuilderDocumentProvider(this), ServiceLifetimeScope_e.Singleton, false);
                 customServices.Add<IFilePathResolver>(() => new SwFilePathResolverNoSearchFolders(this), ServiceLifetimeScope_e.Singleton, false);//TODO: there is some issue with recursive search of folders in search locations - do a test to validate
                 customServices.Add<IMemoryGeometryBuilderToleranceProvider, DefaultMemoryGeometryBuilderToleranceProvider>(ServiceLifetimeScope_e.Singleton, false);
-                customServices.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, false);
                 customServices.Add<ISwVersionMapper, SwVersionMapper>(ServiceLifetimeScope_e.Singleton, false);
                 customServices.Add<IMacroFeatureTypeProvider, ComMacroFeatureTypeProvider>(ServiceLifetimeScope_e.Singleton, false);
                 customServices.Add<IInterferencesProvider, InterferencesProvider>(ServiceLifetimeScope_e.Singleton, false);

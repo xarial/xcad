@@ -26,14 +26,14 @@ namespace Xarial.XCad.Documents
     public interface IXComponent : IXSelObject, IXObjectContainer, IXTransaction, IHasColor, IDimensionable, IHasName
     {
         /// <summary>
-        /// Id of this component
-        /// </summary>
-        IXIdentifier Id { get; }
-
-        /// <summary>
         /// Fired when component is moved in the assemblu
         /// </summary>
         event ComponentMovedDelegate Moved;
+
+        /// <summary>
+        /// Id of this component
+        /// </summary>
+        IXIdentifier Id { get; }
 
         /// <summary>
         /// Full name of the component including the hierarchical path
@@ -44,6 +44,11 @@ namespace Xarial.XCad.Documents
         /// Reference label of the component
         /// </summary>
         string Reference { get; set; }
+
+        /// <summary>
+        /// Referenced display state
+        /// </summary>
+        IXDisplayState DisplayState { get; set; }
 
         /// <summary>
         /// Parent component of this component or null if root

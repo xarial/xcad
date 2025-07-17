@@ -43,6 +43,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             where TSelObject : class, IXSelObject => throw new NotSupportedException();
         public IXDimensionRepository Dimensions => throw new NotSupportedException();
         public ConfigurationOptions_e Options { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public IXDisplayStateRepository DisplayStates => throw new NotSupportedException();
         #endregion
 
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";

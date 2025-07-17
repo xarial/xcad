@@ -13,6 +13,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows.Controls;
 using Xarial.XCad.Annotations;
@@ -162,7 +163,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             var svcColl = Application.CustomServices.Clone();
 
             svcColl.Add<IXLogger>(() => new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}"), ServiceLifetimeScope_e.Singleton, false);
-            svcColl.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, false);
+            svcColl.RegisterCommon(Application, false, Path.GetDirectoryName(this.GetType().Assembly.Location));
 
             OnConfigureServices(svcColl);
 

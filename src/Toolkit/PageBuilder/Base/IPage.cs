@@ -7,8 +7,14 @@
 
 namespace Xarial.XCad.Utils.PageBuilder.Base
 {
+    /// <summary>
+    /// Represents the page container
+    /// </summary>
     public interface IPage : IGroup
     {
+        /// <summary>
+        /// Page binding
+        /// </summary>
         IBindingManager Binding { get; }
     }
 }

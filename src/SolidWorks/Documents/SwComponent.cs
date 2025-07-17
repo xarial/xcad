@@ -862,6 +862,38 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public IXDisplayState DisplayState 
+        {
+            get
+            {
+                string dispStateName;
+
+                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017))
+                {
+                    dispStateName = Component.ReferencedDisplayState;
+                }
+                else 
+                {
+                    dispStateName = Component.ReferencedDisplayState2;
+                }
+
+                return ReferencedConfiguration.DisplayStates[dispStateName];
+            }
+            set
+            {
+                var dispStateName = value.Name;
+
+                if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2017))
+                {
+                    Component.ReferencedDisplayState2 = dispStateName;
+                }
+                else 
+                {
+                    throw new NotSupportedException();
+                }
+            }
+        }
+
         private IComponent2 CreateComponent(CancellationToken cancellationToken)
         {
             if (BatchComponentBuffer == null)

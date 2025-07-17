@@ -58,6 +58,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXEntityRepository VisibleEntities => throw new NotSupportedException();
         public ViewPolylineData[] Polylines => throw new NotSupportedException();
         public ViewDisplayMode_e? DisplayMode { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public IXDisplayState DisplayState { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         #endregion
 
         public ISwDMView DrawingView { get; }

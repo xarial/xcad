@@ -83,6 +83,8 @@ namespace Xarial.XCad.Inventor.Documents
         public abstract string Name { get; set; }
         public string Description { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string Comment { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public IXDisplayStateRepository DisplayStates => throw new NotImplementedException();
     }
 
     internal class AiPartRow : AiDocumentRow, IAiPartRow 

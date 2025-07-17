@@ -693,6 +693,12 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public IXDisplayState DisplayState 
+        {
+            get => ReferencedConfiguration.DisplayStates[DrawingView.DisplayState];
+            set => DrawingView.DisplayState = value.Name;
+        }
+
         private void SetDisplayMode(IView viewSw, ViewDisplayMode_e? dispModeType) 
         {
             swDisplayMode_e dispMode;
@@ -1880,49 +1886,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private ISwFlatPattern GetViewFlatPattern(IView view) 
         {
-            //NOTE, in some sheet metal files (probably corrupted as the result of the upgrade)
-            //this can return the hidden sheet metal flat pattern feature, not the actual one,
-            //so only using this as a fallback function
-
-            ISwFlatPattern GetFlatPatternFromFace()
-            {
-                var face = GetFlatPatternFace(view);
-
-                IFeature flatPatternFeat = null;
-
-                var feat = (IFeature)face.GetFeature();
-
-                if (feat.GetTypeName2() == SwFlatPattern.TypeName)
-                {
-                    flatPatternFeat = feat;
-                }
-                else 
-                {
-                    var childrenFeats = (object[])feat.GetChildren();
-
-                    if (childrenFeats != null) 
-                    {
-                        foreach (IFeature childFeat in childrenFeats) 
-                        {
-                            if (childFeat.GetTypeName2() == SwFlatPattern.TypeName)
-                            {
-                                flatPatternFeat = childFeat;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if (flatPatternFeat != null)
-                {
-                    return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(flatPatternFeat);
-                }
-                else 
-                {
-                    throw new Exception("Failed to find the flat pattern feature from the face");
-                }
-            }
-
             if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2014))
             {
                 var flatPatternFolder = (IFlatPatternFolder)view.ReferencedDocument.FeatureManager.GetFlatPatternFolder();
@@ -1962,12 +1925,54 @@ namespace Xarial.XCad.SolidWorks.Documents
                 else 
                 {
                     //NOTE: legacy sheet metal flat patterns are not placed in the sheet metal folders
-                    return GetFlatPatternFromFace();
+                    return GetFlatPatternFromFace(view);
                 }
             }
             else
             {
-                return GetFlatPatternFromFace();
+                return GetFlatPatternFromFace(view);
+            }
+        }
+
+        //NOTE, in some sheet metal files (probably corrupted as the result of the upgrade)
+        //this can return the hidden sheet metal flat pattern feature, not the actual one,
+        //so only using this as a fallback function
+        private ISwFlatPattern GetFlatPatternFromFace(IView view)
+        {
+            var face = GetFlatPatternFace(view);
+
+            IFeature flatPatternFeat = null;
+
+            var feat = (IFeature)face.GetFeature();
+
+            if (feat.GetTypeName2() == SwFlatPattern.TypeName)
+            {
+                flatPatternFeat = feat;
+            }
+            else
+            {
+                var childrenFeats = (object[])feat.GetChildren();
+
+                if (childrenFeats != null)
+                {
+                    foreach (IFeature childFeat in childrenFeats)
+                    {
+                        if (childFeat.GetTypeName2() == SwFlatPattern.TypeName)
+                        {
+                            flatPatternFeat = childFeat;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (flatPatternFeat != null)
+            {
+                return OwnerDocument.CreateObjectFromDispatch<ISwFlatPattern>(flatPatternFeat);
+            }
+            else
+            {
+                throw new Exception("Failed to find the flat pattern feature from the face");
             }
         }
 

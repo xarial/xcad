@@ -85,38 +85,48 @@ namespace Xarial.XCad.SwDocumentManager.Annotations
 
                 if (err == SwDmTableError.SwDmTableErrorNone)
                 {
-                    var rootConf = (SwDmAssemblyConfiguration)m_BomTable.ReferencedConfiguration;
+                    var rootConf = m_BomTable.ReferencedConfiguration;
 
                     var compParts = compRep.Split('/');
 
-                    ISwDmComponent comp = null;
-
-                    for (int i = 1; i < compParts.Length; i++) 
+                    if (compParts.Length > 1)
                     {
-                        var confNameStartIndex = compParts[i].LastIndexOf("<");
+                        ISwDmComponent comp = null;
 
-                        var confName = compParts[i].Substring(confNameStartIndex + 1, compParts[i].LastIndexOf(">") - confNameStartIndex - 1);
-
-                        var compName = compParts[i].Substring(0, confNameStartIndex);
-
-                        if (rootConf.IsCommitted)
+                        for (int i = 1; i < compParts.Length; i++)
                         {
-                            if (comp != null)
+                            var confNameStartIndex = compParts[i].LastIndexOf("<");
+
+                            var confName = compParts[i].Substring(confNameStartIndex + 1, compParts[i].LastIndexOf(">") - confNameStartIndex - 1);
+
+                            var compName = compParts[i].Substring(0, confNameStartIndex);
+
+                            if (rootConf is SwDmAssemblyConfiguration)
                             {
-                                comp = (ISwDmComponent)comp.Children[compName];
-                            }
-                            else
-                            {
-                                comp = (ISwDmComponent)rootConf.Components[compName];
+                                if (rootConf.IsCommitted)
+                                {
+                                    if (comp != null)
+                                    {
+                                        comp = (ISwDmComponent)comp.Children[compName];
+                                    }
+                                    else
+                                    {
+                                        comp = (ISwDmComponent)((SwDmAssemblyConfiguration)rootConf).Components[compName];
+                                    }
+                                }
+                                else
+                                {
+                                    comp = new SwDmUnknownComponent(compName, confName, comp, (SwDmAssemblyConfiguration)rootConf);
+                                }
                             }
                         }
-                        else 
-                        {
-                            comp = new SwDmUnknownComponent(compName, confName, comp, rootConf);
-                        }
+
+                        return new IXComponent[] { comp };
                     }
-
-                    return new IXComponent[] { comp };
+                    else 
+                    {
+                        return null;
+                    }
                 }
                 else
                 {

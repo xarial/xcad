@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -16,6 +17,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Xarial.XCad.Annotations;
+using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
@@ -170,6 +172,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_DimensionsLazy = new Lazy<SwDimensionsCollection>(CreateDimensions);
 
             m_PartNumber = new SwPartNumber(this);
+
+            DisplayStates = new SwDisplayStateCollection(this);
         }
 
         public override object Dispatch => Configuration;
@@ -382,6 +386,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 return OwnerDocument.CreateObjectFromDispatch<ISwComponent>(rootComp);
             }
         }
+
+        public IXDisplayStateRepository DisplayStates { get; }
 
         public TSelObject ConvertObject<TSelObject>(TSelObject obj)
             where TSelObject : class, IXSelObject
