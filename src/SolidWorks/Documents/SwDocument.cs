@@ -77,7 +77,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             where TObj : ISwObject;
     }
 
-    [DebuggerDisplay("{" + nameof(Title) + "}")]
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal abstract class SwDocument : SwObject, ISwDocument
     {
         private class Interconnect3DDisabler : IDisposable
@@ -222,8 +222,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         IXFeatureRepository IXDocument.Features => Features;
         IXSelectionRepository IXDocument.Selections => Selections;
-        IXDimensionRepository IDimensionable.Dimensions => Dimensions;
-        IXPropertyRepository IXDocument.Properties => Properties;
+        IXDimensionRepository IHasDimensions.Dimensions => Dimensions;
+        IXPropertyRepository IHasProperties.Properties => Properties;
         IXVersion IXDocument.Version => Version;
         IXModelViewRepository IXDocument.ModelViews => ModelViews;
 
@@ -311,7 +311,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        public string Title
+        public string Name
         {
             get
             {
@@ -817,10 +817,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 if (doc != null)
                 {
-                    if (!string.IsNullOrEmpty(Title))
+                    if (!string.IsNullOrEmpty(Name))
                     {
                         //TODO: need to communicate exception if title is not set, do not throw it from here as the doc won't be registered
-                        doc.SetTitle2(Title);
+                        doc.SetTitle2(Name);
                     }
 
                     return doc;

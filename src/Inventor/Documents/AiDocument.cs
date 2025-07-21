@@ -52,7 +52,7 @@ namespace Xarial.XCad.Inventor.Documents
             where TObj : IAiObject;
     }
 
-    [DebuggerDisplay("{" + nameof(Title) + "}")]
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal abstract class AiDocument : AiObject, IAiDocument
     {
         public event DataStoreAvailableDelegate StreamReadAvailable;
@@ -84,7 +84,7 @@ namespace Xarial.XCad.Inventor.Documents
 
         public IXDocumentOptions Options { get; }
 
-        public string Title
+        public string Name
         {
             get
             {

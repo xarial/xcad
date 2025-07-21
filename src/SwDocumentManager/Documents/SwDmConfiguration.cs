@@ -48,7 +48,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         internal const string QTY_PROPERTY = "UNIT_OF_MEASURE";
 
-        IXPropertyRepository IXConfiguration.Properties => Properties;
+        IXPropertyRepository IHasProperties.Properties => Properties;
         
         private readonly Lazy<ISwDmCustomPropertiesCollection> m_Properties;
 

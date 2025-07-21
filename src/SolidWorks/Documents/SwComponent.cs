@@ -161,7 +161,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         IXComponentRepository IXComponent.Children => Children;
         IXFeatureRepository IXComponent.Features => Features;
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => ConvertObjectBoxed(obj) as TSelObject;
-        IXDimensionRepository IDimensionable.Dimensions => Dimensions;
+        IXDimensionRepository IHasDimensions.Dimensions => Dimensions;
 
         public event ComponentMovedDelegate Moved
         {

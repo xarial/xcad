@@ -202,13 +202,13 @@ namespace SolidWorksDocMgr.Tests.Integration
                 var doc = Application.Documents.Open(dataFile.FilePath);
                 var deps = doc.Dependencies.All.ToArray();
 
-                var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                var d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Name),
                     "Part1^Assem1", StringComparison.CurrentCultureIgnoreCase));
-                var d2 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                var d2 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Name),
                     "Part2^SubAssem1", StringComparison.CurrentCultureIgnoreCase));
-                var d3 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                var d3 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Name),
                     "Part3^Assem3_Assem1", StringComparison.CurrentCultureIgnoreCase));
-                var d4 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                var d4 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Name),
                     "Assem3^Assem1", StringComparison.CurrentCultureIgnoreCase));
 
                 ((ISwDmDocument)d1).Document.AddCustomProperty("UnitTest", SolidWorks.Interop.swdocumentmgr.SwDmCustomInfoType.swDmCustomInfoText, "xCAD");
@@ -227,13 +227,13 @@ namespace SolidWorksDocMgr.Tests.Integration
 
                 deps = doc.Dependencies.All.ToArray();
 
-                d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                d1 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Name),
                     "Part1^Assem1", StringComparison.CurrentCultureIgnoreCase));
-                d2 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                d2 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Name),
                     "Part2^SubAssem1", StringComparison.CurrentCultureIgnoreCase));
-                d3 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                d3 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Name),
                     "Part3^Assem3_Assem1", StringComparison.CurrentCultureIgnoreCase));
-                d4 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+                d4 = deps.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Name),
                     "Assem3^Assem1", StringComparison.CurrentCultureIgnoreCase));
 
                 p1 = ((ISwDmDocument)d1).Document.GetCustomProperty("UnitTest", out _);

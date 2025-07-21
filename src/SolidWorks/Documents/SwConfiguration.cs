@@ -145,8 +145,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        IXPropertyRepository IXConfiguration.Properties => Properties;
-        IXDimensionRepository IDimensionable.Dimensions => Dimensions;
+        IXPropertyRepository IHasProperties.Properties => Properties;
+        IXDimensionRepository IHasDimensions.Dimensions => Dimensions;
 
         public virtual ISwCustomPropertiesCollection Properties => m_PropertiesLazy.Value;
         public ISwDimensionsCollection Dimensions => m_DimensionsLazy.Value;

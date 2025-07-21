@@ -96,8 +96,10 @@ namespace SolidWorks.Tests.Integration
         [OneTimeTearDown]
         public void FinalTearDown()
         {
+#if TESTING_MODE
             m_TestManager?.Dispose();
             m_SwStarter?.Dispose();
+#endif
         }
     }
 }

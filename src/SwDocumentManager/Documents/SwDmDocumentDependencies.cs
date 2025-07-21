@@ -138,7 +138,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 var virtCompFileName = Path.GetFileName(filePath);
 
-                virtCompDoc = m_VirtualDocumentsCache.FirstOrDefault(d => string.Equals(d.Title,
+                virtCompDoc = m_VirtualDocumentsCache.FirstOrDefault(d => string.Equals(d.Name,
                     virtCompFileName, StringComparison.CurrentCultureIgnoreCase));
 
                 if (virtCompDoc != null)

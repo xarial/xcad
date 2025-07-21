@@ -118,7 +118,7 @@ namespace Xarial.XCad.SolidWorks.Data
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_ConfigurationName:
                     return conf.Name;
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_DocumentName:
-                    return Path.GetFileNameWithoutExtension(m_Conf.Document.Title);
+                    return Path.GetFileNameWithoutExtension(m_Conf.Document.Name);
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_ParentName:
                     return GetPartNumber(m_Conf.Document.Configurations[conf.GetParentConfigurationName()].Configuration);
                 case swDmBOMPartNumberSource.swDmBOMPartNumber_UserSpecified:

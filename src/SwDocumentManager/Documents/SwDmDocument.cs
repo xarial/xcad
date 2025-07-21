@@ -44,7 +44,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             where TObj : ISwDmObject;
     }
 
-    [DebuggerDisplay("{" + nameof(Title) + "}")]
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal abstract class SwDmDocument : SwDmObject, ISwDmDocument
     {
         /// <summary>
@@ -139,7 +139,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         #endregion
 
         IXVersion IXDocument.Version => Version;
-        IXPropertyRepository IXDocument.Properties => Properties;
+        IXPropertyRepository IHasProperties.Properties => Properties;
 
         public ISwDMDocument Document => m_Creator.Element;
 
@@ -163,7 +163,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ISwDmVersion Version => SwDmApplicationFactory.CreateVersion(OwnerApplication.VersionMapper.FromFileRevision(Document.GetVersion()));
 
-        public virtual string Title 
+        public virtual string Name 
         {
             get 
             {

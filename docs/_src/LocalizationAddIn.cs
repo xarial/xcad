@@ -32,7 +32,7 @@ namespace Xarial.XCad.Documentation
     {
         public override CustomFeatureRebuildResult OnRebuild(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
         {
-            if (!string.IsNullOrEmpty(model.Title))
+            if (!string.IsNullOrEmpty(model.Name))
             {
                 return new CustomFeatureRebuildResult()
                 {

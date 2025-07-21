@@ -65,6 +65,25 @@ namespace Xarial.XCad.SolidWorks.Geometry
 
         public bool IsResilient => Entity.IsSafe;
 
+        public string Name 
+        {
+            get => OwnerDocument.Model.GetEntityName(Entity);
+            set 
+            {
+                if (OwnerDocument.Model is IPartDoc)
+                {
+                    if (!((IPartDoc)OwnerDocument.Model).SetEntityName(Entity, value)) 
+                    {
+                        throw new Exception("Failed to set entity name");
+                    }
+                }
+                else 
+                {
+                    throw new NotSupportedException($"Entity name can only be assigned in the context of the part. Use '{nameof(IXComponent.ConvertObject)}' to convert context of the pointer");
+                }
+            }
+        }
+
         internal SwEntity(IEntity entity, SwDocument doc, SwApplication app) : base(entity, doc, app)
         {
             Entity = entity;

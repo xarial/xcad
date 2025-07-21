@@ -225,7 +225,7 @@ namespace SolidWorksDocMgr.Tests.Integration
             {
                 var assm = doc.Document;
 
-                titles = assm.Dependencies.All.Select(d => Path.GetFileNameWithoutExtension(d.Title)).ToArray();
+                titles = assm.Dependencies.All.Select(d => Path.GetFileNameWithoutExtension(d.Name)).ToArray();
             }
 
             Assert.AreEqual(7, titles.Length);

@@ -3,6 +3,7 @@ using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using Xarial.XCad;
@@ -11,10 +12,13 @@ using Xarial.XCad.Data;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Exceptions;
+using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
+using Xarial.XCad.SolidWorks;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace SolidWorks.Tests.Integration
 {
@@ -678,6 +682,257 @@ namespace SolidWorks.Tests.Integration
             Assert.AreEqual("", db4);
             Assert.AreEqual("", mat5);
             Assert.AreEqual("", db5);
+        }
+
+        [Test]
+        public void TraverseDisplayStateAppearanceTest() 
+        {
+            int appsCount1;
+            int appsCount2;
+            var colors1 = new List<(Color Color, (Type Type, string Name)[] Entities)>();
+            var colors2 = new List<(Color Color, (Type Type, string Name)[] Entities)>();
+
+            using (var doc = OpenDataDocument(@"DisplayStates1.SLDPRT")) 
+            {
+                var dispState1 = ((IXDocument3D)doc.Document).Configurations.Active.DisplayStates["Display State 1"];
+                appsCount1 = dispState1.Count;
+                var apps1 = dispState1.ToArray();
+                colors1.Add((apps1[0].Color, apps1[0].Objects.Select(o => (o.GetType(), ((IHasName)o).Name)).OrderBy(x => x.Name).ToArray()));
+                colors1.Add((apps1[1].Color, apps1[1].Objects.Select(o => (o.GetType(), ((IHasName)o).Name)).OrderBy(x => x.Name).ToArray()));
+                colors1.Add((apps1[2].Color, apps1[2].Objects.Select(o => (o.GetType(), ((IHasName)o).Name)).OrderBy(x => x.Name).ToArray()));
+                colors1 = colors1.OrderByDescending(x => x.Color.ToArgb()).ToList();
+
+                var dispState2 = ((IXDocument3D)doc.Document).Configurations.Active.DisplayStates["Display State 2"];
+                appsCount2 = dispState2.Count;
+                var apps2 = dispState2.ToArray();
+                colors2.Add((apps2[0].Color, apps2[0].Objects.Select(o => (o.GetType(), ((IHasName)o).Name)).OrderBy(x => x.Name).ToArray()));
+                colors2.Add((apps2[1].Color, apps2[1].Objects.Select(o => (o.GetType(), ((IHasName)o).Name)).OrderBy(x => x.Name).ToArray()));
+                colors2.Add((apps2[2].Color, apps2[2].Objects.Select(o => (o.GetType(), ((IHasName)o).Name)).OrderBy(x => x.Name).ToArray()));
+                colors2.Add((apps2[3].Color, apps2[3].Objects.Select(o => (o.GetType(), ((IHasName)o).Name)).OrderBy(x => x.Name).ToArray()));
+                colors2 = colors2.OrderBy(x => x.Color.ToArgb()).ToList();
+            }
+
+            Assert.AreEqual(3, appsCount1);
+
+            Assert.AreEqual(Color.FromArgb(255, 255, 0).ToArgb(), colors1[0].Color.ToArgb());
+            Assert.AreEqual(1, colors1[0].Entities.Length);
+            Assert.That(typeof(IXSolidBody).IsAssignableFrom(colors1[0].Entities[0].Type));
+            Assert.AreEqual("Boss-Extrude1[1]", colors1[0].Entities[0].Name);
+
+            Assert.AreEqual(Color.FromArgb(255, 0, 0).ToArgb(), colors1[1].Color.ToArgb());
+            Assert.AreEqual(1, colors1[1].Entities.Length);
+            Assert.That(typeof(IXPlanarFace).IsAssignableFrom(colors1[1].Entities[0].Type));
+            Assert.AreEqual("FACE1", colors1[1].Entities[0].Name);
+
+            Assert.AreEqual(Color.FromArgb(232, 113, 8).ToArgb(), colors1[2].Color.ToArgb());
+            Assert.AreEqual(1, colors1[2].Entities.Length);
+            Assert.That(typeof(IXPart).IsAssignableFrom(colors1[2].Entities[0].Type));
+            Assert.AreEqual("DisplayStates1.SLDPRT", colors1[2].Entities[0].Name);
+
+            Assert.AreEqual(4, appsCount2);
+
+            Assert.AreEqual(Color.FromArgb(153, 0, 192, 0).ToArgb(), colors2[0].Color.ToArgb());
+            Assert.AreEqual(1, colors2[0].Entities.Length);
+            Assert.That(typeof(IXPlanarFace).IsAssignableFrom(colors2[0].Entities[0].Type));
+            Assert.AreEqual("FACE1", colors2[0].Entities[0].Name);
+
+            Assert.AreEqual(Color.FromArgb(0, 0, 255).ToArgb(), colors2[1].Color.ToArgb());
+            Assert.AreEqual(5, colors2[1].Entities.Length);
+            Assert.That(typeof(IXFeature).IsAssignableFrom(colors2[1].Entities[0].Type));
+            Assert.AreEqual("Boss-Extrude2", colors2[1].Entities[0].Name);
+            Assert.That(typeof(IXPlanarFace).IsAssignableFrom(colors2[1].Entities[1].Type));
+            Assert.AreEqual("FACE2", colors2[1].Entities[1].Name);
+            Assert.That(typeof(IXPlanarFace).IsAssignableFrom(colors2[1].Entities[2].Type));
+            Assert.AreEqual("FACE3", colors2[1].Entities[2].Name);
+            Assert.That(typeof(IXPlanarFace).IsAssignableFrom(colors2[1].Entities[3].Type));
+            Assert.AreEqual("FACE4", colors2[1].Entities[3].Name);
+            Assert.That(typeof(IXPlanarFace).IsAssignableFrom(colors2[1].Entities[4].Type));
+            Assert.AreEqual("FACE5", colors2[1].Entities[4].Name);
+
+            Assert.AreEqual(Color.FromArgb(255, 0, 255).ToArgb(), colors2[2].Color.ToArgb());
+            Assert.AreEqual(1, colors2[2].Entities.Length);
+            Assert.That(typeof(IXPart).IsAssignableFrom(colors2[2].Entities[0].Type));
+            Assert.AreEqual("DisplayStates1.SLDPRT", colors2[2].Entities[0].Name);
+
+            Assert.AreEqual(Color.FromArgb(255, 255, 0).ToArgb(), colors2[3].Color.ToArgb());
+            Assert.AreEqual(1, colors2[3].Entities.Length);
+            Assert.That(typeof(IXSolidBody).IsAssignableFrom(colors2[3].Entities[0].Type));
+            Assert.AreEqual("Boss-Extrude1[1]", colors2[3].Entities[0].Name);
+        }
+
+        [Test]
+        public void ConfigurationLinkedDisplayStatesTest()
+        {
+            var defDispStatesColors = new Dictionary<string, Color>();
+            var conf1DispStatesColors = new Dictionary<string, Color>();
+
+            using (var doc = OpenDataDocument(@"DisplayStates2.SLDPRT"))
+            {
+                foreach (var dispState in ((IXDocument3D)doc.Document).Configurations["Default"].DisplayStates.ToArray()) 
+                {
+                    defDispStatesColors.Add(dispState.Name, dispState[new IHasColor[] { (IXDocument3D)doc.Document }].Color);
+                }
+
+                foreach (var dispState in ((IXDocument3D)doc.Document).Configurations["Conf2"].DisplayStates.ToArray())
+                {
+                    conf1DispStatesColors.Add(dispState.Name, dispState[new IHasColor[] { (IXDocument3D)doc.Document }].Color);
+                }
+            }
+
+            Assert.AreEqual(2, defDispStatesColors.Count);
+            Assert.That(defDispStatesColors.ContainsKey("Display State 1"));
+            Assert.AreEqual(Color.FromArgb(255, 0, 0).ToArgb(), defDispStatesColors["Display State 1"].ToArgb());
+            Assert.That(defDispStatesColors.ContainsKey("Display State 2"));
+            Assert.AreEqual(Color.FromArgb(0, 255, 0).ToArgb(), defDispStatesColors["Display State 2"].ToArgb());
+            Assert.That(conf1DispStatesColors.ContainsKey("Display State 3"));
+            Assert.AreEqual(Color.FromArgb(0, 0, 255).ToArgb(), conf1DispStatesColors["Display State 3"].ToArgb());
+            Assert.That(conf1DispStatesColors.ContainsKey("Display State 4"));
+            Assert.AreEqual(Color.FromArgb(255, 255, 0).ToArgb(), conf1DispStatesColors["Display State 4"].ToArgb());
+        }
+
+        [Test]
+        public void CreateDisplayStatesWithAppearance() 
+        {
+            int c1;
+            int c2;
+
+            object[] a1;
+            object[] a2;
+
+            using (var doc = OpenDataDocument("Box1.sldprt"))
+            {
+                var part = (ISwPart)doc.Document;
+
+                var conf = part.Configurations.Active;
+
+                var ds1 = conf.DisplayStates.PreCreate();
+                ds1.Name = "DS1";
+                ds1.Commit();
+
+                var ds2 = conf.DisplayStates.PreCreate();
+                ds2.Name = "DS2";
+                ds2.Commit();
+
+                var app1 = ds1.PreCreate<ISwAppearance>();
+                app1.Objects = new IHasColor[] { part };
+                app1.Reflection = 0.1;
+                app1.Blurriness = 0.2;
+                app1.Color = Color.FromArgb(100, 50, 150, 200);
+                app1.Diffuse = 0.3;
+                app1.Emission = 0.4;
+                app1.Specular = 0.5;
+                app1.SpecularColor = Color.FromArgb(255, 255, 0);
+                app1.Commit();
+
+                var app2 = ds2.PreCreate<ISwRenderMaterial>();
+                app2.AppearanceFilePath = ((IRenderMaterial)((object[])part.Model.Extension.GetRenderMaterials2((int)swDisplayStateOpts_e.swSpecifyDisplayState, new string[] { "DS1" })).First()).FileName;
+                app2.Objects = new IHasColor[] { part.Bodies["Boss-Extrude1"] };
+                app2.Reflection = 0.6;
+                app2.Blurriness = 0.7;
+                app2.Color = Color.FromArgb(220, 110, 55);
+                app2.Diffuse = 0.8;
+                app2.Emission = 0.9;
+                app2.Specular = 0.95;
+                app2.SpecularColor = Color.FromArgb(0, 255, 0);
+                app2.Commit();
+
+                var r1 = (IRenderMaterial)((object[])part.Model.Extension.GetRenderMaterials2((int)swDisplayStateOpts_e.swSpecifyDisplayState, new string[] { "DS1" })).First();
+
+                a1 = new object[]
+                {
+                    r1.Reflectivity,
+                    r1.Roughness,
+                    r1.PrimaryColor,
+                    r1.Transparency,
+                    r1.Diffuse,
+                    r1.Emission,
+                    r1.Specular,
+                    r1.SpecularColor
+                };
+
+                c1 = part.Model.Extension.GetRenderMaterialsCount2((int)swDisplayStateOpts_e.swSpecifyDisplayState, new string[] { "DS1" });
+
+                var s2 = part.OwnerDocument.Model.Extension.GetDisplayStateSetting((int)swDisplayStateOpts_e.swSpecifyDisplayState);
+                s2.Option = (int)swDisplayStateOpts_e.swSpecifyDisplayState;
+                s2.Names = new string[] { "DS2" };
+                s2.Entities = new IBody2[] { ((ISwBody)part.Bodies["Boss-Extrude1"]).Body };
+                var p2 = (IAppearanceSetting)((object[])part.OwnerDocument.Model.Extension.DisplayStateSpecMaterialPropertyValues[s2]).First();
+
+                a2 = new object[]
+                {
+                    p2.Reflection,
+                    p2.SpecularSpread,
+                    p2.Color,
+                    p2.Transparent,
+                    p2.Diffuse,
+                    p2.Luminous,
+                    p2.Specular,
+                    p2.SpecularColor
+                };
+
+                c2 = part.Model.Extension.GetRenderMaterialsCount2((int)swDisplayStateOpts_e.swSpecifyDisplayState, new string[] { "DS2" });
+
+                Assert.AreEqual(1, c1);
+                Assert.That(a1[0], Is.EqualTo(0.1).Within(0.0001).Percent);
+                Assert.That(a1[1], Is.EqualTo(0.2).Within(0.0001).Percent);
+                Assert.AreEqual(a1[2], ColorUtils.ToColorRef(Color.FromArgb(50, 150, 200)));
+                Assert.That(a1[3], Is.EqualTo((255d - 100d) / 255d).Within(0.0001).Percent);
+                Assert.That(a1[4], Is.EqualTo(0.3).Within(0.0001).Percent);
+                Assert.That(a1[5], Is.EqualTo(0.4).Within(0.0001).Percent);
+                Assert.That(a1[6], Is.EqualTo(0.5).Within(0.0001).Percent);
+                Assert.AreEqual(a1[7], ColorUtils.ToColorRef(Color.FromArgb(255, 255, 0)));
+
+                Assert.AreEqual(1, c2);
+                Assert.That(a2[0], Is.EqualTo(0.6).Within(0.0001).Percent);
+                Assert.That(a2[1], Is.EqualTo(0.7).Within(0.0001).Percent);
+                Assert.AreEqual(a2[2], ColorUtils.ToColorRef(Color.FromArgb(220, 110, 55)));
+                Assert.That(a2[3], Is.EqualTo(0d).Within(0.0001).Percent);
+                Assert.That(a2[4], Is.EqualTo(0.8).Within(0.0001).Percent);
+                Assert.That(a2[5], Is.EqualTo(0.9).Within(0.0001).Percent);
+                Assert.That(a2[6], Is.EqualTo(0.95).Within(0.0001).Percent);
+                Assert.AreEqual(a2[7], ColorUtils.ToColorRef(Color.FromArgb(0, 255, 0)));
+            }
+        }
+
+        [Test]
+        public void DeleteAppearanceTest() 
+        {
+            (Type Type, string Name)[] e1;
+            (Type Type, string Name)[] e2;
+
+            using (var doc = OpenDataDocument(@"DisplayStates1.SLDPRT"))
+            {
+                var dispState = ((IXDocument3D)doc.Document).Configurations.Active.DisplayStates["Display State 2"];
+
+                var app1 = dispState.FirstOrDefault(x => x.Objects.Length == 5);
+                app1.Objects = app1.Objects.OfType<IXFace>().Where(f => f.Name != "FACE2").Cast<IHasColor>().Union(app1.Objects.OfType<IXFeature>()).ToArray();
+
+                var r1 = ((object[])doc.Document.Model.Extension.GetRenderMaterials2((int)swDisplayStateOpts_e.swSpecifyDisplayState, new string[] { "Display State 2" })).Cast<IRenderMaterial>().First(r => r.GetEntitiesCount() == 4);
+
+                doc.Document.Rebuild();
+
+                e1 = ((object[])r1.GetEntities()).Select(x => doc.Document.CreateObjectFromDispatch<ISwObject>(x)).Cast<IHasName>().Select(x => (x.GetType(), x.Name)).ToArray();
+
+                var faces = ((IXPart)doc.Document).Bodies.SelectMany(b => b.Faces).Where(f => f.Name == "FACE3" || f.Name == "FACE4").ToArray();
+
+                var app2 = dispState[faces];
+
+                dispState.Remove(app2);
+
+                doc.Document.Rebuild();
+
+                var r2 = ((object[])doc.Document.Model.Extension.GetRenderMaterials2((int)swDisplayStateOpts_e.swSpecifyDisplayState, new string[] { "Display State 2" })).Cast<IRenderMaterial>().First(r => r.GetEntitiesCount() == 2);
+
+                e2 = ((object[])r2.GetEntities()).Select(x => doc.Document.CreateObjectFromDispatch<ISwObject>(x)).Cast<IHasName>().Select(x => (x.GetType(), x.Name)).ToArray();
+            }
+
+            Assert.That(e1.Any(x => typeof(IXFace).IsAssignableFrom(x.Type) && x.Name == "FACE3"));
+            Assert.That(e1.Any(x => typeof(IXFace).IsAssignableFrom(x.Type) && x.Name == "FACE4"));
+            Assert.That(e1.Any(x => typeof(IXFace).IsAssignableFrom(x.Type) && x.Name == "FACE5"));
+            Assert.That(e1.Any(x => typeof(IXFeature).IsAssignableFrom(x.Type) && x.Name == "Boss-Extrude2"));
+
+            Assert.That(e2.Any(x => typeof(IXFace).IsAssignableFrom(x.Type) && x.Name == "FACE5"));
+            Assert.That(e2.Any(x => typeof(IXFeature).IsAssignableFrom(x.Type) && x.Name == "Boss-Extrude2"));
         }
     }
 }

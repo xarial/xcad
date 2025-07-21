@@ -167,7 +167,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             set 
             {
                 int errors = -1;
-                var doc = m_App.Sw.ActivateDoc3(value.Title, true, (int)swRebuildOnActivation_e.swDontRebuildActiveDoc,
+                var doc = m_App.Sw.ActivateDoc3(value.Name, true, (int)swRebuildOnActivation_e.swDontRebuildActiveDoc,
                     ref errors);
 
                 if (doc == null) 

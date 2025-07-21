@@ -14,7 +14,7 @@ namespace Xarial.XCad.Annotations
     /// <summary>
     /// Indicates that this object can have dimensions
     /// </summary>
-    public interface IDimensionable
+    public interface IHasDimensions
     {
         /// <summary>
         /// Dimensions repository

@@ -18,13 +18,8 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Represents the body object
     /// </summary>
-    public interface IXBody : IXSelObject, IHasColor, IXTransaction
+    public interface IXBody : IXSelObject, IHasColor, IHasName, IXTransaction
     {
-        /// <summary>
-        /// Name of the body
-        /// </summary>
-        string Name { get; set; }
-
         /// <summary>
         /// Is body visible
         /// </summary>

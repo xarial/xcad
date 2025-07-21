@@ -415,13 +415,13 @@ namespace SolidWorks.Tests.Integration
                             }
                         };
 
-                        activeDocTitle = Path.GetFileNameWithoutExtension(Application.Documents.Active.Title).ToLower();
+                        activeDocTitle = Path.GetFileNameWithoutExtension(Application.Documents.Active.Name).ToLower();
 
                         Application.Documents.Active = doc1;
 
-                        activeDocTitle1 = Path.GetFileNameWithoutExtension(Application.Documents.Active.Title).ToLower();
+                        activeDocTitle1 = Path.GetFileNameWithoutExtension(Application.Documents.Active.Name).ToLower();
 
-                        createdDocsTitles = createdDocs.Select(d => Path.GetFileNameWithoutExtension(d.Title).ToLower()).ToArray();
+                        createdDocsTitles = createdDocs.Select(d => Path.GetFileNameWithoutExtension(d.Name).ToLower()).ToArray();
 
                         Application.Sw.CloseAllDocuments(true);
                     }
@@ -1230,9 +1230,9 @@ namespace SolidWorks.Tests.Integration
 
             string newTitle = "";
 
-            void OnDocumentLoaded(IXDocument x) { openEvents.Add(new Tuple<string, int>(string.IsNullOrEmpty(x.Path) ? x.Title : x.Path, LOADED)); };
+            void OnDocumentLoaded(IXDocument x) { openEvents.Add(new Tuple<string, int>(string.IsNullOrEmpty(x.Path) ? x.Name : x.Path, LOADED)); };
             void OnDocumentOpened(IXDocument x) { openEvents.Add(new Tuple<string, int>(x.Path, OPENED)); };
-            void OnNewDocumentCreated(IXDocument x) { newTitle = x.Title; openEvents.Add(new Tuple<string, int>(x.Title, NEW)); };
+            void OnNewDocumentCreated(IXDocument x) { newTitle = x.Name; openEvents.Add(new Tuple<string, int>(x.Name, NEW)); };
 
             string workFolder;
 

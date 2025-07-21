@@ -14,7 +14,7 @@ namespace Xarial.XCad.Geometry
     /// <summary>
     /// Represents the base itnerface for gemetrical entities
     /// </summary>
-    public interface IXEntity : IXSelObject
+    public interface IXEntity : IXSelObject, IHasName
     {
         /// <summary>
         /// Gets the component associated with this entity in the context of the assembly

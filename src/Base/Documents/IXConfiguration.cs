@@ -18,7 +18,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the configiration (variant) of the document
     /// </summary>
-    public interface IXConfiguration : IXSelObject, IXTransaction, IDimensionable, IXObjectContainer
+    public interface IXConfiguration : IXSelObject, IXTransaction, IHasDimensions, IHasProperties, IXObjectContainer
     {
         /// <summary>
         /// Id of this configuration
@@ -54,11 +54,6 @@ namespace Xarial.XCad.Documents
         /// Returns part number of this configuration
         /// </summary>
         IPartNumber PartNumber { get; }
-
-        /// <summary>
-        /// Collection of properties
-        /// </summary>
-        IXPropertyRepository Properties { get; }
 
         /// <summary>
         /// Parent configuration or null if this is a top level configuration

@@ -117,7 +117,7 @@ namespace Xarial.XCad.SolidWorks.Services
         {
             var title = Path.GetFileNameWithoutExtension(path);
 
-            var doc = m_App.Documents.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Title),
+            var doc = m_App.Documents.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Name),
                 title, StringComparison.CurrentCultureIgnoreCase));
 
             if (doc != null)

@@ -66,10 +66,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             this.Close();
         }
 
-        public override string Title
+        public override string Name
         {
-            get => SwDmVirtualDocumentHelper.GetTitle(base.Title);
-            set => base.Title = value; 
+            get => SwDmVirtualDocumentHelper.GetTitle(base.Name);
+            set => base.Name = value; 
         }
 
         public override bool IsDirty

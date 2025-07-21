@@ -21,7 +21,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the drawing view on <see cref="IXSheet"/>
     /// </summary>
-    public interface IXDrawingView : IXSelObject, IXObjectContainer, IDimensionable, IXTransaction
+    public interface IXDrawingView : IXSelObject, IXObjectContainer, IHasDimensions, IXTransaction
     {
         /// <summary>
         /// Parent sheet of this drawing view

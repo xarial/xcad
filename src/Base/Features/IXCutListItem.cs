@@ -19,7 +19,7 @@ namespace Xarial.XCad.Features
     /// <summary>
     /// Represents the cut-list item feature
     /// </summary>
-    public interface IXCutListItem : IXFeature
+    public interface IXCutListItem : IXFeature, IHasProperties
     {
         /// <summary>
         /// Status of this cut-list item
@@ -30,11 +30,6 @@ namespace Xarial.XCad.Features
         /// Type of the cut-list
         /// </summary>
         CutListType_e Type { get; }
-
-        /// <summary>
-        /// Collection of properties
-        /// </summary>
-        IXPropertyRepository Properties { get; }
 
         /// <summary>
         /// Bodies of this cut-list item

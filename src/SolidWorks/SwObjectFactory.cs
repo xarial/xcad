@@ -56,6 +56,9 @@ namespace Xarial.XCad.SolidWorks
 
             switch (disp)
             {
+                case IModelDoc2 model:
+                    return app.Documents[model];
+
                 case IEdge edge:
                     var edgeCurve = edge.IGetCurve();
                     if (edgeCurve.IsCircle())

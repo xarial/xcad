@@ -32,7 +32,7 @@ namespace Xarial.XCad.SolidWorks.Services
             var activeDoc = m_App.Documents.Active;
 
             var doc = (SwDocument)m_App.Documents.NewPart();
-            doc.Title = "xCADGeometryBuilderDoc_" + Guid.NewGuid().ToString();
+            doc.Name = "xCADGeometryBuilderDoc_" + Guid.NewGuid().ToString();
             
             if (activeDoc != null) 
             {
@@ -65,7 +65,7 @@ namespace Xarial.XCad.SolidWorks.Services
             {
                 try
                 {
-                    var title = m_TempDoc.Title;
+                    var title = m_TempDoc.Name;
                     return true;
                 }
                 catch

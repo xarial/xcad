@@ -314,6 +314,8 @@ namespace Xarial.XCad.SolidWorks.Annotations
                         
                         using (var selGrp = new SelectionGroup(m_Ann.OwnerDocument, true)) 
                         {
+                            ((ISwDrawing)m_Ann.OwnerDocument).Drawing.ActivateView(view.Name);
+
                             selGrp.Add(m_Ann.Dispatch);
                             selGrp.Add(((ISwDrawingView)view).Dispatch);
                             

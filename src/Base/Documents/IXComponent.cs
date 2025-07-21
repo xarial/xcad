@@ -23,7 +23,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents components in the <see cref="IXAssembly"/>
     /// </summary>
-    public interface IXComponent : IXSelObject, IXObjectContainer, IXTransaction, IHasColor, IDimensionable, IHasName
+    public interface IXComponent : IXSelObject, IXObjectContainer, IXTransaction, IHasColor, IHasDimensions, IHasName
     {
         /// <summary>
         /// Fired when component is moved in the assemblu

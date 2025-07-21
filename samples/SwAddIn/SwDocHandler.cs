@@ -230,7 +230,7 @@ namespace SwAddInExample
 
             m_CustomGraphicsToggle.EnabledChanged -= OnCustomGraphicsToggleEnabledChanged;
 
-            System.Diagnostics.Debug.Print($"Closed {m_Model.Title}");
+            System.Diagnostics.Debug.Print($"Closed {m_Model.Name}");
 
             m_FeatMgrTab.Close();
 

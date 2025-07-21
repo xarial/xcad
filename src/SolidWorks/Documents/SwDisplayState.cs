@@ -42,7 +42,7 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IXAppearance this[IHasColor[] objs] => SwAppearance.FromObjects(DisplayState, objs, AppearanceLevel_e.Component, OwnerDocument, OwnerApplication);
+        public IXAppearance this[IHasColor[] objs] => SwAppearance.FromObjects(DisplayState, objs, AppearanceLevel_e.Component, m_OwnerConf, OwnerApplication);
 
         public string Name 
         {
@@ -73,7 +73,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
-        public int Count => throw new NotSupportedException();
+        public int Count => m_OwnerConf.OwnerDocument.Model.Extension.GetRenderMaterialsCount2((int)swDisplayStateOpts_e.swSpecifyDisplayState, new string[] { DisplayState.Name });
 
         public IXAppearance this[string name] => m_RepoHelper.Get(name);
 
@@ -91,8 +91,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_OwnerConf = ownerConf;
             m_Creator = new ElementCreator<SwDisplayStateDispatch>(CreateDisplayState, dispState, dispState != null);
 
-            m_RepoHelper = new RepositoryHelper<IXAppearance>(this, 
-                TransactionFactory<IXAppearance>.Create(() => new SwAppearance(null, DisplayState, null, ownerDoc, ownerApp)));
+            m_RepoHelper = new RepositoryHelper<IXAppearance>(this,
+                TransactionFactory<IXAppearance>.Create(() => new SwAppearance(null, DisplayState, null, ownerConf, ownerDoc, ownerApp)),
+                TransactionFactory<IXAppearance>.Create(() => new SwRenderMaterial(null, DisplayState, ownerDoc, ownerApp)));
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
@@ -116,7 +117,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void RemoveRange(IEnumerable<IXAppearance> ents, CancellationToken cancellationToken)
         {
-            foreach (SwAppearance app in ents) 
+            foreach (ISwAppearanceBase app in ents) 
             {
                 app.Delete();
             }
@@ -128,6 +129,17 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
             => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
 
-        public IEnumerator<IXAppearance> GetEnumerator() => throw new NotSupportedException();
+        public IEnumerator<IXAppearance> GetEnumerator() 
+        {
+            var renderMaterials = (object[])m_OwnerConf.OwnerDocument.Model.Extension.GetRenderMaterials2((int)swDisplayStateOpts_e.swSpecifyDisplayState, new string[] { DisplayState.Name });
+
+            if (renderMaterials != null)
+            { 
+                foreach (IRenderMaterial renderMaterial in renderMaterials)
+                {
+                    yield return new SwRenderMaterial(renderMaterial, DisplayState, OwnerDocument, OwnerApplication);
+                }
+            }
+        }
     }
 }

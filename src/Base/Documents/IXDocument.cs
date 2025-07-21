@@ -22,7 +22,7 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents the base interface of all document types
     /// </summary>
-    public interface IXDocument : IXObject, IXTransaction, IDimensionable, IDisposable
+    public interface IXDocument : IXObject, IXTransaction, IHasDimensions, IHasProperties, IHasName, IDisposable
     {
         /// <summary>
         /// Id of this document
@@ -90,11 +90,6 @@ namespace Xarial.XCad.Documents
         IXDocumentOptions Options { get; }
 
         /// <summary>
-        /// Changes the title of this document
-        /// </summary>
-        string Title { get; set; }
-
-        /// <summary>
         /// Document template
         /// </summary>
         string Template { get; set; }
@@ -136,11 +131,6 @@ namespace Xarial.XCad.Documents
         /// </summary>
         /// <param name="filePath">Output file path</param>
         IXSaveOperation PreCreateSaveAsOperation(string filePath);
-
-        /// <summary>
-        /// Collection of properties
-        /// </summary>
-        IXPropertyRepository Properties { get; }
 
         /// <summary>
         /// Collection of annotations

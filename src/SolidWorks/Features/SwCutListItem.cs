@@ -48,7 +48,7 @@ namespace Xarial.XCad.SolidWorks.Features
     {
         private readonly Lazy<ISwCustomPropertiesCollection> m_Properties;
 
-        IXPropertyRepository IXCutListItem.Properties => Properties;
+        IXPropertyRepository IHasProperties.Properties => Properties;
 
         private SwDocument3D m_ParentDoc;
         private ISwConfiguration m_ParentConf;

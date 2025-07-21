@@ -155,7 +155,7 @@ namespace Xarial.XCad.SolidWorks.Features
         IXEntityRepository IXEntity.AdjacentEntities => AdjacentEntities;
         ISwEntity ISupportsResilience<ISwEntity>.CreateResilient() => CreateResilient();
         IXComponent IXEntity.Component => Component;
-        IXDimensionRepository IDimensionable.Dimensions => Dimensions;
+        IXDimensionRepository IHasDimensions.Dimensions => Dimensions;
         IXObject ISupportsResilience.CreateResilient() => CreateResilient();
 
         protected readonly IElementCreator<IFeature> m_Creator;
@@ -482,7 +482,7 @@ namespace Xarial.XCad.SolidWorks.Features
             {
                 if (!((IEntity)Feature).Select4(append, (SelectData)selData)) 
                 {
-                    throw new Exception("Faile to select feature as entity");
+                    throw new Exception("Failed to select feature as entity");
                 }
             }
         }
