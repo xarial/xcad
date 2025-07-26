@@ -31,6 +31,7 @@ using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
+using Xarial.XCad.Utils;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
@@ -1150,7 +1151,44 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    throw new NotSupportedException();
+                    var basePt = GetBoundary(((ISwDrawingView)BaseView).DrawingView).CenterPoint;
+
+                    var thisPt = GetBoundary(DrawingView).CenterPoint;
+
+                    var dir = (basePt - thisPt).Normalize();
+
+                    var angle = Convert.ToInt32(dir.GetAngleOnPlane(new Vector(1, 0, 0), new Plane(new Point(0, 0, 0), new Vector(0, 0, 1), new Vector(1, 0, 0))) * 180 / Math.PI);
+
+                    switch (angle) 
+                    {
+                        case 0:
+                            return ProjectedViewDirection_e.Right;
+
+                        case 45:
+                            return ProjectedViewDirection_e.IsoBottomRight;
+
+                        case 90:
+                            return ProjectedViewDirection_e.Bottom;
+
+                        case 135:
+                            return ProjectedViewDirection_e.IsoBottomLeft;
+
+                        case 180:
+                        case -180:
+                            return ProjectedViewDirection_e.Left;
+
+                        case -135:
+                            return ProjectedViewDirection_e.IsoTopLeft;
+
+                        case -90:
+                            return ProjectedViewDirection_e.Top;
+
+                        case -45:
+                            return ProjectedViewDirection_e.IsoTopRight;
+
+                        default:
+                            throw new Exception("Failed to identify direction based on the views locations");
+                    }
                 }
             }
             set
@@ -1161,7 +1199,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else
                 {
-                    throw new CommitedElementReadOnlyParameterException();
+                    var baseSwView = ((ISwDrawingView)BaseView).DrawingView;
+                    AlignView(DrawingView, baseSwView, value);
                 }
             }
         }
@@ -1174,14 +1213,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             var offsetVec = GetViewOffsetVector(Direction);
 
-            BaseView.Select(false);
-
             var baseViewOutline = GetBoundary(baseSwView);
 
             var centerPt = baseViewOutline.CenterPoint;
 
+            BaseView.Select(false);
+
             //NOTE: it is required to insert view into the correct orientation
-            //For the base views with the hidden bodies, position may be incorrect, instead using hte center point of the boundary
+            //For the base views with the hidden bodies, position may be incorrect, instead using the center point of the boundary
             var view = m_Drawing.Drawing.CreateUnfoldedViewAt3(
                 centerPt.X + offsetVec.X * DEFAULT_OFFSET,
                 centerPt.Y + offsetVec.Y * DEFAULT_OFFSET,
@@ -1189,83 +1228,70 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (view != null)
             {
-                swAlignViewTypes_e alignType;
-
-                switch (Direction)
-                {
-                    case ProjectedViewDirection_e.Left:
-                    case ProjectedViewDirection_e.Right:
-                        alignType = swAlignViewTypes_e.swAlignViewHorizontalOrigin;
-                        break;
-
-                    case ProjectedViewDirection_e.Top:
-                    case ProjectedViewDirection_e.Bottom:
-                        alignType = swAlignViewTypes_e.swAlignViewVerticalOrigin;
-                        break;
-
-                    case ProjectedViewDirection_e.IsoBottomLeft:
-                    case ProjectedViewDirection_e.IsoBottomRight:
-                    case ProjectedViewDirection_e.IsoTopLeft:
-                    case ProjectedViewDirection_e.IsoTopRight:
-                        alignType = swAlignViewTypes_e.swDefaultViewAlignment;
-                        break;
-
-                    default:
-                        throw new NotSupportedException();
-                }
-
-                //NOTE: for the base views with hiddent bodies, projected views may not be aligned (SOLIDWORKS bug)
-                //resetting alignment to restore correct position
-                view.RemoveAlignment();
-
-                if (view.AlignWithView((int)alignType, (View)baseSwView))
-                {
-                    var destViewOutline = GetBoundary(view);
-
-                    var margin = GetViewPadding(baseSwView);
-
-                    double offset;
-
-                    switch (Direction)
-                    {
-                        case ProjectedViewDirection_e.Left:
-                        case ProjectedViewDirection_e.Right:
-                            offset = (destViewOutline.Width + baseViewOutline.Width) / 2 + margin;
-                            break;
-
-                        case ProjectedViewDirection_e.Top:
-                        case ProjectedViewDirection_e.Bottom:
-                            offset = (destViewOutline.Height + baseViewOutline.Height) / 2 + margin;
-                            break;
-
-                        case ProjectedViewDirection_e.IsoBottomLeft:
-                        case ProjectedViewDirection_e.IsoBottomRight:
-                        case ProjectedViewDirection_e.IsoTopLeft:
-                        case ProjectedViewDirection_e.IsoTopRight:
-                            offset = Math.Sqrt(Math.Pow(destViewOutline.Width, 2) + Math.Pow(destViewOutline.Height, 2)) / 2
-                                    + Math.Sqrt(Math.Pow(baseViewOutline.Width, 2) + Math.Pow(baseViewOutline.Height, 2)) / 2
-                                    + margin;
-                            break;
-
-                        default:
-                            throw new NotSupportedException();
-                    }
-
-                    var srcPos = GetPosition(view);
-
-                    var posDiff = destViewOutline.CenterPoint - baseViewOutline.CenterPoint;
-
-                    var newPos = srcPos.Move(posDiff.Normalize(), posDiff.GetLength()).Move(offsetVec, offset);
-
-                    SetPosition(view, newPos);
-                }
-                else 
-                {
-                    throw new Exception("Failed to align view");
-                }
+                AlignView(view, baseSwView, Direction);
             }
 
             return view;
+        }
+
+        private void AlignView(IView view, IView baseSwView, ProjectedViewDirection_e projDir)
+        {
+            var offsetVec = GetViewOffsetVector(projDir);
+
+            var baseViewOutline = GetBoundary(baseSwView);
+
+            //NOTE: for the base views with hidden bodies, projected views may not be aligned (SOLIDWORKS bug)
+            //resetting alignment to restore correct position
+            view.RemoveAlignment();
+
+            var destViewOutline = GetBoundary(view);
+
+            var margin = GetViewPadding(baseSwView);
+
+            double offset;
+
+            swAlignViewTypes_e alignType;
+
+            switch (projDir)
+            {
+                case ProjectedViewDirection_e.Left:
+                case ProjectedViewDirection_e.Right:
+                    offset = (destViewOutline.Width + baseViewOutline.Width) / 2 + margin;
+                    alignType = swAlignViewTypes_e.swAlignViewHorizontalOrigin;
+                    break;
+
+                case ProjectedViewDirection_e.Top:
+                case ProjectedViewDirection_e.Bottom:
+                    offset = (destViewOutline.Height + baseViewOutline.Height) / 2 + margin;
+                    alignType = swAlignViewTypes_e.swAlignViewVerticalOrigin;
+                    break;
+
+                case ProjectedViewDirection_e.IsoBottomLeft:
+                case ProjectedViewDirection_e.IsoBottomRight:
+                case ProjectedViewDirection_e.IsoTopLeft:
+                case ProjectedViewDirection_e.IsoTopRight:
+                    offset = Math.Sqrt(Math.Pow(destViewOutline.Width, 2) + Math.Pow(destViewOutline.Height, 2)) / 2
+                            + Math.Sqrt(Math.Pow(baseViewOutline.Width, 2) + Math.Pow(baseViewOutline.Height, 2)) / 2
+                            + margin;
+                    alignType = swAlignViewTypes_e.swDefaultViewAlignment;
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+
+            var srcPos = GetPosition(view);
+
+            var posDiff = destViewOutline.CenterPoint - baseViewOutline.CenterPoint;
+
+            var newPos = srcPos.Move(posDiff.Normalize(), posDiff.GetLength()).Move(offsetVec, offset);
+
+            SetPosition(view, newPos);
+            
+            if (!view.AlignWithView((int)alignType, (View)baseSwView))
+            {
+                throw new Exception("Failed to align view");
+            }
         }
 
         private Vector GetViewOffsetVector(ProjectedViewDirection_e projection)

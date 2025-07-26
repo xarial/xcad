@@ -10,10 +10,10 @@ namespace Xarial.XCad.SolidWorks.Utils
 {
     internal static class XServiceCollectionExtension
     {
-        internal static void RegisterCommon(this IXServiceCollection svc, IXApplication app, bool replace, string workDir)
+        internal static void RegisterCommon(this IXServiceCollection svc, IXApplication app, bool replace)
         {
             svc.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, replace);
-            svc.Add<IHelpLinkHandler>(() => new HelpLinkHandler(app, workDir), ServiceLifetimeScope_e.Singleton, replace);
+            svc.Add<IHelpLinkHandler>(() => new HelpLinkHandler(app), ServiceLifetimeScope_e.Singleton, replace);
         }
     }
 }

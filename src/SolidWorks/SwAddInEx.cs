@@ -250,7 +250,7 @@ namespace Xarial.XCad.SolidWorks
 
         private void LoadServices(IXServiceCollection svcCollection)
         {
-            svcCollection.RegisterCommon(m_Application, true, Path.GetDirectoryName(this.GetType().Assembly.Location));
+            svcCollection.RegisterCommon(m_Application, true);
             svcCollection.Add<IXLogger>(CreateDefaultLogger, ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<IPropertyPageHandlerProvider, DataModelPropertyPageHandlerProvider>(ServiceLifetimeScope_e.Singleton);
             svcCollection.Add<IDragArrowHandlerProvider, NotSetDragArrowHandlerProvider>(ServiceLifetimeScope_e.Singleton);

@@ -610,6 +610,15 @@ namespace SolidWorks.Tests.Integration
             double[] o7;
             double[] o8;
 
+            ProjectedViewDirection_e d1;
+            ProjectedViewDirection_e d2;
+            ProjectedViewDirection_e d3;
+            ProjectedViewDirection_e d4;
+            ProjectedViewDirection_e d5;
+            ProjectedViewDirection_e d6;
+            ProjectedViewDirection_e d7;
+            ProjectedViewDirection_e d8;
+
             using (var doc = OpenDataDocument("Drawing4\\Drawing4.slddrw"))
             {
                 var drwDoc = doc.Document as ISwDrawing;
@@ -658,6 +667,15 @@ namespace SolidWorks.Tests.Integration
                 v8.Direction = ProjectedViewDirection_e.Top;
                 v8.Commit();
 
+                d1 = v1.Direction;
+                d2 = v2.Direction;
+                d3 = v3.Direction;
+                d4 = v4.Direction;
+                d5 = v5.Direction;
+                d6 = v6.Direction;
+                d7 = v7.Direction;
+                d8 = v8.Direction;
+
                 t1 = (double[])v1.DrawingView.ModelToViewTransform.ArrayData;
                 t2 = (double[])v2.DrawingView.ModelToViewTransform.ArrayData;
                 t3 = (double[])v3.DrawingView.ModelToViewTransform.ArrayData;
@@ -694,6 +712,15 @@ namespace SolidWorks.Tests.Integration
             AssertCompareDoubleArray(o6, new double[] { 0.340457905405405, 0.410334932432432, 0.494097905405405, 0.563974932432432 }, 8, 5);
             AssertCompareDoubleArray(o7, new double[] { 0.681377905405405, 0.410334932432432, 0.835017905405406, 0.563974932432432 }, 8, 5);
             AssertCompareDoubleArray(o8, new double[] { 0.510917905405405, 0.580794932432432, 0.664557905405405, 0.734434932432433 }, 8, 5);
+
+            Assert.AreEqual(ProjectedViewDirection_e.Bottom, d1);
+            Assert.AreEqual(ProjectedViewDirection_e.IsoBottomLeft, d2);
+            Assert.AreEqual(ProjectedViewDirection_e.IsoBottomRight, d3);
+            Assert.AreEqual(ProjectedViewDirection_e.IsoTopLeft, d4);
+            Assert.AreEqual(ProjectedViewDirection_e.IsoTopRight, d5);
+            Assert.AreEqual(ProjectedViewDirection_e.Left, d6);
+            Assert.AreEqual(ProjectedViewDirection_e.Right, d7);
+            Assert.AreEqual(ProjectedViewDirection_e.Top, d8);
         }
 
         [Test]

@@ -26,17 +26,14 @@ namespace Xarial.XCad.Toolkit.Services
         }
 
         private readonly IXApplication m_App;
-        private readonly string m_WorkDir;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="app">Pointer to application</param>
-        /// <param name="workDir">Current working directory</param>
-        public HelpLinkHandler(IXApplication app, string workDir)
+        public HelpLinkHandler(IXApplication app)
         {
             m_App = app;
-            m_WorkDir = workDir;
         }
 
         /// <inheritdoc/>
@@ -55,7 +52,7 @@ namespace Xarial.XCad.Toolkit.Services
                     {
                         if (!Path.IsPathRooted(link))
                         {
-                            link = Path.Combine(Path.GetDirectoryName(m_WorkDir), link);
+                            throw new Exception($"Path to link is not rooted. Register custom {nameof(IHelpLinkHandler)} service to handle help links");
                         }
                     }
 

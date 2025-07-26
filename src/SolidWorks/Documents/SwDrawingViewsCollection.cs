@@ -113,7 +113,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (m_Sheet.IsCommitted)
             {
-                using (var selGrp = new SelectionGroup(m_Draw, true))
+                //NOTE: system selection may cause crash with IModelDoc2::ClearSelection2 API called after deletion of the drawing view
+                using (var selGrp = new SelectionGroup(m_Draw, false))
                 {
                     selGrp.AddRange(ents.Cast<SwDrawingView>().Select(e => e.DrawingView).ToArray());
 

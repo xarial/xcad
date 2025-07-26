@@ -163,7 +163,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             var svcColl = Application.CustomServices.Clone();
 
             svcColl.Add<IXLogger>(() => new TraceLogger($"xCad.MacroFeature.{this.GetType().FullName}"), ServiceLifetimeScope_e.Singleton, false);
-            svcColl.RegisterCommon(Application, false, Path.GetDirectoryName(this.GetType().Assembly.Location));
+            svcColl.RegisterCommon(Application, false);
 
             OnConfigureServices(svcColl);
 
