@@ -17,8 +17,14 @@ using Xarial.XCad.Geometry;
 
 namespace Xarial.XCad.Inventor.Documents
 {
+    /// <summary>
+    /// Autodesk Inventor specific drawing
+    /// </summary>
     public interface IAiDrawing : IAiDocument, IXDrawing
     {
+        /// <summary>
+        /// Pointer to drawing document
+        /// </summary>
         DrawingDocument Drawing { get; }
     }
 
@@ -29,9 +35,10 @@ namespace Xarial.XCad.Inventor.Documents
         internal AiDrawing(DrawingDocument drw, AiApplication ownerApp) : base((Document)drw, ownerApp)
         {
             Drawing = drw;
+            Sheets = new AiSheetsCollection(this);
         }
 
-        public IXSheetRepository Sheets => throw new NotImplementedException();
+        public IXSheetRepository Sheets { get; }
 
         IXDrawingOptions IXDrawing.Options => throw new NotImplementedException();
 

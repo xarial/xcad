@@ -44,6 +44,9 @@ namespace Xarial.XCad.Inventor
                 case Property prp:
                     return AiProperty.New(prp, doc, app);
 
+                case Sheet sheet:
+                    return AiSheet.New(sheet, (AiDrawing)doc, app);
+
                 case SurfaceBody body:
                     if (body.IsSolid)
                     {

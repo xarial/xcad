@@ -205,13 +205,31 @@ namespace Xarial.XCad.Inventor.Documents
         {
         }
 
-        public string ConfigurationFilePath { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string ConfigurationFilePath
+        {
+            get => m_Creator.CachedProperties.Get<string>();
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+            }
+        }
+
         public bool ExportHiddenLayers { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public SplineExportOptions_e SplineExportOptions { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         protected override void SetSaveOptions(TranslatorAddIn translator, NameValueMap opts)
         {
-            opts.Value["Export_Acad_IniFile"] = System.IO.Path.Combine(System.IO.Path.GetTempPath(), Guid.NewGuid().ToString() + ".ini");
+            if (!string.IsNullOrEmpty(ConfigurationFilePath))
+            {
+                opts.Value["Export_Acad_IniFile"] = ConfigurationFilePath;
+            }
         }
     }
 
@@ -367,7 +385,10 @@ namespace Xarial.XCad.Inventor.Documents
 
         protected override void SetSaveOptions(TranslatorAddIn translator, NameValueMap opts)
         {
-            opts.Value["Export_Acad_IniFile"] = ConfigurationFilePath;
+            if (!string.IsNullOrEmpty(ConfigurationFilePath))
+            {
+                opts.Value["Export_Acad_IniFile"] = ConfigurationFilePath;
+            }
         }
 
         protected override object SourceObject => m_SheetMetalCompDef.FlatPattern;
