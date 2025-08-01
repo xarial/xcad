@@ -695,16 +695,16 @@ namespace SolidWorks.Tests.Integration
             using (var doc = OpenDataDocument(@"DisplayStates1.SLDPRT")) 
             {
                 var dispState1 = ((IXDocument3D)doc.Document).Configurations.Active.DisplayStates["Display State 1"];
-                appsCount1 = dispState1.Count;
-                var apps1 = dispState1.ToArray();
+                appsCount1 = dispState1.Appearances.Count;
+                var apps1 = dispState1.Appearances.ToArray();
                 colors1.Add((apps1[0].Color, apps1[0].Objects.Select(o => (o.GetType(), ((IHasName)o).Name)).OrderBy(x => x.Name).ToArray()));
                 colors1.Add((apps1[1].Color, apps1[1].Objects.Select(o => (o.GetType(), ((IHasName)o).Name)).OrderBy(x => x.Name).ToArray()));
                 colors1.Add((apps1[2].Color, apps1[2].Objects.Select(o => (o.GetType(), ((IHasName)o).Name)).OrderBy(x => x.Name).ToArray()));
                 colors1 = colors1.OrderByDescending(x => x.Color.ToArgb()).ToList();
 
                 var dispState2 = ((IXDocument3D)doc.Document).Configurations.Active.DisplayStates["Display State 2"];
-                appsCount2 = dispState2.Count;
-                var apps2 = dispState2.ToArray();
+                appsCount2 = dispState2.Appearances.Count;
+                var apps2 = dispState2.Appearances.ToArray();
                 colors2.Add((apps2[0].Color, apps2[0].Objects.Select(o => (o.GetType(), ((IHasName)o).Name)).OrderBy(x => x.Name).ToArray()));
                 colors2.Add((apps2[1].Color, apps2[1].Objects.Select(o => (o.GetType(), ((IHasName)o).Name)).OrderBy(x => x.Name).ToArray()));
                 colors2.Add((apps2[2].Color, apps2[2].Objects.Select(o => (o.GetType(), ((IHasName)o).Name)).OrderBy(x => x.Name).ToArray()));
@@ -770,12 +770,12 @@ namespace SolidWorks.Tests.Integration
             {
                 foreach (var dispState in ((IXDocument3D)doc.Document).Configurations["Default"].DisplayStates.ToArray()) 
                 {
-                    defDispStatesColors.Add(dispState.Name, dispState[new IHasColor[] { (IXDocument3D)doc.Document }].Color);
+                    defDispStatesColors.Add(dispState.Name, dispState.Appearances[new IHasColor[] { (IXDocument3D)doc.Document }].Color);
                 }
 
                 foreach (var dispState in ((IXDocument3D)doc.Document).Configurations["Conf2"].DisplayStates.ToArray())
                 {
-                    conf1DispStatesColors.Add(dispState.Name, dispState[new IHasColor[] { (IXDocument3D)doc.Document }].Color);
+                    conf1DispStatesColors.Add(dispState.Name, dispState.Appearances[new IHasColor[] { (IXDocument3D)doc.Document }].Color);
                 }
             }
 
@@ -813,7 +813,7 @@ namespace SolidWorks.Tests.Integration
                 ds2.Name = "DS2";
                 ds2.Commit();
 
-                var app1 = ds1.PreCreate<ISwAppearance>();
+                var app1 = ds1.Appearances.PreCreate<ISwAppearance>();
                 app1.Objects = new IHasColor[] { part };
                 app1.Reflection = 0.1;
                 app1.Blurriness = 0.2;
@@ -824,7 +824,7 @@ namespace SolidWorks.Tests.Integration
                 app1.SpecularColor = Color.FromArgb(255, 255, 0);
                 app1.Commit();
 
-                var app2 = ds2.PreCreate<ISwRenderMaterial>();
+                var app2 = ds2.Appearances.PreCreate<ISwRenderMaterial>();
                 app2.AppearanceFilePath = ((IRenderMaterial)((object[])part.Model.Extension.GetRenderMaterials2((int)swDisplayStateOpts_e.swSpecifyDisplayState, new string[] { "DS1" })).First()).FileName;
                 app2.Objects = new IHasColor[] { part.Bodies["Boss-Extrude1"] };
                 app2.Reflection = 0.6;
@@ -904,7 +904,7 @@ namespace SolidWorks.Tests.Integration
             {
                 var dispState = ((IXDocument3D)doc.Document).Configurations.Active.DisplayStates["Display State 2"];
 
-                var app1 = dispState.FirstOrDefault(x => x.Objects.Length == 5);
+                var app1 = dispState.Appearances.FirstOrDefault(x => x.Objects.Length == 5);
                 app1.Objects = app1.Objects.OfType<IXFace>().Where(f => f.Name != "FACE2").Cast<IHasColor>().Union(app1.Objects.OfType<IXFeature>()).ToArray();
 
                 var r1 = ((object[])doc.Document.Model.Extension.GetRenderMaterials2((int)swDisplayStateOpts_e.swSpecifyDisplayState, new string[] { "Display State 2" })).Cast<IRenderMaterial>().First(r => r.GetEntitiesCount() == 4);
@@ -915,9 +915,9 @@ namespace SolidWorks.Tests.Integration
 
                 var faces = ((IXPart)doc.Document).Bodies.SelectMany(b => b.Faces).Where(f => f.Name == "FACE3" || f.Name == "FACE4").ToArray();
 
-                var app2 = dispState[faces];
+                var app2 = dispState.Appearances[faces];
 
-                dispState.Remove(app2);
+                dispState.Appearances.Remove(app2);
 
                 doc.Document.Rebuild();
 

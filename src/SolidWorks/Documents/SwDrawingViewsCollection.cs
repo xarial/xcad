@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Windows.Forms;
 using Xarial.XCad.Base;
 using Xarial.XCad.Documents;
 using Xarial.XCad.Documents.Delegates;
@@ -78,6 +79,50 @@ namespace Xarial.XCad.SolidWorks.Documents
                 else 
                 {
                     return m_Cache.Count;
+                }
+            }
+        }
+
+        public IXDrawingView Active 
+        {
+            get 
+            {
+                var activeView = m_Draw.Drawing.ActiveDrawingView;
+
+                if (activeView != null)
+                {
+                    return m_Draw.CreateObjectFromDispatch<ISwDrawingView>(activeView);
+                }
+                else 
+                {
+                    return null;
+                }
+            }
+            set 
+            {
+                if (m_Sheet.DrawingViews.Any())
+                {
+                    string viewName;
+
+                    if (value != null)
+                    {
+                        value.Select(false);
+                        viewName = value.Name;
+                    }
+                    else
+                    {
+                        m_Draw.Selections.Clear();
+                        viewName = "";
+                    }
+
+                    if (!m_Draw.Drawing.ActivateView(viewName))
+                    {
+                        throw new Exception($"Failed to activate the view '{viewName}'");
+                    }
+                }
+                else 
+                {
+                    throw new Exception("Sheet is empty");
                 }
             }
         }

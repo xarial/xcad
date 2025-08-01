@@ -30,11 +30,12 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public void AddRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public void RemoveRange(IEnumerable<IXDrawingView> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXDrawingView => throw new NotSupportedException();
+        public IXDrawingView Active { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
         #endregion
 
         public IXDrawingView this[string name] => m_RepoHelper.Get(name);
 
-        public int Count => (((ISwDMSheet4)m_Sheet.Sheet).GetViews() as object[] ?? new object[0]).Length;
+        public int Count => (((ISwDMSheet4)m_Sheet.Sheet).GetViews() as object[] ?? Array.Empty<object>()).Length;
 
         private readonly SwDmSheet m_Sheet;
 

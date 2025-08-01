@@ -312,11 +312,15 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
                     case IXDrawingView view:
 
-                        //NOTE: view must be selected and activated, otherwise SOLIDWORKS can crash
-                        view.Select(false);
-                        ((ISwDrawing)m_Ann.OwnerDocument).Drawing.ActivateView(view.Name);
+                        var activeView = view.Sheet.DrawingViews.Active;
 
-                        using (var selGrp = new SelectionGroup(m_Ann.OwnerDocument, true)) 
+                        if (activeView == null || !activeView.Equals(view))
+                        {
+                            //NOTE: view must be selected and activated, otherwise SOLIDWORKS can crash
+                            view.Sheet.DrawingViews.Active = view;
+                        }
+
+                        using (var selGrp = new SelectionGroup(m_Ann.OwnerDocument, false)) 
                         {
                             selGrp.Add(m_Ann.Dispatch);
                             selGrp.Add(((ISwDrawingView)view).Dispatch);

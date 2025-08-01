@@ -7,21 +7,31 @@
 
 using SolidWorks.Interop.sldworks;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
+using System.Threading;
+using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
+using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
+    /// <summary>
+    /// SOLIDWORKS specific sketch block definition
+    /// </summary>
     public interface ISwSketchBlockDefinition : IXSketchBlockDefinition, ISwFeature
     {
+        /// <summary>
+        /// Pointer to sketch block definition
+        /// </summary>
         ISketchBlockDefinition SketchBlockDefinition { get; }
     }
 
@@ -29,29 +39,20 @@ namespace Xarial.XCad.SolidWorks.Sketch
     {
         public ISketchBlockDefinition SketchBlockDefinition { get; }
 
-        public IEnumerable<IXSketchBlockInstance> Instances 
-        {
-            get 
-            {
-                var instances = (object[])SketchBlockDefinition.GetInstances() ?? new object[0];
-
-                foreach (ISketchBlockInstance inst in instances) 
-                {
-                    yield return OwnerDocument.CreateObjectFromDispatch<ISwSketchBlockInstance>(inst);
-                }
-            }
-        }
-
         public IXSketchEntityRepository Entities { get; }
 
         public override bool IsAlive => this.CheckIsAlive(() => { var test = SketchBlockDefinition.LinkToFile; });
 
         public Point InsertionPoint => new Point((double[])SketchBlockDefinition.InsertionPoint.ArrayData);
 
+        public IXSketchBlockInstanceRepository Instances { get; }
+
         internal SwSketchBlockDefinition(IFeature feat, SwDocument doc, SwApplication app, bool created) 
             : base(feat, doc, app, created) 
         {
             SketchBlockDefinition = (ISketchBlockDefinition)feat.GetSpecificFeature2();
+
+            Instances = new SwSketchBlockInstanceCollection(this);
 
             Entities = new SwSketchEntityCollection(doc.CreateObjectFromDispatch<SwSketchBase>(SketchBlockDefinition.GetSketch()), doc, app);
         }

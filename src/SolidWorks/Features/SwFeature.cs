@@ -158,13 +158,13 @@ namespace Xarial.XCad.SolidWorks.Features
         IXDimensionRepository IHasDimensions.Dimensions => Dimensions;
         IXObject ISupportsResilience.CreateResilient() => CreateResilient();
 
-        protected readonly IElementCreator<IFeature> m_Creator;
+        internal IElementCreator<IFeature> Creator { get; }
 
         public virtual IFeature Feature 
         {
             get
             {
-                var feat = m_Creator.Element;
+                var feat = Creator.Element;
 
                 if (IsResilient)
                 {
@@ -179,7 +179,7 @@ namespace Xarial.XCad.SolidWorks.Features
                         if (restoredFeat != null)
                         {
                             feat = restoredFeat;
-                            m_Creator.Set(feat);
+                            Creator.Set(feat);
                         }
                         else
                         {
@@ -215,7 +215,7 @@ namespace Xarial.XCad.SolidWorks.Features
             m_DimensionsLazy = new Lazy<SwFeatureDimensionsCollection>(
                 () => new SwFeatureDimensionsCollection(this, OwnerDocument, GetContext()));
 
-            m_Creator = new ElementCreator<IFeature>(CreateFeature, CommitCache, feat, created);
+            Creator = new ElementCreator<IFeature>(CreateFeature, CommitCache, feat, created);
 
             AdjacentEntities = new SwFeatureEntityRepository(this);
         }
@@ -233,7 +233,7 @@ namespace Xarial.XCad.SolidWorks.Features
             return feat;
         }
 
-        public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
+        public override void Commit(CancellationToken cancellationToken) => Creator.Create(cancellationToken);
 
         public virtual ISwFeature CreateResilient()
         {
@@ -329,7 +329,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else 
                 {
-                    return m_Creator.CachedProperties.Get<string>();
+                    return Creator.CachedProperties.Get<string>();
                 }
             }
             set 
@@ -340,7 +340,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else 
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -355,7 +355,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else
                 {
-                    return m_Creator.CachedProperties.Get<Color?>();
+                    return Creator.CachedProperties.Get<Color?>();
                 }
             }
             set
@@ -366,7 +366,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -378,7 +378,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 (m, o, c) => feat.SetMaterialPropertyValues2(m, (int)o, c),
                 (o, c) => feat.RemoveMaterialProperty2((int)o, c));
 
-        public override bool IsCommitted => m_Creator.IsCreated;
+        public override bool IsCommitted => Creator.IsCreated;
 
         public virtual FeatureState_e State 
         {

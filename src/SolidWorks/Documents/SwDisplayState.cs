@@ -1,4 +1,11 @@
-﻿using SolidWorks.Interop.sldworks;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2025 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System.Runtime.InteropServices;
 using System;
@@ -40,10 +47,6 @@ namespace Xarial.XCad.SolidWorks.Documents
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDisplayState : SwObject, ISwDisplayState
     {
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public IXAppearance this[IHasColor[] objs] => SwAppearance.FromObjects(DisplayState, objs, AppearanceLevel_e.Component, m_OwnerConf, OwnerApplication);
-
         public string Name 
         {
             get
@@ -73,27 +76,20 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public override bool IsCommitted => m_Creator.IsCreated;
 
-        public int Count => m_OwnerConf.OwnerDocument.Model.Extension.GetRenderMaterialsCount2((int)swDisplayStateOpts_e.swSpecifyDisplayState, new string[] { DisplayState.Name });
-
-        public IXAppearance this[string name] => m_RepoHelper.Get(name);
-
         internal SwDisplayStateDispatch DisplayState => m_Creator.Element;
 
+        public IXAppearanceRepository Appearances { get; }
 
         private readonly ElementCreator<SwDisplayStateDispatch> m_Creator;
 
         private readonly SwConfiguration m_OwnerConf;
 
-        private RepositoryHelper<IXAppearance> m_RepoHelper;
-
         internal SwDisplayState(SwDisplayStateDispatch dispState, SwConfiguration ownerConf, SwDocument3D ownerDoc, SwApplication ownerApp) : base(dispState, ownerDoc, ownerApp)
         {
+            Appearances = new SwAppearanceCollection(this, ownerConf, ownerDoc, ownerApp);
+
             m_OwnerConf = ownerConf;
             m_Creator = new ElementCreator<SwDisplayStateDispatch>(CreateDisplayState, dispState, dispState != null);
-
-            m_RepoHelper = new RepositoryHelper<IXAppearance>(this,
-                TransactionFactory<IXAppearance>.Create(() => new SwAppearance(null, DisplayState, null, ownerConf, ownerDoc, ownerApp)),
-                TransactionFactory<IXAppearance>.Create(() => new SwRenderMaterial(null, DisplayState, ownerDoc, ownerApp)));
         }
 
         public override void Commit(CancellationToken cancellationToken) => m_Creator.Create(cancellationToken);
@@ -107,38 +103,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             else 
             {
                 throw new Exception("Failed to created display state");
-            }
-        }
-
-        public bool TryGet(string name, out IXAppearance ent)
-            => throw new NotSupportedException("Getting appearance by name is not supported, get appearance by objects instead");
-
-        public void AddRange(IEnumerable<IXAppearance> ents, CancellationToken cancellationToken) => m_RepoHelper.AddRange(ents, cancellationToken);
-
-        public void RemoveRange(IEnumerable<IXAppearance> ents, CancellationToken cancellationToken)
-        {
-            foreach (ISwAppearanceBase app in ents) 
-            {
-                app.Delete();
-            }
-        }
-
-        public T PreCreate<T>() where T : IXAppearance
-            => m_RepoHelper.PreCreate<T>();
-
-        public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters)
-            => m_RepoHelper.FilterDefault(this, filters, reverseOrder);
-
-        public IEnumerator<IXAppearance> GetEnumerator() 
-        {
-            var renderMaterials = (object[])m_OwnerConf.OwnerDocument.Model.Extension.GetRenderMaterials2((int)swDisplayStateOpts_e.swSpecifyDisplayState, new string[] { DisplayState.Name });
-
-            if (renderMaterials != null)
-            { 
-                foreach (IRenderMaterial renderMaterial in renderMaterials)
-                {
-                    yield return new SwRenderMaterial(renderMaterial, DisplayState, OwnerDocument, OwnerApplication);
-                }
             }
         }
     }

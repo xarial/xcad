@@ -67,7 +67,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else
                 {
-                    return m_Creator.CachedProperties.Get<TransformMatrix>();
+                    return Creator.CachedProperties.Get<TransformMatrix>();
                 }
             }
             set
@@ -78,7 +78,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -93,7 +93,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else 
                 {
-                    return m_Creator.CachedProperties.Get<IXPoint>();
+                    return Creator.CachedProperties.Get<IXPoint>();
                 }
             }
             set 
@@ -104,7 +104,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else 
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -128,7 +128,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else
                 {
-                    return m_Creator.CachedProperties.Get<IXLine>();
+                    return Creator.CachedProperties.Get<IXLine>();
                 }
             }
             set
@@ -146,7 +146,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -170,7 +170,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else
                 {
-                    return m_Creator.CachedProperties.Get<IXLine>();
+                    return Creator.CachedProperties.Get<IXLine>();
                 }
             }
             set
@@ -188,7 +188,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -212,7 +212,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else
                 {
-                    return m_Creator.CachedProperties.Get<IXLine>();
+                    return Creator.CachedProperties.Get<IXLine>();
                 }
             }
             set
@@ -230,7 +230,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -245,7 +245,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else 
                 {
-                    return m_Creator.CachedProperties.Get<bool>();
+                    return Creator.CachedProperties.Get<bool>();
                 }
             }
             set 
@@ -256,7 +256,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else 
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -271,7 +271,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else
                 {
-                    return m_Creator.CachedProperties.Get<bool>();
+                    return Creator.CachedProperties.Get<bool>();
                 }
             }
             set
@@ -282,7 +282,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -297,7 +297,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else
                 {
-                    return m_Creator.CachedProperties.Get<bool>();
+                    return Creator.CachedProperties.Get<bool>();
                 }
             }
             set
@@ -308,7 +308,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    Creator.CachedProperties.Set(value);
                 }
             }
         }

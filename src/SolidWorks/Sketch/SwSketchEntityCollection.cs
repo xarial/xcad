@@ -55,7 +55,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public IXWireEntity this[string name] => m_RepoHelper.Get(name);
 
-        private readonly SwSketchBase m_Sketch;
+        private SwSketchBase m_Sketch { get; }
 
         private readonly EntityCache<IXWireEntity> m_Cache;
 

@@ -19,6 +19,7 @@ using Xarial.XCad.Documents;
 using Xarial.XCad.Features;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.Delegates;
+using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Features.CustomFeature;
@@ -77,6 +78,8 @@ namespace Xarial.XCad.SolidWorks.Features
 
         private IFeatureManager FeatMgr => Document.Model.FeatureManager;
 
+        public IXSketchBlockDefinitionRepository SketchBlockDefinitions { get; }
+
         private readonly SwApplication m_App;
 
         protected readonly Context m_Context;
@@ -95,6 +98,8 @@ namespace Xarial.XCad.SolidWorks.Features
             m_App = app;
             Document = doc;
             m_Context = context;
+
+            SketchBlockDefinitions = new SwSketchBlockDefinitionCollection(this);
 
             m_RepoHelper = new RepositoryHelper<IXFeature>(this,
                     TransactionFactory<IXFeature>.Create(() => new SwSketch2D(default(ISketch), Document, m_App, false)),

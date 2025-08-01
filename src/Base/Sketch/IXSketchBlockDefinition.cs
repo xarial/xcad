@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Xarial.XCad.Base;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Structures;
 
@@ -26,7 +27,7 @@ namespace Xarial.XCad.Sketch
         /// <summary>
         /// All instances of this sketch block defintion
         /// </summary>
-        IEnumerable<IXSketchBlockInstance> Instances { get; }
+        IXSketchBlockInstanceRepository Instances { get; }
 
         /// <summary>
         /// Entities of this sketch block definition

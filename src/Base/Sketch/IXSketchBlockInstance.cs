@@ -24,9 +24,9 @@ namespace Xarial.XCad.Sketch
         IXSketchBlockDefinition Definition { get; }
 
         /// <summary>
-        /// Transformation of this sketch block instance regarding its defintion
+        /// Transformation of this sketch block instance relative to its defintion
         /// </summary>
-        TransformMatrix Transform { get; }
+        TransformMatrix Transform { get; set; }
 
         /// <summary>
         /// Entities of this sketch block definition
@@ -43,7 +43,7 @@ namespace Xarial.XCad.Sketch
         /// Returns the total transform of this block, including parent block transforms
         /// </summary>
         /// <param name="skBlockInst"></param>
-        /// <returns></returns>
+        /// <returns>Total transform</returns>
         public static TransformMatrix GetTotalTransform(this IXSketchBlockInstance skBlockInst) 
         {
             var transform = TransformMatrix.Identity;

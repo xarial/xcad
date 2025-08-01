@@ -68,14 +68,14 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else 
                 {
-                    return m_Creator.CachedProperties.Get<Plane>();
+                    return Creator.CachedProperties.Get<Plane>();
                 }
             }
             set 
             {
                 if (!IsCommitted)
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    Creator.CachedProperties.Set(value);
                 }
                 else 
                 {

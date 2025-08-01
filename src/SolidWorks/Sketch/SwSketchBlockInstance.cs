@@ -11,9 +11,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Windows.Controls;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Exceptions;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Services;
 using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Features;
@@ -21,15 +25,48 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Sketch
 {
+    /// <summary>
+    /// SOLIDWORKS specific sketch block instance
+    /// </summary>
     public interface ISwSketchBlockInstance : IXSketchBlockInstance, ISwFeature, ISwSketchEntity
     {
+        /// <summary>
+        /// Pointer to sketch block instance
+        /// </summary>
         ISketchBlockInstance SketchBlockInstance { get; }
     }
 
     internal class SwSketchBlockInstance : SwFeature, ISwSketchBlockInstance
     {
-        public ISketchBlockInstance SketchBlockInstance { get; }
-        public IXSketchBlockDefinition Definition => OwnerDocument.CreateObjectFromDispatch<ISwSketchBlockDefinition>(SketchBlockInstance.Definition);
+        public ISketchBlockInstance SketchBlockInstance => (ISketchBlockInstance)Feature.GetSpecificFeature2();
+        
+        public IXSketchBlockDefinition Definition
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return OwnerDocument.CreateObjectFromDispatch<ISwSketchBlockDefinition>(SketchBlockInstance.Definition);
+                }
+                else 
+                {
+                    return Creator.CachedProperties.Get<IXSketchBlockDefinition>();
+                }
+            }
+            private set 
+            {
+                if (IsCommitted)
+                {
+                    throw new CommitedElementReadOnlyParameterException();
+                }
+                else 
+                {
+                    Creator.CachedProperties.Set(value);
+                }
+            }
+            
+        }
+
         public IXSketchBase OwnerSketch => OwnerDocument.CreateObjectFromDispatch<ISwSketchBase>(SketchBlockInstance.GetSketch());
 
         public IXSketchBlockInstance OwnerBlock 
@@ -80,7 +117,39 @@ namespace Xarial.XCad.SolidWorks.Sketch
             set => SwLayerHelper.SetLayer(this, value, (x, y) => x.SketchBlockInstance.Layer = y);
         }
 
-        public TransformMatrix Transform => SketchBlockInstance.BlockToSketchTransform.ToTransformMatrix();
+        public TransformMatrix Transform
+        {
+            get
+            {
+                if (IsCommitted)
+                {
+                    return SketchBlockInstance.BlockToSketchTransform.ToTransformMatrix();
+                }
+                else
+                {
+                    return Creator.CachedProperties.Get<TransformMatrix>();
+                }
+            }
+            set
+            {
+                if (IsCommitted)
+                {
+                    ParseTransform(value, out var pos, out var angle, out var scale);
+
+                    var lockAngle = SketchBlockInstance.LockAngle;
+
+                    SketchBlockInstance.InstancePosition = pos;
+                    SketchBlockInstance.LockAngle = false;
+                    SketchBlockInstance.Angle = angle;
+                    SketchBlockInstance.Scale2 = scale;
+                    SketchBlockInstance.LockAngle = lockAngle;
+                }
+                else
+                {
+                    Creator.CachedProperties.Set(value);
+                }
+            }
+        }
 
         public override bool IsAlive => this.CheckIsAlive(() => 
         {
@@ -97,10 +166,68 @@ namespace Xarial.XCad.SolidWorks.Sketch
 
         public IXSketchEntityRepository Entities { get; }
 
+        private readonly SwSketchBase m_Sketch;
+
         internal SwSketchBlockInstance(IFeature feat, SwDocument doc, SwApplication app, bool created) : base(feat, doc, app, created)
         {
-            SketchBlockInstance = (ISketchBlockInstance)feat.GetSpecificFeature2();
-            Entities = new SwSketchBlockInstanceEntityCollection(this, doc.CreateObjectFromDispatch<SwSketchBase>(SketchBlockInstance.Definition.GetSketch()), doc, app);
+            if (created)
+            {
+                m_Sketch = doc.CreateObjectFromDispatch<SwSketchBase>(SketchBlockInstance.Definition.GetSketch());
+            }
+            else
+            {
+                m_Sketch = doc.Features.PreCreate<SwSketch2D>();
+            }
+
+            Entities = new SwSketchBlockInstanceEntityCollection(this, m_Sketch, doc, app);
+        }
+
+        internal SwSketchBlockInstance(SwSketchBlockDefinition skBlockDef, SwDocument doc, SwApplication app) : this(default(IFeature), doc, app, false)
+        {
+            Definition = skBlockDef;
+        }
+
+        protected override IFeature InsertFeature(CancellationToken cancellationToken)
+        {
+            if (Definition != null)
+            {
+                ParseTransform(Transform, out var pos, out var angle, out var scale);
+
+                var skBlockInst = OwnerDocument.Model.SketchManager.InsertSketchBlockInstance((SketchBlockDefinition)((ISwSketchBlockDefinition)Definition).SketchBlockDefinition, pos, scale, angle);
+
+                if (skBlockInst != null)
+                {
+                    m_Sketch.Creator.Set((IFeature)skBlockInst.Definition.GetSketch());
+
+                    return (IFeature)skBlockInst;
+                }
+                else 
+                {
+                    throw new Exception("Failed to insert sketch block instance");
+                }
+            }
+            else 
+            {
+                throw new Exception("Sketch block definition is not set");
+            }
+        }
+
+        private void ParseTransform(TransformMatrix transform, out MathPoint pos, out double angle, out double scale)
+        {
+            if (transform == null)
+            {
+                transform = TransformMatrix.Identity;
+            }
+
+            scale = transform.Scale.X;
+            transform.GetEulerAngles(out angle, out _, out _);
+
+            //need clockwise
+            angle *= -1;
+
+            var mathUtils = OwnerApplication.Sw.IGetMathUtility();
+
+            pos = (MathPoint)mathUtils.CreatePoint((Definition.InsertionPoint * transform).ToArray());
         }
 
         public override bool Equals(IXObject other)
@@ -127,11 +254,13 @@ namespace Xarial.XCad.SolidWorks.Sketch
     internal class SwSketchBlockInstanceEntityCollection : SwSketchEntityCollection
     {
         private readonly SwSketchBlockInstance m_SketchBlockInst;
+        private readonly SwDocument m_Doc;
 
         internal SwSketchBlockInstanceEntityCollection(SwSketchBlockInstance skBlockInst, SwSketchBase sketch, SwDocument doc, SwApplication app)
             : base(sketch, doc, app)
         {
             m_SketchBlockInst = skBlockInst;
+            m_Doc = doc;
         }
 
         protected override IEnumerable<ISwSketchEntity> IterateEntities()

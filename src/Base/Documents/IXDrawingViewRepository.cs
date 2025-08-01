@@ -22,5 +22,10 @@ namespace Xarial.XCad.Documents
          /// Raised when new view is created
          /// </summary>
         event DrawingViewCreatedDelegate ViewCreated;
+
+        /// <summary>
+        /// Gets or sets the active view
+        /// </summary>
+        IXDrawingView Active { get; set; }
     }
 }

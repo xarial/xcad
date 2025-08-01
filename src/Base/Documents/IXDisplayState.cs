@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2025 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -11,13 +18,11 @@ namespace Xarial.XCad.Documents
     /// <summary>
     /// Represents display state
     /// </summary>
-    public interface IXDisplayState : IXObject, IHasName, IXRepository<IXAppearance>
+    public interface IXDisplayState : IXObject, IHasName
     {
         /// <summary>
-        /// Gets appearance for the specified entities in this display state
+        /// Appearances in this display state
         /// </summary>
-        /// <param name="objs">Objects to get appearance for</param>
-        /// <returns>Appearance</returns>
-        IXAppearance this[IHasColor[] objs] { get; }
+        IXAppearanceRepository Appearances { get; }
     }
 }

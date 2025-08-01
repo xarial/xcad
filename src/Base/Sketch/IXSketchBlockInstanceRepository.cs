@@ -5,14 +5,14 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-using Xarial.XCad.Annotations;
+using Xarial.XCad.Base;
 
-namespace Xarial.XCad.SwDocumentManager.Annotations
+namespace Xarial.XCad.Sketch
 {
     /// <summary>
-    /// Represents annotation object in SOLIDWORKS Document Manager
+    /// Collection of <see cref="IXSketchBlockInstance"/>
     /// </summary>
-    public interface ISwDmAnnotation : ISwDmSelObject, IXAnnotation
+    public interface IXSketchBlockInstanceRepository : IXRepository<IXSketchBlockInstance> 
     {
     }
 }

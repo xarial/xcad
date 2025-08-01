@@ -9,6 +9,7 @@ using System;
 using Xarial.XCad.Base;
 using Xarial.XCad.Features.CustomFeature;
 using Xarial.XCad.Features.Delegates;
+using Xarial.XCad.Sketch;
 
 namespace Xarial.XCad.Features
 {
@@ -21,6 +22,11 @@ namespace Xarial.XCad.Features
         /// Raised when new feature is created
         /// </summary>
         event FeatureCreatedDelegate FeatureCreated;
+
+        /// <summary>
+        /// Collection of sketch block definitions
+        /// </summary>
+        IXSketchBlockDefinitionRepository SketchBlockDefinitions { get; }
 
         /// <summary>
         /// Starts a custom feature insertion process with built-in editor for the property page

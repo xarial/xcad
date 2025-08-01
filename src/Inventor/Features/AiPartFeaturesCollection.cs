@@ -1,4 +1,11 @@
-﻿using Inventor;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2025 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using Inventor;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -171,5 +178,7 @@ namespace Xarial.XCad.Inventor.Features
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public PartFeatures Features => m_Part.Part.ComponentDefinition.Features;
+
+        public IXSketchBlockDefinitionRepository SketchBlockDefinitions => throw new NotImplementedException();
     }
 }

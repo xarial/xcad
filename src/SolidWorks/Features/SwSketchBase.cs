@@ -19,8 +19,14 @@ using Xarial.XCad.SolidWorks.Utils;
 
 namespace Xarial.XCad.SolidWorks.Features
 {
+    /// <summary>
+    /// SOLIDWORKS specific sketch
+    /// </summary>
     public interface ISwSketchBase : IXSketchBase, ISwFeature
     {
+        /// <summary>
+        /// Pointer to sketch
+        /// </summary>
         ISketch Sketch { get; }
     }
 

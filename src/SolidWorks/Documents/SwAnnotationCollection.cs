@@ -132,7 +132,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void RemoveRange(IEnumerable<IXAnnotation> ents, CancellationToken cancellationToken)
         {
-            using (var selGrp = new SelectionGroup(m_Doc, true))
+            using (var selGrp = new SelectionGroup(m_Doc, false))
             {
                 selGrp.AddRange(ents.Cast<SwAnnotation>().Select(e => e.Annotation).ToArray());
 

@@ -96,7 +96,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 }
                 else 
                 {
-                    return m_Creator.CachedProperties.Get<IXImage>();
+                    return Creator.CachedProperties.Get<IXImage>();
                 }
             }
             set
@@ -107,7 +107,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 }
                 else
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    Creator.CachedProperties.Set(value);
                 }
             }
         }
@@ -136,7 +136,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 }
                 else
                 {
-                    return m_Creator.CachedProperties.Get<Rect2D>();
+                    return Creator.CachedProperties.Get<Rect2D>();
                 }
             }
             set
@@ -147,7 +147,7 @@ namespace Xarial.XCad.SolidWorks.Sketch
                 }
                 else
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    Creator.CachedProperties.Set(value);
                 }
             }
         }

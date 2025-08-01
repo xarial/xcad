@@ -10,13 +10,15 @@ using Xarial.XCad.Base;
 namespace Xarial.XCad.Documents
 {
     /// <summary>
-    /// Collection of display states
+    /// Appearance repository
     /// </summary>
-    public interface IXDisplayStateRepository : IXRepository<IXDisplayState> 
+    public interface IXAppearanceRepository : IXRepository<IXAppearance> 
     {
         /// <summary>
-        /// Gets or sets active display state
+        /// Gets appearance for the specified entities in this display state
         /// </summary>
-        IXDisplayState Active { get; set; }
+        /// <param name="objs">Objects to get appearance for</param>
+        /// <returns>Appearance</returns>
+        IXAppearance this[IHasColor[] objs] { get; }
     }
 }

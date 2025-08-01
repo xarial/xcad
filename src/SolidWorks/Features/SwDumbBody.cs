@@ -41,7 +41,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else 
                 {
-                    return m_Creator.CachedProperties.Get<IXBody>();
+                    return Creator.CachedProperties.Get<IXBody>();
                 }
             }
             set 
@@ -65,7 +65,7 @@ namespace Xarial.XCad.SolidWorks.Features
                 }
                 else 
                 {
-                    m_Creator.CachedProperties.Set(value);
+                    Creator.CachedProperties.Set(value);
                 }
             }
         }
