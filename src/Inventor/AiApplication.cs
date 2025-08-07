@@ -151,7 +151,7 @@ namespace Xarial.XCad.Inventor
             throw new NotImplementedException();
         }
 
-        public IXProgress CreateProgress()
+        public IXProgress CreateProgress(CancellationTokenSource tcs = null)
         {
             throw new NotImplementedException();
         }
