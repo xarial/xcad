@@ -9,9 +9,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace Xarial.XCad.SolidWorks.Services
+namespace Xarial.XCad.Services
 {
     /// <summary>
     /// Service to provide a handler for the user cancellation of the <see cref="IXProgress"/> via ESC button click
@@ -22,6 +23,7 @@ namespace Xarial.XCad.SolidWorks.Services
         /// Handle user cancellation
         /// </summary>
         /// <param name="sender">Progress bar</param>
-        void Handle(IXProgress sender);
+        /// <param name="cts">Cancellation token source passed to <see cref="IXApplication.CreateProgress"/></param>
+        void Handle(IXProgress sender, CancellationTokenSource cts);
     }
 }

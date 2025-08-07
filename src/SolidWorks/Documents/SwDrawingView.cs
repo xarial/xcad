@@ -25,10 +25,12 @@ using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.Services;
+using Xarial.XCad.Sketch;
 using Xarial.XCad.SolidWorks.Annotations;
 using Xarial.XCad.SolidWorks.Documents.Exceptions;
 using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.Sketch;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.Utils;
@@ -1211,7 +1213,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             var baseSwView = ((ISwDrawingView)BaseView).DrawingView;
 
-            var offsetVec = GetViewOffsetVector(Direction);
+            var offsetVec = Direction.ToVector();
 
             var baseViewOutline = GetBoundary(baseSwView);
 
@@ -1236,7 +1238,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private void AlignView(IView view, IView baseSwView, ProjectedViewDirection_e projDir)
         {
-            var offsetVec = GetViewOffsetVector(projDir);
+            var offsetVec = projDir.ToVector();
 
             var baseViewOutline = GetBoundary(baseSwView);
 
@@ -1292,60 +1294,6 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 throw new Exception("Failed to align view");
             }
-        }
-
-        private Vector GetViewOffsetVector(ProjectedViewDirection_e projection)
-        {
-            double dirX;
-            double dirY;
-
-            switch (projection)
-            {
-                case ProjectedViewDirection_e.Left:
-                    dirX = -1;
-                    dirY = 0;
-                    break;
-
-                case ProjectedViewDirection_e.Top:
-                    dirX = 0;
-                    dirY = 1;
-                    break;
-
-                case ProjectedViewDirection_e.Right:
-                    dirX = 1;
-                    dirY = 0;
-                    break;
-
-                case ProjectedViewDirection_e.Bottom:
-                    dirX = 0;
-                    dirY = -1;
-                    break;
-
-                case ProjectedViewDirection_e.IsoTopLeft:
-                    dirX = -1;
-                    dirY = 1;
-                    break;
-
-                case ProjectedViewDirection_e.IsoTopRight:
-                    dirX = 1;
-                    dirY = 1;
-                    break;
-
-                case ProjectedViewDirection_e.IsoBottomLeft:
-                    dirX = -1;
-                    dirY = -1;
-                    break;
-
-                case ProjectedViewDirection_e.IsoBottomRight:
-                    dirX = 1;
-                    dirY = -1;
-                    break;
-
-                default:
-                    throw new NotSupportedException($"'{projection}' is not supported");
-            }
-
-            return new Vector(dirX, dirY, 0);
         }
     }
 
@@ -1716,6 +1664,51 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
+        public IXFlatPattern FlatPattern => GetViewFlatPattern(DrawingView);
+
+        public IXSketchLine[] BendLines
+            => ((object[])DrawingView.GetBendLines() ?? Enumerable.Empty<object>())
+                .Select(OwnerDocument.CreateObjectFromDispatch<ISwSketchLine>).ToArray();
+
+        public IXBendNote[] BendNotes => IterateBendNotes().ToArray();
+
+        public bool IsFlipped
+        {
+            get
+            {
+                if (!IsCommitted)
+                {
+                    return m_Creator.CachedProperties.Get<bool>();
+                }
+                else
+                {
+                    return DrawingView.FlipView;
+                }
+            }
+            set
+            {
+                if (!IsCommitted)
+                {
+                    m_Creator.CachedProperties.Set(value);
+                }
+                else
+                {
+                    DrawingView.FlipView = value;
+                }
+            }
+        }
+
+        private IEnumerable<SwBendNote> IterateBendNotes()
+        {
+            foreach (INote note in (object[])DrawingView.GetNotes() ?? Array.Empty<object>())
+            {
+                if (note.IsBendLineNote)
+                {
+                    yield return OwnerDocument.CreateObjectFromDispatch<SwBendNote>(note);
+                }
+            }
+        }
+
         protected override IView CreateDrawingView(CancellationToken cancellationToken)
         {
             var sheetMetalBody = (SwSolidBody)SheetMetalBody;
@@ -1821,6 +1814,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 cancellationToken.ThrowIfCancellationRequested();
 
                 SetViewOptions(view, Options, flatPattern);
+
+                view.FlipView = IsFlipped;
 
                 if (ReferencedConfiguration != null)
                 {
@@ -2095,33 +2090,6 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected override IView CreateDrawingView(CancellationToken cancellationToken)
         {
-            swRelativeViewCreationDirection_e ConvertDirection(StandardViewType_e dir) 
-            {
-                switch (dir) 
-                {
-                    case StandardViewType_e.Front:
-                        return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_FRONT;
-
-                    case StandardViewType_e.Back:
-                        return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_BACK;
-
-                    case StandardViewType_e.Left:
-                        return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_LEFT;
-
-                    case StandardViewType_e.Right:
-                        return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_RIGHT;
-
-                    case StandardViewType_e.Top:
-                        return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_TOP;
-
-                    case StandardViewType_e.Bottom:
-                        return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_BOTTOM;
-
-                    default:
-                        throw new NotSupportedException();
-                }
-            }
-
             if (Orientation == null) 
             {
                 throw new Exception("Orientation is not specified");
@@ -2130,29 +2098,102 @@ namespace Xarial.XCad.SolidWorks.Documents
             if (Orientation.FirstEntity is SwSelObject && Orientation.SecondEntity is SwSelObject)
             {
                 var refDoc = ((SwSelObject)Orientation.FirstEntity).OwnerDocument;
-                
-                var selData = refDoc.Model.ISelectionManager.CreateSelectData();
 
-                selData.Mark = 1;
+                var selMgr = refDoc.Model.ISelectionManager;
 
-                ((SwSelObject)Orientation.FirstEntity).Select(false, selData);
+                IXBody[] scopeBodies;
 
-                selData.Mark = 2;
+                if (refDoc is IXPart)
+                {
+                    var partBodies = ((IXPart)refDoc).Bodies.ToArray();
 
-                ((SwSelObject)Orientation.SecondEntity).Select(true, selData);
+                    if (partBodies.Length > 1)
+                    {
+                        scopeBodies = Bodies;
+
+                        if (scopeBodies == null)
+                        {
+                            scopeBodies = partBodies;
+                        }
+                    }
+                    else
+                    {
+                        scopeBodies = null;
+                    }
+                }
+                else
+                {
+                    scopeBodies = null;
+                }
 
                 var dirFront = ConvertDirection(Orientation.FirstDirection);
                 var dirRight = ConvertDirection(Orientation.SecondDirection);
 
-                var view = m_Drawing.Drawing.CreateRelativeView(refDoc.Path, Location?.X ?? 0, Location?.Y ?? 0, (int)dirFront, (int)dirRight);
+                using (var selGrp = new SelectionGroup(refDoc, false))
+                {
+                    var disps = new object[]
+                    {
+                        ((SwObject)Orientation.FirstEntity).Dispatch,
+                        ((SwObject)Orientation.SecondEntity).Dispatch
+                    }.Union(scopeBodies?.Cast<ISwBody>().Select(b => b.Dispatch) ?? Array.Empty<object>()).ToArray();
 
-                refDoc.Model.ClearSelection2(true);
+                    selGrp.AddRange(disps);
 
-                return view;
+                    if (!selMgr.SetSelectedObjectMark(1, 1, (int)swSelectionMarkAction_e.swSelectionMarkSet)) 
+                    {
+                        throw new Exception("Failed to set selection mark to first reference");
+                    }
+
+                    if (!selMgr.SetSelectedObjectMark(2, 2, (int)swSelectionMarkAction_e.swSelectionMarkSet))
+                    {
+                        throw new Exception("Failed to set selection mark to second reference");
+                    }
+
+                    if (scopeBodies?.Any() == true) 
+                    {
+                        for (int i = 0; i < scopeBodies.Length; i++)
+                        {
+                            if (!selMgr.SetSelectedObjectMark(i + 3, 4, (int)swSelectionMarkAction_e.swSelectionMarkSet))
+                            {
+                                throw new Exception("Failed to set selection mark to second reference");
+                            }
+                        }
+                    }
+
+                    var view = m_Drawing.Drawing.CreateRelativeView(refDoc.Path, Location?.X ?? 0, Location?.Y ?? 0, (int)dirFront, (int)dirRight);
+                    return view;
+                }
             }
             else
             {
                 throw new NotSupportedException("Entities must be selection objects");
+            }
+        }
+
+        private swRelativeViewCreationDirection_e ConvertDirection(StandardViewType_e dir)
+        {
+            switch (dir)
+            {
+                case StandardViewType_e.Front:
+                    return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_FRONT;
+
+                case StandardViewType_e.Back:
+                    return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_BACK;
+
+                case StandardViewType_e.Left:
+                    return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_LEFT;
+
+                case StandardViewType_e.Right:
+                    return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_RIGHT;
+
+                case StandardViewType_e.Top:
+                    return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_TOP;
+
+                case StandardViewType_e.Bottom:
+                    return swRelativeViewCreationDirection_e.swRelativeViewCreationDirection_BOTTOM;
+
+                default:
+                    throw new NotSupportedException();
             }
         }
     }

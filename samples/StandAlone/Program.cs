@@ -20,6 +20,7 @@ using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Documents;
+using Xarial.XCad.Documents.Enums;
 using Xarial.XCad.Documents.Extensions;
 using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Enums;
@@ -54,13 +55,21 @@ namespace StandAlone
         {
             try
             {
-                var app = SwApplicationFactory.Create(null, ApplicationState_e.Default);
-                app.ShowMessageBox("Hello World!");
+                //var app = SwApplicationFactory.Create(null, ApplicationState_e.Default);
+                //app.ShowMessageBox("Hello World!");
 
                 //var app = SwApplicationFactory.FromProcess(Process.GetProcessesByName("SLDWORKS").First());
 
-                //var dmApp = SwDmApplicationFactory.Create(
-                //    System.Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.Machine));
+                var dmKey = System.Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.User);
+
+                if (dmKey == null)
+                {
+                    dmKey = System.Environment.GetEnvironmentVariable("SW_DM_KEY", EnvironmentVariableTarget.Machine);
+                }
+
+                var dmApp = SwDmApplicationFactory.Create(dmKey);
+
+                ReadTable(dmApp);
 
                 //RenameFiles(app);
 
@@ -90,7 +99,7 @@ namespace StandAlone
                 //TraverseSelectedFaces(app);
 
                 //CreateSweepFromSelection(app);
-                CreateTempGeometry(app);
+                //CreateTempGeometry(app);
 
                 //CreateSweepFromSelection(app);
             }
@@ -99,6 +108,21 @@ namespace StandAlone
             }
 
             Console.ReadLine();
+        }
+
+        private static void ReadTable(IXApplication app)
+        {
+            var path = "";
+
+            using (var doc = app.Documents.Open(path, DocumentState_e.ReadOnly)) 
+            {
+                var table = ((IXDrawing)doc).Sheets.Active.Annotations.Filter<IXBomTable>().First();
+                
+                foreach (var row in table.Rows) 
+                {
+                    var comps = row.Components;
+                }
+            }
         }
 
         private static void RenameFiles(IXApplication app)

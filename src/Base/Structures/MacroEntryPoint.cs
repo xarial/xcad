@@ -37,6 +37,10 @@ namespace Xarial.XCad.Structures
             ProcedureName = procName;
         }
 
+        /// <summary>
+        /// ToString override
+        /// </summary>
+        /// <returns>User friendly text</returns>
         public override string ToString()
         {
             if (!string.IsNullOrEmpty(ModuleName))

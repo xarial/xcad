@@ -75,7 +75,7 @@ namespace Xarial.XCad.SwDocumentManager
         public IntPtr WindowHandle => throw new NotSupportedException();
         public Process Process => throw new NotSupportedException();
         public IXMemoryGeometryBuilder MemoryGeometryBuilder => throw new NotSupportedException();
-        public IXProgress CreateProgress() => throw new NotSupportedException();
+        public IXProgress CreateProgress(CancellationTokenSource cts = null) => throw new NotSupportedException();
         public IXMacro OpenMacro(string path) => throw new NotSupportedException();
         public MessageBoxResult_e ShowMessageBox(string msg, MessageBoxIcon_e icon = MessageBoxIcon_e.Info, MessageBoxButtons_e buttons = MessageBoxButtons_e.Ok) => throw new NotSupportedException();
         public void ShowTooltip(ITooltipSpec spec) => throw new NotSupportedException();

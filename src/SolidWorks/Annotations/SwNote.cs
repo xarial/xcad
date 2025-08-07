@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
@@ -18,6 +19,7 @@ using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry.Structures;
 using Xarial.XCad.SolidWorks.Documents;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Structures;
 
 namespace Xarial.XCad.SolidWorks.Annotations
 {
@@ -236,7 +238,16 @@ namespace Xarial.XCad.SolidWorks.Annotations
     internal class SwDrawingNote : SwNote, IXDrawingNote
     {
         internal static SwDrawingNote New(INote note, SwDrawing drw, SwApplication app)
-            => new SwDrawingNote(note, drw, app);
+        {
+            if (note?.IsBendLineNote == true)
+            {
+                return SwBendNote.New(note, drw, app);
+            }
+            else 
+            {
+                return new SwDrawingNote(note, drw, app);
+            }
+        }
 
         public IXObject Owner
         {
@@ -246,9 +257,48 @@ namespace Xarial.XCad.SolidWorks.Annotations
 
         private readonly SwDrawingAnnotationWrapper m_DrwAnnWrapper;
 
-        private SwDrawingNote(INote note, SwDrawing drw, SwApplication app) : base(note, drw, app)
+        protected SwDrawingNote(INote note, SwDrawing drw, SwApplication app) : base(note, drw, app)
         {
             m_DrwAnnWrapper = new SwDrawingAnnotationWrapper(this);
+        }
+    }
+
+    internal class SwBendNote : SwDrawingNote, IXBendNote
+    {
+        public BendInfo BendInformation 
+        {
+            get 
+            {
+                bool up = false;
+                double angle = 0;
+                double radius = 0;
+                object points = null;
+                Note.GetBendLineValues2(ref up, ref angle, ref radius, ref points);
+
+                Line line;
+
+                if (points is double[] && ((double[])points).Length == 6)
+                {
+                    line = new Line(new Point(((double[])points).Take(3).ToArray()), new Point(((double[])points).Skip(3).ToArray()));
+                }
+                else
+                {
+                    line = null;
+                }
+
+                return new BendInfo(up ? BendDirection_e.Up : BendDirection_e.Down, angle, radius, line);
+            }
+        }
+
+        internal static new SwBendNote New(INote note, SwDrawing drw, SwApplication app)
+            => new SwBendNote(note, drw, app);
+
+        private SwBendNote(INote note, SwDrawing drw, SwApplication app) : base(note, drw, app)
+        {
+            if (!note.IsBendLineNote) 
+            {
+                throw new Exception("Note is not a bend line note");
+            }
         }
     }
 }

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Structures;
 
 namespace Xarial.XCad.Annotations
 {
@@ -44,5 +45,16 @@ namespace Xarial.XCad.Annotations
     /// </summary>
     public interface IXDrawingNote : IXNote, IXDrawingAnnotation 
     {
+    }
+
+    /// <summary>
+    /// Bend note of <see cref="Documents.IXFlatPatternDrawingView"/>
+    /// </summary>
+    public interface IXBendNote : IXDrawingNote 
+    {
+        /// <summary>
+        /// Bend information
+        /// </summary>
+        BendInfo BendInformation { get; }
     }
 }

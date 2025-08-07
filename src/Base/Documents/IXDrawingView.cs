@@ -15,6 +15,7 @@ using Xarial.XCad.Documents.Structures;
 using Xarial.XCad.Features;
 using Xarial.XCad.Geometry;
 using Xarial.XCad.Geometry.Structures;
+using Xarial.XCad.Sketch;
 
 namespace Xarial.XCad.Documents
 {
@@ -188,6 +189,26 @@ namespace Xarial.XCad.Documents
         /// Sheet metal body of the flat pattern view
         /// </summary>
         IXSolidBody SheetMetalBody { get; set; }
+
+        /// <summary>
+        /// Gets the flat pattern feature
+        /// </summary>
+        IXFlatPattern FlatPattern { get; }
+
+        /// <summary>
+        /// Returns bend lines of this view
+        /// </summary>
+        IXSketchLine[] BendLines { get; }
+
+        /// <summary>
+        /// Bend notes
+        /// </summary>
+        IXBendNote[] BendNotes { get; }
+
+        /// <summary>
+        /// Gets or sets if the flat pattern view is flipped
+        /// </summary>
+        bool IsFlipped { get; set; }
 
         /// <summary>
         /// Options of flat pattern view

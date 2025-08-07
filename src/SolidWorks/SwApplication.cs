@@ -634,11 +634,11 @@ namespace Xarial.XCad.SolidWorks
             return ApplicationState_e.Default;
         }
 
-        public IXProgress CreateProgress()
+        public IXProgress CreateProgress(CancellationTokenSource cts = null)
         {
             if (Sw.GetUserProgressBar(out UserProgressBar prgBar))
             {
-                return new SwProgress(prgBar, Services.GetService<IProgressUserCancellationHandler>());
+                return new SwProgress(prgBar, cts, Services.GetService<IProgressUserCancellationHandler>());
             }
             else 
             {

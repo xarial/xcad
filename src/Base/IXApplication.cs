@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Threading;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Enums;
 using Xarial.XCad.Delegates;
@@ -155,8 +156,10 @@ namespace Xarial.XCad
         /// <summary>
         /// Initiates the displaying of progress in the application
         /// </summary>
+        /// <param name="cts">Cancellation token source</param>
         /// <returns>Pointer to progress manager</returns>
-        IXProgress CreateProgress();
+        /// <remarks>Register <see cref="Services.IProgressUserCancellationHandler"/></remarks>
+        IXProgress CreateProgress(CancellationTokenSource cts = null);
 
         /// <summary>
         /// Creates an object tracker to track objects across operations

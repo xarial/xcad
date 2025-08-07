@@ -12,6 +12,9 @@ using System.Text;
 
 namespace Xarial.XCad.Toolkit
 {
+    /// <summary>
+    /// Implementation of Dependency Injection service collection
+    /// </summary>
     public class ServiceCollection : IXServiceCollection
     {
         internal class ServiceInfo 

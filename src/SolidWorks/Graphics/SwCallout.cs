@@ -562,15 +562,11 @@ namespace Xarial.XCad.SolidWorks.Graphics
         protected override void Show(ICallout callout)
         {
             //NOTE: setting the callout while it is visible can cause crash
-
             if (!Visible)
             {
                 if (!SetCalloutToSelected(callout))
                 {
-                    var selData = m_Sel.SelMgr.CreateSelectData();
-                    selData.Callout = (Callout)callout;
-
-                    ((SwSelObject)Owner).Select(true, selData);
+                    ((SwSelObject)Owner).Select(true, null);
 
                     if (!SetCalloutToSelected(callout))
                     {
