@@ -46,6 +46,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_ModelViewsLazy = new Lazy<ISwModelViews3DCollection>(() => new SwModelViews3DCollection(this, app));
 
             Graphics = new SwDocumentGraphics(this);
+            DisplayState = new SwDisplayState(new SwDocumentLevelDisplayStateDispatch(this), this, app);
         }
 
         private Lazy<ISwConfigurationCollection> m_Configurations;
@@ -82,6 +83,8 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
             }
         }
+
+        public IXDisplayState DisplayState { get; }
 
         private System.Drawing.Color? GetColor(IModelDoc2 model) => SwColorHelper.GetColor(null,
                 (o, c) => model.Extension.GetMaterialPropertyValues((int)o, c) as double[]);

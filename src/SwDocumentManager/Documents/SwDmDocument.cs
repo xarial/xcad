@@ -659,6 +659,9 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXDocumentGraphics Graphics => throw new NotSupportedException();
         IXConfigurationRepository IXDocument3D.Configurations => throw new NotSupportedException();
         public Color? Color { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public IXDisplayState DisplayState => throw new NotImplementedException();
+
         TSelObject IXObjectContainer.ConvertObject<TSelObject>(TSelObject obj) => throw new NotSupportedException();
         IXDocument3DSaveOperation IXDocument3D.PreCreateSaveAsOperation(string filePath) => throw new NotSupportedException();
     }

@@ -29,7 +29,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 //NOTE: as per the documentation, active display state is first in the array
                 var activeDispStateName = ((string[])m_Conf.Configuration.GetDisplayStates()).First();
-                return CreateDisplayState(activeDispStateName);
+                return GetDisplayState(activeDispStateName);
             }
             set 
             {
@@ -51,7 +51,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_Conf = conf;
 
             m_RepoHelper = new RepositoryHelper<IXDisplayState>(this,
-                TransactionFactory<IXDisplayState>.Create(() => new SwDisplayState(null, m_Conf, (SwDocument3D)m_Conf.OwnerDocument, m_Conf.OwnerApplication)));
+                TransactionFactory<IXDisplayState>.Create(() => new SwDisplayState(new SwDisplayStatePlaceholderDispatch("", m_Conf), (SwDocument3D)m_Conf.OwnerDocument, m_Conf.OwnerApplication)));
         }
 
         public void AddRange(IEnumerable<IXDisplayState> ents, CancellationToken cancellationToken) => m_RepoHelper.AddRange(ents, cancellationToken);
@@ -62,7 +62,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             foreach (var dispStateName in (string[])m_Conf.Configuration.GetDisplayStates())
             {
-                yield return CreateDisplayState(dispStateName);
+                yield return GetDisplayState(dispStateName);
             }
         }
 
@@ -83,7 +83,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (((string[])m_Conf.Configuration.GetDisplayStates()).Contains(name, StringComparer.CurrentCultureIgnoreCase))
             {
-                ent = CreateDisplayState(name);
+                ent = GetDisplayState(name);
                 return true;
             }
             else 
@@ -93,7 +93,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private SwDisplayState CreateDisplayState(string name)
-            => new SwDisplayState(new SwDisplayStateDispatch(name), m_Conf, (SwDocument3D)m_Conf.OwnerDocument, m_Conf.OwnerApplication);
+        private SwDisplayState GetDisplayState(string name)
+            => new SwDisplayState(new SwDisplayStateDispatch(name, m_Conf), (SwDocument3D)m_Conf.OwnerDocument, m_Conf.OwnerApplication);
     }
 }

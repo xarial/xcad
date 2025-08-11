@@ -38,6 +38,11 @@ namespace Xarial.XCad.Documents
         IXConfigurationRepository Configurations { get; }
 
         /// <summary>
+        /// Document level display state
+        /// </summary>
+        IXDisplayState DisplayState { get; }
+
+        /// <summary>
         /// <see cref="IXDocument3D"/> specific save as operation
         /// </summary>
         new IXDocument3DSaveOperation PreCreateSaveAsOperation(string filePath);

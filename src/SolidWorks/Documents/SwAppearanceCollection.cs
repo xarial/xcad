@@ -17,7 +17,7 @@ using Xarial.XCad.Base;
 
 namespace Xarial.XCad.SolidWorks.Documents
 {
-    internal class SwAppearanceCollection : IXAppearanceRepository 
+    internal class SwAppearanceCollection : IXAppearanceRepository
     {
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -25,30 +25,35 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly SwDisplayState m_DispState;
 
-        private readonly SwConfiguration m_OwnerConf;
         private readonly SwDocument3D m_OwnerDoc;
         private readonly SwApplication m_OwnerApp;
 
-        internal SwAppearanceCollection(SwDisplayState dispState, SwConfiguration ownerConf, SwDocument3D ownerDoc, SwApplication ownerApp) 
+        internal SwAppearanceCollection(SwDisplayState dispState, SwDocument3D ownerDoc, SwApplication ownerApp)
         {
             m_DispState = dispState;
-
-            m_OwnerConf = ownerConf;
 
             m_OwnerDoc = ownerDoc;
 
             m_OwnerApp = ownerApp;
 
             m_RepoHelper = new RepositoryHelper<IXAppearance>(this,
-                TransactionFactory<IXAppearance>.Create(() => new SwAppearance(null, m_DispState.DisplayState, null, ownerConf, ownerDoc, ownerApp)),
+                TransactionFactory<IXAppearance>.Create(() => new SwAppearance(null, m_DispState.DisplayState, null, ownerDoc, ownerApp)),
                 TransactionFactory<IXAppearance>.Create(() => new SwRenderMaterial(null, m_DispState.DisplayState, ownerDoc, ownerApp)));
         }
 
-        public int Count => m_OwnerConf.OwnerDocument.Model.Extension.GetRenderMaterialsCount2((int)swDisplayStateOpts_e.swSpecifyDisplayState, new string[] { m_DispState.DisplayState.Name });
+        public int Count
+        {
+            get
+            {
+                m_DispState.DisplayState.GetDisplayStateOptions(out var opts, out var names);
+
+                return m_OwnerDoc.Model.Extension.GetRenderMaterialsCount2((int)opts, names);
+            }
+        }
 
         public IXAppearance this[string name] => m_RepoHelper.Get(name);
 
-        public IXAppearance this[IHasColor[] objs] => SwAppearance.FromObjects(m_DispState.DisplayState, objs, AppearanceLevel_e.Component, m_OwnerConf, m_OwnerApp);
+        public IXAppearance this[IHasColor[] objs] => SwAppearance.FromObjects(m_DispState.DisplayState, objs, AppearanceLevel_e.Component, m_OwnerApp);
 
         public bool TryGet(string name, out IXAppearance ent)
             => throw new NotSupportedException("Getting appearance by name is not supported, get appearance by objects instead");
@@ -71,7 +76,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IEnumerator<IXAppearance> GetEnumerator()
         {
-            var renderMaterials = (object[])m_OwnerConf.OwnerDocument.Model.Extension.GetRenderMaterials2((int)swDisplayStateOpts_e.swSpecifyDisplayState, new string[] { m_DispState.DisplayState.Name });
+            m_DispState.DisplayState.GetDisplayStateOptions(out var opts, out var names);
+
+            var renderMaterials = (object[])m_OwnerDoc.Model.Extension.GetRenderMaterials2((int)opts, names);
 
             if (renderMaterials != null)
             {

@@ -35,13 +35,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IXDocumentEvaluation Evaluation => throw new NotSupportedException();
         public IXDocumentGraphics Graphics => throw new NotSupportedException();
         public Color? Color { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-
+        public IXDisplayState DisplayState => throw new NotImplementedException();
         #endregion
 
         IXConfigurationRepository IXDocument3D.Configurations => Configurations;
 
         public abstract ISwDmConfigurationCollection Configurations { get; }
-        
+
         public SwDmDocument3D(SwDmApplication dmApp, ISwDMDocument doc, bool isCreated,
             Action<ISwDmDocument> createHandler, Action<ISwDmDocument> closeHandler,
             bool? isReadOnly)

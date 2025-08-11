@@ -77,11 +77,11 @@ namespace Xarial.XCad.SolidWorks.Documents
 
     internal class SwAppearance : SwObject, ISwAppearance, ISwAppearanceBase
     {
-        internal static SwAppearance FromObjects(SwDisplayStateDispatch displayState, IHasColor[] objs, AppearanceLevel_e level, SwConfiguration conf, SwApplication app)
+        internal static SwAppearance FromObjects(SwDisplayStateDispatch displayState, IHasColor[] objs, AppearanceLevel_e level, SwApplication app)
         {
-            var doc = conf.OwnerDocument;
+            var doc = displayState.Owner.OwnerDocument;
 
-            var dispSetts = CreateDisplayStateSetting(conf, displayState.Name, objs, level);
+            var dispSetts = CreateDisplayStateSetting(displayState, objs, level);
 
             var apps = (object[])doc.Model.Extension.DisplayStateSpecMaterialPropertyValues[dispSetts];
 
@@ -89,7 +89,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 var appSetts = (IAppearanceSetting)apps.First();
 
-                return new SwAppearance(appSetts, displayState, objs, conf, doc, app);
+                return new SwAppearance(appSetts, displayState, objs, doc, app);
             }
             else 
             {
@@ -97,16 +97,27 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
         }
 
-        private static DisplayStateSetting CreateDisplayStateSetting(SwConfiguration conf, string name, IHasColor[] objs, AppearanceLevel_e level)
+        private static DisplayStateSetting CreateDisplayStateSetting(SwDisplayStateDispatch dispState, IHasColor[] objs, AppearanceLevel_e level)
         {
-            var doc = conf.OwnerDocument;
+            var doc = (SwDocument3D)dispState.Owner.OwnerDocument;
 
             var disps = objs?.Cast<ISwObject>().Select(x =>
             {
                 object disp;
 
-                if (x is SwDocument)
+                if (x is SwDocument3D)
                 {
+                    ISwConfiguration conf;
+
+                    if (dispState.Owner is ISwConfiguration)
+                    {
+                        conf = (ISwConfiguration)dispState.Owner;
+                    }
+                    else 
+                    {
+                        conf = doc.Configurations.Active;
+                    }
+
                     disp = conf.Configuration.GetRootComponent3(false);
                 }
                 else 
@@ -117,10 +128,12 @@ namespace Xarial.XCad.SolidWorks.Documents
                 return new DispatchWrapper(disp);
             }).ToArray();
 
-            var setts = doc.Model.Extension.GetDisplayStateSetting((int)swDisplayStateOpts_e.swSpecifyDisplayState);
-            setts.Option = (int)swDisplayStateOpts_e.swSpecifyDisplayState;
+            dispState.GetDisplayStateOptions(out var opts, out var names);
+
+            var setts = doc.Model.Extension.GetDisplayStateSetting((int)opts);
+            setts.Option = (int)opts;
             setts.Entities = disps;
-            setts.Names = new string[] { name };
+            setts.Names = names;
             setts.PartLevel = level == AppearanceLevel_e.Part;
             return setts;
         }
@@ -135,13 +148,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private AppearanceLevel_e m_Level;
 
-        private readonly SwConfiguration m_Conf;
-
-        internal SwAppearance(IAppearanceSetting appSetts, SwDisplayStateDispatch displayState, IHasColor[] objs, SwConfiguration conf, SwDocument doc, SwApplication app) : base(appSetts, doc, app)
+        internal SwAppearance(IAppearanceSetting appSetts, SwDisplayStateDispatch displayState, IHasColor[] objs,SwDocument doc, SwApplication app) : base(appSetts, doc, app)
         {
             m_DisplayState = displayState;
-
-            m_Conf = conf;
 
             m_Objects = objs;
 
@@ -406,7 +415,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public void Delete()
         {
-            var setts = CreateDisplayStateSetting(m_Conf, m_DisplayState.Name, Objects, 0);
+            var setts = CreateDisplayStateSetting(m_DisplayState, Objects, 0);
             setts.RemoveAppearance = true;
             OwnerDocument.Model.Extension.DisplayStateSpecMaterialPropertyValues[setts] = new IAppearanceSetting[] { Settings };
         }
@@ -417,7 +426,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             var appSetts = OwnerDocument.Model.Extension.GetAppearanceSetting();
 
-            var setts = CreateDisplayStateSetting(m_Conf, m_DisplayState.Name, Objects, Level);
+            var setts = CreateDisplayStateSetting(m_DisplayState, Objects, Level);
             
             SetColor(appSetts, Color);
             appSetts.Diffuse = Diffuse;
@@ -728,8 +737,10 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private void SetRenderMaterial(IRenderMaterial renderMaterial)
         {
+            m_DisplayState.GetDisplayStateOptions(out var opts, out var names);
+
             if (!OwnerDocument.Model.Extension.AddDisplayStateSpecificRenderMaterial((RenderMaterial)renderMaterial,
-                (int)swDisplayStateOpts_e.swSpecifyDisplayState, new string[] { m_DisplayState.Name }, out _, out _))
+                (int)opts, names, out _, out _))
             {
                 throw new Exception("Failed to add render material");
             }

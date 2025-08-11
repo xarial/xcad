@@ -1437,6 +1437,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IXDocumentEvaluation Evaluation => throw new NotImplementedException();
         public IXDocumentGraphics Graphics => throw new NotImplementedException();
         public Color? Color { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public IXDisplayState DisplayState => throw new NotImplementedException();
         ISwConfigurationCollection ISwDocument3D.Configurations => throw new NotImplementedException();
         IXConfigurationRepository IXDocument3D.Configurations => throw new NotImplementedException();
         ISwModelViews3DCollection ISwDocument3D.ModelViews => throw new NotImplementedException();

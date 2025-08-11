@@ -40,6 +40,8 @@ namespace Xarial.XCad.Inventor.Documents
 
         public System.Drawing.Color? Color { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
+        public IXDisplayState DisplayState => throw new NotImplementedException();
+
         IXDocument3DSaveOperation IXDocument3D.PreCreateSaveAsOperation(string filePath)
         {
             var translator = TryGetTranslator(filePath);
