@@ -55,8 +55,6 @@ namespace Xarial.XCad.SolidWorks.Documents
     {
         private readonly IMathUtility m_MathUtils;
 
-        internal IModelDoc2 Owner { get; }
-
         public virtual Rectangle ScreenRect
         {
             get
@@ -208,7 +206,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (OwnerApplication.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2018))
                 {
-                    Owner.Extension.SetTopLevelTransparency(value);
+                    OwnerModelDoc.Extension.SetTopLevelTransparency(value);
                     m_CachedIsTransparent = value;
                 }
                 else 
@@ -225,7 +223,6 @@ namespace Xarial.XCad.SolidWorks.Documents
         internal SwModelView(IModelView view, SwDocument doc, SwApplication app) : base(view, doc, app)
         {
             View = view;
-            Owner = doc.Model;
             m_MathUtils = app.Sw.IGetMathUtility();
 
             m_CustomGraphicsContextLazy = new Lazy<IXCustomGraphicsContext>(
@@ -235,7 +232,15 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IDisposable Freeze(bool freeze) => new ModelViewFreezer(this, freeze);
 
         public void Update()
-            => View.GraphicsRedraw(null);
+        {
+            //NOTE: it was observed that IModelView::GraphicsRedraw does not always update the view
+            //In SOLIDWORKS 2025 calling this method in drawing did not triger IModelView::BufferSwapNotify event
+            //It is not clear if this is SOLIDWORKS version specific or setting specific
+            //View.GraphicsRedraw(null);
+
+            OwnerModelDoc.GraphicsRedraw2();
+        }
+
 
         /// <inheritdoc/>
         public void ZoomToBox(Box3D box)
@@ -247,11 +252,11 @@ namespace Xarial.XCad.SolidWorks.Documents
             var pt1 = mathPt1.IMultiplyTransform(transform).ArrayData as double[];
             var pt2 = mathPt2.IMultiplyTransform(transform).ArrayData as double[];
 
-            Owner.ViewZoomTo2(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2]);
+            OwnerModelDoc.ViewZoomTo2(pt1[0], pt1[1], pt1[2], pt2[0], pt2[1], pt2[2]);
         }
 
         /// <inheritdoc/>
-        public void ZoomToFit() => Owner.ViewZoomtofit2();
+        public void ZoomToFit() => OwnerModelDoc.ViewZoomtofit2();
 
         public override void Commit(CancellationToken cancellationToken)
         {
@@ -264,11 +269,14 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 selGrp.AddRange(objects.Cast<ISwSelObject>().Select(s => s.Dispatch).ToArray());
 
-                Owner.ViewZoomToSelection();
+                OwnerModelDoc.ViewZoomToSelection();
             }
         }
     }
 
+    /// <summary>
+    /// SOLIDWORKS-specific named model view
+    /// </summary>
     public interface ISwNamedView : ISwModelView, IXNamedView
     {
     }

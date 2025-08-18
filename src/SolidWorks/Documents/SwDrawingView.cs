@@ -1058,7 +1058,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                 var namedView = (SwNamedView)SourceModelView;
 
                 var drwView = m_Drawing.Drawing.CreateDrawViewFromModelView3(
-                    namedView.Owner.GetPathName(), namedView.Name, 0, 0, 0);
+                    namedView.OwnerModelDoc.GetPathName(), namedView.Name, 0, 0, 0);
 
                 return drwView;
             }

@@ -44,7 +44,7 @@ namespace Xarial.XCad.SolidWorks
         ISwApplication ISwObject.OwnerApplication => OwnerApplication;
         ISwDocument ISwObject.OwnerDocument => OwnerDocument;
 
-        protected IModelDoc2 OwnerModelDoc => OwnerDocument.Model;
+        protected internal IModelDoc2 OwnerModelDoc => OwnerDocument.Model;
 
         internal SwApplication OwnerApplication { get; }
         internal virtual SwDocument OwnerDocument { get; }
