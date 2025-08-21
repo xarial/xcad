@@ -381,21 +381,37 @@ namespace SwAddInExample
         private readonly CustomGraphicsToggle m_CustomGraphicsToggle;
 
         [CommandGroupInfo(1)]
-        public enum Commands1_e 
+        public enum RootCommands1_e 
         {
-            Cmd1,
+            RootCmd1,
             //Cmd2,
             //Cmd5
         }
 
-        [CommandGroupInfo(2)]
-        [CommandGroupParent(typeof(Commands1_e))]
-        public enum Commands2_e
+        [CommandGroupInfo(2, "", 0, WorkspaceTypes_e.All)]
+        [CommandGroupParent(typeof(RootCommands1_e))]
+        public enum SubCommands1_e
         {
-            Cmd3,
-            Cmd4,
-            Cmd7,
-            Cmd8
+            SubCmd1,
+            SubCmd2
+        }
+
+        [CommandGroupInfo(-1, "", 1, WorkspaceTypes_e.All)]
+        [CommandGroupParent(typeof(RootCommands1_e))]
+        public enum SubCommands2_e
+        {
+            SubCmd3,
+            SubCmd4,
+            SubCmd7,
+            SubCmd8
+        }
+
+        [CommandGroupInfo(-1, "", 2, WorkspaceTypes_e.All)]
+        [CommandGroupParent(typeof(RootCommands1_e))]
+        public enum SubCommands3_e
+        {
+            SubCmd9,
+            SubCmd10,
         }
 
         [Title("Main Menu")]
@@ -431,8 +447,10 @@ namespace SwAddInExample
             //CommandManager.AddCommandGroup<MainCommands1_e>();
             //CommandManager.AddCommandGroup<Commands3_e>().CommandClick += OnCommandClick;
 
-            //CommandManager.AddCommandGroup<Commands1_e>();
-            //CommandManager.AddCommandGroup<Commands2_e>();
+            CommandManager.AddCommandGroup<RootCommands1_e>();
+            CommandManager.AddCommandGroup<SubCommands1_e>();
+            CommandManager.AddCommandGroup<SubCommands2_e>();
+            CommandManager.AddCommandGroup<SubCommands3_e>();
 
             try
             {

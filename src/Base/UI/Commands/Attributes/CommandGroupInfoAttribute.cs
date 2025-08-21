@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System;
+using Xarial.XCad.UI.Commands.Enums;
 
 namespace Xarial.XCad.UI.Commands.Attributes
 {
@@ -17,6 +18,8 @@ namespace Xarial.XCad.UI.Commands.Attributes
     {
         internal int UserId { get; }
         internal string TabName { get; }
+        internal int Position { get; set; }
+        internal WorkspaceTypes_e SupportedWorkspace { get; set; }
 
         /// <inheritdoc cref="CommandGroupInfoAttribute"/>
         public CommandGroupInfoAttribute(int userId) : this(userId, "")
@@ -28,15 +31,25 @@ namespace Xarial.XCad.UI.Commands.Attributes
         {
         }
 
+        /// <inheritdoc cref="CommandGroupInfoAttribute"/>
+        public CommandGroupInfoAttribute(int userId, string tabName) 
+            : this(userId, tabName, -1, WorkspaceTypes_e.All)
+        {
+        }
+
         /// <summary>
         /// Constructor for specifying the additional information for group
         /// </summary>
         /// <param name="userId">User id for the command group. Must be unique per add-in</param>
         /// <param name="tabName">Name of the tab this group should be added to</param>
-        public CommandGroupInfoAttribute(int userId, string tabName)
+        /// <param name="position">Menu position</param>
+        /// <param name="suppWorks">Supported workspaces</param>
+        public CommandGroupInfoAttribute(int userId, string tabName, int position, WorkspaceTypes_e suppWorks)
         {
             UserId = userId;
             TabName = tabName;
+            Position = position;
+            SupportedWorkspace = suppWorks;
         }
     }
 }

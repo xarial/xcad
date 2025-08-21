@@ -172,7 +172,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             return AddCommandGroupOrContextMenu(cmdBar, true, selType);
         }
 
-        internal SwCommandGroup AddCommandGroupOrContextMenu(CommandGroupSpec cmdBar,
+        private SwCommandGroup AddCommandGroupOrContextMenu(CommandGroupSpec cmdBar,
             bool isContextMenu, swSelectType_e? contextMenuSelectType)
         {
             m_Logger.Log($"Creating command group: {cmdBar.Id}", LoggerMessageSeverity_e.Debug);
@@ -183,8 +183,8 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }
 
             var title = GetMenuPath(cmdBar);
-
-            var cmdGroup = CreateCommandGroup(cmdBar.Id, title, cmdBar.Tooltip,
+            
+            var cmdGroup = CreateCommandGroup(cmdBar.Id, title, cmdBar.Tooltip, cmdBar.Position,
                 cmdBar.Commands.Select(c => c.UserId).ToArray(), isContextMenu,
                 contextMenuSelectType);
 
@@ -253,7 +253,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }
         }
 
-        private CommandGroup CreateCommandGroup(int groupId, string title, string toolTip,
+        private CommandGroup CreateCommandGroup(int groupId, string title, string toolTip, int position,
             int[] knownCmdIDs, bool isContextMenu, swSelectType_e? contextMenuSelectType)
         {
             int cmdGroupErr = 0;
@@ -289,7 +289,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             else
             {
                 cmdGroup = CmdMgr.CreateCommandGroup2(groupId, title, toolTip,
-                    toolTip, -1, isChanged, ref cmdGroupErr);
+                    toolTip, position, isChanged, ref cmdGroupErr);
 
                 m_Logger.Log($"Command group creation result: {(swCreateCommandGroupErrors)cmdGroupErr}", LoggerMessageSeverity_e.Debug);
 
@@ -349,7 +349,9 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                     swCmdGrp.AddSpacer2(-1, (int)menuToolbarOpts);
                 }
 
-                var cmdIndex = swCmdGrp.AddCommandItem2(cmd.Title, -1, cmd.Tooltip,
+                var pos = -1;
+
+                var cmdIndex = swCmdGrp.AddCommandItem2(cmd.Title, pos, cmd.Tooltip,
                     cmd.Title, i, callbackFunc, enableFunc, cmd.UserId,
                     (int)menuToolbarOpts);
 
@@ -360,6 +362,10 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
             swCmdGrp.HasToolbar = cmds.Any(c => c.HasToolbar);
             swCmdGrp.HasMenu = !cmds.Any() || cmds.Any(c => c.HasMenu); //Need to create a menu for item with no commands as it is a placeholder for sub-menu
+
+            var docType = ConvertWorkspace(commandGroup.Spec.SupportedWorkspace);
+
+            swCmdGrp.ShowInDocumentType = (int)docType;
 
             if (!swCmdGrp.Activate()) 
             {
@@ -374,6 +380,38 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 var cmdInfo = new CommandInfo(createdCmd.Item1, commandGroup, cmdId);
                 m_Commands.Add(createdCmd.Item3, cmdInfo);
             }   
+        }
+
+        private swDocTemplateTypes_e ConvertWorkspace(WorkspaceTypes_e workspace) 
+        {
+            swDocTemplateTypes_e docType = 0;
+
+            if (workspace.HasFlag(WorkspaceTypes_e.NoDocuments))
+            {
+                docType |= swDocTemplateTypes_e.swDocTemplateTypeNONE;
+            }
+
+            if (workspace.HasFlag(WorkspaceTypes_e.Part)) 
+            {
+                docType |= swDocTemplateTypes_e.swDocTemplateTypePART;
+            }
+
+            if (workspace.HasFlag(WorkspaceTypes_e.Assembly))
+            {
+                docType |= swDocTemplateTypes_e.swDocTemplateTypeASSEMBLY;
+            }
+
+            if (workspace.HasFlag(WorkspaceTypes_e.Drawing))
+            {
+                docType |= swDocTemplateTypes_e.swDocTemplateTypeDRAWING;
+            }
+
+            if (workspace.HasFlag(WorkspaceTypes_e.InContextPart))
+            {
+                docType |= swDocTemplateTypes_e.swDocTemplateTypeInContext;
+            }
+
+            return docType;
         }
 
         private IImageCollection CreateMainIcon(CommandGroupSpec cmdBar, IIconsCreator iconsConv)
@@ -467,6 +505,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             while (parent != null)
             {
                 title.Insert(0, parent.Title + SUB_GROUP_SEPARATOR);
+
                 parent = parent.Parent;
             }
 

@@ -48,6 +48,6 @@ namespace Xarial.XCad.UI.Commands.Enums
         /// <summary>
         /// All environments
         /// </summary>
-        All = AllDocuments | NoDocuments
+        All = AllDocuments | InContextPart | NoDocuments
     }
 }

@@ -65,9 +65,9 @@ namespace Xarial.XCad.UI.Commands
         {
             var id = GetEnumCommandGroupId(cmdMgr, typeof(TCmdEnum), out string tabName);
 
-            var enumGrp = new EnumCommandGroupSpec(typeof(TCmdEnum), id);
+            var parent = GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum));
 
-            FillEnumCommandGroup<TCmdEnum>(enumGrp, cmdMgr, GetEnumCommandGroupParent(cmdMgr, typeof(TCmdEnum)), tabName, id);
+            var enumGrp = CreateSpecFromEnum<TCmdEnum>(cmdMgr, parent, id);
 
             var cmdGrp = cmdMgr.AddCommandGroup(enumGrp);
 
@@ -137,7 +137,13 @@ namespace Xarial.XCad.UI.Commands
             }
 
             var bar = new EnumCommandGroupSpec(typeof(TCmdEnum), id.Value);
-            
+
+            typeof(TCmdEnum).TryGetAttribute<CommandGroupInfoAttribute>(x =>
+            { 
+                bar.Position = x.Position;
+                bar.SupportedWorkspace = x.SupportedWorkspace;
+            });
+
             FillEnumCommandGroup<TCmdEnum>(bar, cmdMgr, parent, tabName, id.Value);
 
             return bar;
