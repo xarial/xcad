@@ -7,6 +7,9 @@
 
 namespace Xarial.XCad.UI.PropertyPage.Base
 {
+    /// <summary>
+    /// Decorates the control with tag for binding purposes
+    /// </summary>
     public interface IControlTagAttribute : IAttribute
     {
         /// <summary>

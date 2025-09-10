@@ -64,7 +64,7 @@ namespace Toolkit.Tests
                 {
                     r = 1;
                     return new Mock<IControl>().Object;
-                }, x => null, new Mock<IContextProvider>().Object, out bindings, out dependencies, out _);
+                }, (x, y) => null, new Mock<IContextProvider>().Object, out bindings, out dependencies, out _);
 
             var d1 = (bindings.ElementAt(0) as PropertyInfoBinding<DataModelMock1>).ControlDescriptor;
             var d2 = (bindings.ElementAt(1) as PropertyInfoBinding<DataModelMock1>).ControlDescriptor;
@@ -106,7 +106,7 @@ namespace Toolkit.Tests
                     {
                         return new Mock<IControl>().Object;
                     }
-                }, x => null, new Mock<IContextProvider>().Object, out bindings, out dependencies, out _);
+                }, (x, y) => null, new Mock<IContextProvider>().Object, out bindings, out dependencies, out _);
 
             var d1 = (bindings.ElementAt(0) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor;
             var d2 = (bindings.ElementAt(1) as PropertyInfoBinding<DataModelMock2>).ControlDescriptor;
@@ -181,7 +181,7 @@ namespace Toolkit.Tests
                         parents.Add(ctrl, p);
                         return ctrl;
                     }
-                }, x => null, new Mock<IContextProvider>().Object, out bindings, out dependencies, out _);
+                }, (x, y) => null, new Mock<IContextProvider>().Object, out bindings, out dependencies, out _);
 
             Assert.AreEqual(page,
                 parents[(bindings.ElementAt(0) as PropertyInfoBinding<DataModelMock3>).Control]);
@@ -227,7 +227,7 @@ namespace Toolkit.Tests
                     var ctrlMock = new Mock<IControl>();
                     ctrlMock.SetupGet(c => c.Id).Returns(() => a.Id);
                     return ctrlMock.Object;
-                }, x => null, new Mock<IContextProvider>().Object, out bindings, out dependencies, out _);
+                }, (x, y) => null, new Mock<IContextProvider>().Object, out bindings, out dependencies, out _);
 
             Assert.AreEqual(0, bindings.ElementAt(0).Control.Id);
             Assert.AreEqual(1, bindings.ElementAt(1).Control.Id);

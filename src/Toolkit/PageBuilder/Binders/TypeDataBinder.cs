@@ -156,7 +156,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                 {
                     if (dynCtrlDescCreator != null)
                     {
-                        ctrlDescriptors = dynCtrlDescCreator.Invoke(dynCtrlAtt.Tag) ?? new IControlDescriptor[0];
+                        ctrlDescriptors = dynCtrlDescCreator.Invoke(parentCtrl, dynCtrlAtt.Tag) ?? Array.Empty<IControlDescriptor>();
                     }
                     else 
                     {
@@ -281,8 +281,11 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
                         if (isGroup)
                         {
-                            var grpParents = new List<IControlDescriptor>(parents);
-                            grpParents.Add(ctrlDesc);
+                            var grpParents = new List<IControlDescriptor>(parents)
+                            {
+                                ctrlDesc
+                            };
+
                             TraverseType<TDataModel>(prpType, grpParents, ctrlCreator, dynCtrlDescCreator,
                                 ctrl as IGroup, metadata, bindings, dependencies, contextProvider, ref nextCtrlId);
                         }

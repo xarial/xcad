@@ -15,7 +15,8 @@ namespace Xarial.XCad.UI.PropertyPage.Delegates
     /// <summary>
     /// Handler of dynamic controls in the proeprty page
     /// </summary>
+    /// <param name="parent">Parent group</param>
     /// <param name="tag">Control tag</param>
     /// <returns>Dynamic control descriptors</returns>
-    public delegate IControlDescriptor[] CreateDynamicControlsDelegate(object tag);
+    public delegate IControlDescriptor[] CreateDynamicControlsDelegate(IGroup parent, object tag);
 }

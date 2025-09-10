@@ -5,10 +5,11 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-using Xarial.XCad.UI.PropertyPage.Base;
-
-namespace Xarial.XCad.Utils.PageBuilder.Base
+namespace Xarial.XCad.UI.PropertyPage.Base
 {
+    /// <summary>
+    /// Represents group of controls
+    /// </summary>
     public interface IGroup : IControl
     {
     }

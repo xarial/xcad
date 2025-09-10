@@ -48,7 +48,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             }
             else
             {
-                throw new Exception("Tag is not unique");
+                throw new Exception($"Tag is not unique '{tag}'");
             }
         }
 

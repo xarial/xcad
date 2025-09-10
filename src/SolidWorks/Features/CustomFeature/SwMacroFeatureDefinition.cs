@@ -807,7 +807,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         /// <inheritdoc/>
-        public virtual IControlDescriptor[] CreateDynamicControls(object tag) => null;
+        public virtual IControlDescriptor[] CreateDynamicControls(IGroup parent, object tag) => null;
 
         /// <inheritdoc/>
         public virtual void OnAssignPreviewBodyColor(IXCustomFeature<TParams> feat, IXBody body, out System.Drawing.Color color)

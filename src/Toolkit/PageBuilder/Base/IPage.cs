@@ -5,6 +5,8 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using Xarial.XCad.UI.PropertyPage.Base;
+
 namespace Xarial.XCad.Utils.PageBuilder.Base
 {
     /// <summary>

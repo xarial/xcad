@@ -539,7 +539,7 @@ namespace SwAddInExample
         {
         }
 
-        private IControlDescriptor[] OnCreateDynamicControls(object tag)
+        private IControlDescriptor[] OnCreateDynamicControls(IGroup parent, object tag)
         {
             return new IControlDescriptor[]
             {
