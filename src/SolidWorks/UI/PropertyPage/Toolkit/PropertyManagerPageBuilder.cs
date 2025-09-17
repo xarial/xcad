@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Xarial.XCad.Base;
+using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
@@ -31,7 +32,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
     {
         private class PmpTypeDataBinder : TypeDataBinder
         {
-            public PmpTypeDataBinder(IXLogger logger) : base(logger)
+            public PmpTypeDataBinder(IDynamicControlFactoryProvider dynCtrlFactProv, IXLogger logger) : base(dynCtrlFactProv, logger)
             {
             }
 
@@ -39,7 +40,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
 
             internal event Func<IAttributeSet, IAttributeSet> GetPageAttributeSet;
 
-            protected override void OnBeforeControlsDataLoad(IEnumerable<IBinding> bindings)
+            protected override void OnBeforeControlsDataLoad(IReadOnlyList<IBinding> bindings)
             {
                 base.OnBeforeControlsDataLoad(bindings);
 
@@ -119,8 +120,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
         private readonly PmpTypeDataBinder m_DataBinder;
         private readonly IPageSpec m_PageSpec;
 
-        internal PropertyManagerPageBuilder(SwApplication app, IIconsCreator iconsConv, IHelpLinkHandler helpLinkHandler, SwPropertyManagerPageHandler handler, IPageSpec pageSpec, IXLogger logger)
-            : this(app, new PmpTypeDataBinder(logger),
+        internal PropertyManagerPageBuilder(SwApplication app, IIconsCreator iconsConv, IHelpLinkHandler helpLinkHandler, IDynamicControlFactoryProvider dynCtrlFactProv,
+            SwPropertyManagerPageHandler handler, IPageSpec pageSpec, IXLogger logger)
+            : this(app, new PmpTypeDataBinder(dynCtrlFactProv, logger),
                   new PropertyManagerPageConstructor(app, iconsConv, helpLinkHandler, handler),
                   new PropertyManagerPageGroupControlConstructor(app, iconsConv),
                   new PropertyManagerPageTextBoxControlConstructor(app, iconsConv),

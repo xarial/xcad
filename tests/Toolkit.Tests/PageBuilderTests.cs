@@ -14,6 +14,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad;
 using Xarial.XCad.Base;
+using Xarial.XCad.Services;
+using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder;
 using Xarial.XCad.Utils.PageBuilder.Attributes;
@@ -127,11 +130,11 @@ namespace Toolkit.Tests
             }
         }
 
-        public class PageBuilderMock : Xarial.XCad.Utils.PageBuilder.PageBuilderBase<PageMock, GroupMock, ControlMock>
+        public class PageBuilderMock : PageBuilderBase<PageMock, GroupMock, ControlMock>
         {
             public PageBuilderMock(Func<int> idRangeSelector = null)
                 : base(new Moq.Mock<IXApplication>().Object,
-                      new TypeDataBinder(new Mock<IXLogger>().Object), 
+                      new TypeDataBinder(new DefaultDynamicControlFactoryProvider(), new Mock<IXLogger>().Object), 
                       new PageMockConstructor(),
                       new ControlMockConstructor(idRangeSelector))
             {
@@ -151,7 +154,7 @@ namespace Toolkit.Tests
         public void CreatePageIdsTest()
         {
             var builder = new PageBuilderMock();
-            var page = builder.CreatePage<DataModel1>(new Mock<IContextProvider>().Object);
+            var page = builder.CreatePage<DataModel1>(new Mock<IXPropertyPage<DataModel1>>().Object, new Mock<IContextProvider>().Object);
 
             Assert.AreEqual(3, page.Controls.Count);
             Assert.AreEqual(0, page.Controls[0].Id);
@@ -175,7 +178,7 @@ namespace Toolkit.Tests
                 ctrlIndex++;
                 return idRange;
             });
-            var page = builder.CreatePage<DataModel1>(new Mock<IContextProvider>().Object);
+            var page = builder.CreatePage<DataModel1>(new Mock<IXPropertyPage<DataModel1>>().Object, new Mock<IContextProvider>().Object);
 
             Assert.AreEqual(3, page.Controls.Count);
             Assert.AreEqual(0, page.Controls[0].Id);

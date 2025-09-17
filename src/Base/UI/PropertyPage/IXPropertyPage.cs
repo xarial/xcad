@@ -13,10 +13,9 @@ using Xarial.XCad.UI.PropertyPage.Delegates;
 namespace Xarial.XCad.UI.PropertyPage
 {
     /// <summary>
-    /// Represents native proeprty page to manage entity parameters
+    /// Represents native preeprty page to manage entity parameters
     /// </summary>
-    /// <typeparam name="TDataModel"></typeparam>
-    public interface IXPropertyPage<TDataModel>
+    public interface IXPropertyPage 
     {
         /// <summary>
         /// Fired when the data is changed (i.e. text box changed, combobox selection changed etc.)
@@ -65,17 +64,6 @@ namespace Xarial.XCad.UI.PropertyPage
         bool IsPinned { get; set; }
 
         /// <summary>
-        /// Data model of the current page
-        /// </summary>
-        TDataModel Model { get; }
-
-        /// <summary>
-        /// Opens the property page with the specified data model
-        /// </summary>
-        /// <param name="model">Pointer to an instance of the bound data model</param>
-        void Show(TDataModel model);
-
-        /// <summary>
         /// Closes the current page
         /// </summary>
         /// <param name="cancel">Cancel the current page or OK</param>
@@ -88,5 +76,21 @@ namespace Xarial.XCad.UI.PropertyPage
         /// <remarks>This can be useful if some of the operations cannot be completed while proeprty page is open.
         /// This will closes the page without the notification and restores its</remarks>
         IDisposable Suppress();
+    }
+
+    /// <inheritdoc/>
+    /// <typeparam name="TDataModel"/>
+    public interface IXPropertyPage<TDataModel> : IXPropertyPage
+    {
+        /// <summary>
+        /// Data model of the current page
+        /// </summary>
+        TDataModel Model { get; }
+
+        /// <summary>
+        /// Opens the property page with the specified data model
+        /// </summary>
+        /// <param name="model">Pointer to an instance of the bound data model</param>
+        void Show(TDataModel model);
     }
 }

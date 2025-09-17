@@ -30,6 +30,7 @@ using Xarial.XCad.Utils.PageBuilder;
 using Xarial.XCad.Utils.Reflection;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Services;
+using Xarial.XCad.Services;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
@@ -103,7 +104,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         private readonly IServiceProvider m_SvcProvider;
 
-        private readonly IContextProvider m_ContextProvider;
+        private readonly BaseContextProvider m_ContextProvider;
 
         private readonly IReadOnlyDictionary<int, IControl> m_Controls;
 
@@ -136,6 +137,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             var helpLinkHandler = m_SvcProvider.GetService<IHelpLinkHandler>();
 
+            var dynCtrlFactProv = m_SvcProvider.GetService<IDynamicControlFactoryProvider>();
+
             Handler = handler;
 
             ValidateHandler(Handler);
@@ -148,11 +151,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             Handler.NextPage += OnNextPage;
             Handler.Closed += OnClosed;
             Handler.Closing += OnClosing;
-            m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, helpLinkHandler, Handler, pageSpec, m_Logger);
+            m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, helpLinkHandler, dynCtrlFactProv, Handler, pageSpec, m_Logger);
 
             m_ContextProvider = new BaseContextProvider();
 
-            m_Page = m_PmpBuilder.CreatePage<TModel>(m_ContextProvider);
+            m_Page = m_PmpBuilder.CreatePage(this, m_ContextProvider);
 
             var ctrls = new Dictionary<int, IControl>();
 

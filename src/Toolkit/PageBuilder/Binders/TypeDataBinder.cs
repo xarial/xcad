@@ -12,9 +12,11 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using Xarial.XCad.Base;
+using Xarial.XCad.Services;
 using Xarial.XCad.Toolkit.PageBuilder.Binders;
 using Xarial.XCad.Toolkit.PageBuilder.Exceptions;
 using Xarial.XCad.UI.Exceptions;
+using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Delegates;
@@ -30,17 +32,21 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
     {
         private readonly IXLogger m_Logger;
 
+        private readonly IDynamicControlFactoryProvider m_DynCtrlFactProv;
+
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="logger">Logger</param>
-        public TypeDataBinder(IXLogger logger) 
+        /// <param name="dynCtrlFactProv">Provider of dynamic control factory</param>
+        public TypeDataBinder(IDynamicControlFactoryProvider dynCtrlFactProv, IXLogger logger) 
         {
+            m_DynCtrlFactProv = dynCtrlFactProv;
             m_Logger = logger;
         }
 
         /// <inheritdoc/>
-        public void Bind<TDataModel>(CreateBindingPageDelegate pageCreator,
+        public void Bind<TDataModel>(IXPropertyPage<TDataModel> prpPage, CreateBindingPageDelegate pageCreator,
             CreateBindingControlDelegate ctrlCreator,
             IContextProvider contextProvider,
             out IReadOnlyList<IBinding> bindings, out IRawDependencyGroup dependencies, out IMetadata[] metadata)
@@ -63,7 +69,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             var metadataMap = new Dictionary<object, PropertyInfoMetadata>();
             CollectMetadata(type, metadataMap, Array.Empty<PropertyInfo>(), new List<Type>(), contextProvider);
 
-            TraverseType<TDataModel>(type, new List<IControlDescriptor>(),
+            TraverseType(type, prpPage, new List<IControlDescriptor>(),
                 ctrlCreator, page, metadataMap, bindingsList, dependencies, contextProvider, ref firstCtrlId);
 
             metadata = metadataMap.Values.ToArray();
@@ -71,10 +77,19 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             OnBeforeControlsDataLoad(bindings);
         }
 
-        protected virtual void OnBeforeControlsDataLoad(IEnumerable<IBinding> bindings)
+        /// <summary>
+        /// Called before data loaded into controls
+        /// </summary>
+        /// <param name="bindings">Bindings</param>
+        protected virtual void OnBeforeControlsDataLoad(IReadOnlyList<IBinding> bindings)
         {
         }
 
+        /// <summary>
+        /// Loads page attributes
+        /// </summary>
+        /// <param name="pageType">Type of the page</param>
+        /// <param name="attSet">Current attributes</param>
         protected virtual void OnGetPageAttributeSet(Type pageType, ref IAttributeSet attSet)
         {
         }
@@ -137,7 +152,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             return CreateAttributeSet(ctrlId, name, desc, type, typeAtts.ToArray(), tag);
         }
 
-        private void TraverseType<TDataModel>(Type type, List<IControlDescriptor> parents,
+        private void TraverseType<TDataModel>(Type type, IXPropertyPage<TDataModel> prpPage, List<IControlDescriptor> parents,
                     CreateBindingControlDelegate ctrlCreator,
                     IGroup parentCtrl, IReadOnlyDictionary<object, PropertyInfoMetadata> metadata,
                     List<IBinding> bindings, IRawDependencyGroup dependencies, IContextProvider contextProvider, ref int nextCtrlId)
@@ -163,7 +178,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                 if (dynCtrlAtt != null)
                 {
                     //TODO: might need to cache factory by type
-                    var ctrlsFact = (IDynamicControlFactory)Activator.CreateInstance(dynCtrlAtt.FactoryType);
+                    var ctrlsFact = m_DynCtrlFactProv.Provide(prpPage, dynCtrlAtt.FactoryType, dynCtrlAtt.Tag);
 
                     ctrlDescriptors = (ctrlsFact.CreateControls(parentCtrl, dynCtrlAtt.Tag) ?? Array.Empty<IControlDescriptor>())
                         .Select(c => new ControlDescriptorWrapper(c, prp)).ToArray();
@@ -289,7 +304,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                                 ctrlDesc
                             };
 
-                            TraverseType<TDataModel>(prpType, grpParents, ctrlCreator,
+                            TraverseType(prpType, prpPage, grpParents, ctrlCreator,
                                 ctrl as IGroup, metadata, bindings, dependencies, contextProvider, ref nextCtrlId);
                         }
                     }

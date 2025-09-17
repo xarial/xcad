@@ -11,10 +11,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Base;
+using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Binders;
+using static Toolkit.Tests.PageBuilderTests;
 
 namespace Toolkit.Tests
 {
@@ -50,12 +53,12 @@ namespace Toolkit.Tests
         [Test]
         public void TestBindSimple()
         {
-            var binder = new TypeDataBinder(new Mock<IXLogger>().Object);
+            var binder = new TypeDataBinder(new DefaultDynamicControlFactoryProvider(), new Mock<IXLogger>().Object);
             IReadOnlyList<IBinding> bindings;
 
             IRawDependencyGroup dependencies;
 
-            binder.Bind<DataModelMock1>(
+            binder.Bind<DataModelMock1>(new Mock<IXPropertyPage<DataModelMock1>>().Object,
                 a =>
                 {
                     return new Mock<IPage>().Object;
@@ -85,12 +88,12 @@ namespace Toolkit.Tests
         [Test]
         public void TestBindGroup()
         {
-            var binder = new TypeDataBinder(new Mock<IXLogger>().Object);
+            var binder = new TypeDataBinder(new DefaultDynamicControlFactoryProvider(), new Mock<IXLogger>().Object);
             IReadOnlyList<IBinding> bindings;
 
             IRawDependencyGroup dependencies;
 
-            binder.Bind<DataModelMock2>(
+            binder.Bind<DataModelMock2>(new Mock<IXPropertyPage<DataModelMock2>>().Object,
                 a =>
                 {
                     return new Mock<IPage>().Object;
@@ -143,7 +146,7 @@ namespace Toolkit.Tests
         [Test]
         public void TestBindParent()
         {
-            var binder = new TypeDataBinder(new Mock<IXLogger>().Object);
+            var binder = new TypeDataBinder(new DefaultDynamicControlFactoryProvider(), new Mock<IXLogger>().Object);
             IReadOnlyList<IBinding> bindings;
 
             IPage page = null;
@@ -154,7 +157,7 @@ namespace Toolkit.Tests
 
             IRawDependencyGroup dependencies;
 
-            binder.Bind<DataModelMock3>(
+            binder.Bind<DataModelMock3>(new Mock<IXPropertyPage<DataModelMock3>>().Object,
                 a =>
                 {
                     page = new Moq.Mock<IPage>().Object;
@@ -208,14 +211,14 @@ namespace Toolkit.Tests
         [Test]
         public void TestBindIds()
         {
-            var binder = new TypeDataBinder(new Mock<IXLogger>().Object);
+            var binder = new TypeDataBinder(new DefaultDynamicControlFactoryProvider(), new Mock<IXLogger>().Object);
             IReadOnlyList<IBinding> bindings;
 
             IPage page = null;
             
             IRawDependencyGroup dependencies;
 
-            binder.Bind<DataModelMock1>(
+            binder.Bind<DataModelMock1>(new Mock<IXPropertyPage<DataModelMock1>>().Object,
                 a =>
                 {
                     page = new Mock<IPage>().Object;

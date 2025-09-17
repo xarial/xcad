@@ -428,6 +428,7 @@ namespace Xarial.XCad.SolidWorks
                 customServices.Add<IInterferencesProvider, InterferencesProvider>(ServiceLifetimeScope_e.Singleton, false);
                 customServices.Add<ICustomGraphicsContextProvider, OglCustomGraphicsContextProvider>(ServiceLifetimeScope_e.Singleton, false);
                 customServices.Add<IProgressUserCancellationHandler>(() => new DefaultProgressUserCancellationHandler(Logger), ServiceLifetimeScope_e.Singleton, false);
+                customServices.Add<IDynamicControlFactoryProvider, DefaultDynamicControlFactoryProvider>(ServiceLifetimeScope_e.Singleton, false);
 
                 ConfigureServices?.Invoke(this, customServices);
             }

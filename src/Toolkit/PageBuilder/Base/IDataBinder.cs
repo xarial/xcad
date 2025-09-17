@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Delegates;
 
@@ -40,13 +41,14 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
         /// Binds data model to control
         /// </summary>
         /// <typeparam name="TDataModel">Data model type</typeparam>
+        /// <param name="prpPage">Property page</param>
         /// <param name="pageCreator">Page factory</param>
         /// <param name="ctrlCreator">Control factory</param>
         /// <param name="modelSetter">Context provider for the model</param>
         /// <param name="bindings">Bindings</param>
         /// <param name="dependencies">Dependencies</param>
         /// <param name="metadata">Metadata</param>
-        void Bind<TDataModel>(CreateBindingPageDelegate pageCreator,
+        void Bind<TDataModel>(IXPropertyPage<TDataModel> prpPage, CreateBindingPageDelegate pageCreator,
             CreateBindingControlDelegate ctrlCreator, IContextProvider modelSetter,
             out IReadOnlyList<IBinding> bindings, out IRawDependencyGroup dependencies, out IMetadata[] metadata);
     }
