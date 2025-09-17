@@ -27,6 +27,9 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
         public event Action<IBinding> ModelUpdated;
 
         /// <inheritdoc/>
+        public abstract IControlDescriptor ControlDescriptor { get; }
+
+        /// <inheritdoc/>
         public IControl Control { get; }
 
         /// <inheritdoc/>

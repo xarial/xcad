@@ -55,9 +55,9 @@ namespace Xarial.XCad.SolidWorks
         new ISwApplication Application { get; }
         new ISwCommandManager CommandManager { get; }
 
-        new ISwPropertyManagerPage<TData> CreatePage<TData>(CreateDynamicControlsDelegate createDynCtrlHandler = null);
+        new ISwPropertyManagerPage<TData> CreatePage<TData>();
         
-        ISwPropertyManagerPage<TData> CreatePage<TData, THandler>(CreateDynamicControlsDelegate createDynCtrlHandler = null)
+        ISwPropertyManagerPage<TData> CreatePage<TData, THandler>()
                 where THandler : SwPropertyManagerPageHandler, new();
         
         ISwModelViewTab<TControl> CreateDocumentTab<TControl>(ISwDocument doc);
@@ -386,22 +386,21 @@ namespace Xarial.XCad.SolidWorks
             GC.WaitForPendingFinalizers();
         }
 
-        IXPropertyPage<TData> IXExtension.CreatePage<TData>(CreateDynamicControlsDelegate createDynCtrlHandler)
-            => CreatePropertyManagerPage<TData>(typeof(TData), createDynCtrlHandler);
+        IXPropertyPage<TData> IXExtension.CreatePage<TData>()
+            => CreatePropertyManagerPage<TData>(typeof(TData));
 
-        public ISwPropertyManagerPage<TData> CreatePage<TData>(CreateDynamicControlsDelegate createDynCtrlHandler = null)
-            => CreatePropertyManagerPage<TData>(typeof(TData), createDynCtrlHandler);
+        public ISwPropertyManagerPage<TData> CreatePage<TData>()
+            => CreatePropertyManagerPage<TData>(typeof(TData));
 
-        public ISwPropertyManagerPage<TData> CreatePage<TData, THandler>(CreateDynamicControlsDelegate createDynCtrlHandler = null)
+        public ISwPropertyManagerPage<TData> CreatePage<TData, THandler>()
             where THandler : SwPropertyManagerPageHandler, new()
-            => CreatePropertyManagerPage<TData>(typeof(THandler), createDynCtrlHandler);
+            => CreatePropertyManagerPage<TData>(typeof(THandler));
 
-        private ISwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType, 
-            CreateDynamicControlsDelegate createDynCtrlHandler)
+        private ISwPropertyManagerPage<TData> CreatePropertyManagerPage<TData>(Type handlerType)
         {
             var handler = m_SvcProvider.GetService<IPropertyPageHandlerProvider>().CreateHandler(Application, handlerType);
 
-            var page = new SwPropertyManagerPage<TData>(m_Application, m_SvcProvider, handler, createDynCtrlHandler);
+            var page = new SwPropertyManagerPage<TData>(m_Application, m_SvcProvider, handler);
             page.Disposed += OnItemDisposed;
             m_Disposables.Add(page);
             return page;

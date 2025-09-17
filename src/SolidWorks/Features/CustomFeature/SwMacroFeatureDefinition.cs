@@ -647,7 +647,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
             m_Editor = new Lazy<SwMacroFeatureEditor<TParams, TPage>>(() => 
             {
-                var page = new SwPropertyManagerPage<TPage>(Application, Services, CreatePageHandler(), CreateDynamicControls);
+                var page = new SwPropertyManagerPage<TPage>(Application, Services, CreatePageHandler());
 
                 var editor = new SwMacroFeatureEditor<TParams, TPage>(
                     Application, this.GetType(),
@@ -805,9 +805,6 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         public virtual void OnPreviewUpdated(IXApplication app, IXDocument doc, IXCustomFeature<TParams> feat, TPage page)
         {
         }
-
-        /// <inheritdoc/>
-        public virtual IControlDescriptor[] CreateDynamicControls(IGroup parent, object tag) => null;
 
         /// <inheritdoc/>
         public virtual void OnAssignPreviewBodyColor(IXCustomFeature<TParams> feat, IXBody body, out System.Drawing.Color color)

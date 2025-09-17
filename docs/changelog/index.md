@@ -10,6 +10,7 @@ Breaking change is marked with &#x26A0; symbol
 
 ## 0.9.0 -
 
+* Dynamic control factory is set via **DynamicControlsAttribute::FactoryType** instead of the delegate of **IXExtension::CreatePage** method
 * **HelpAttribute** no longer handles relative path for the help and what's new link. Register custom **IHelpLinkHandler** instead
 * &#x26A0; IXDocument::Title is renamed to IXDocument::Name
 * &#x26A0; StandardSelectionColor_e enumeration is renamed to SystemColor_e

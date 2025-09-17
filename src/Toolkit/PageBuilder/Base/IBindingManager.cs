@@ -10,12 +10,33 @@ using Xarial.XCad.UI.PropertyPage.Base;
 
 namespace Xarial.XCad.Utils.PageBuilder.Base
 {
+    /// <summary>
+    /// Manages binding of <see cref="IPage"/>
+    /// </summary>
     public interface IBindingManager
     {
-        IEnumerable<IBinding> Bindings { get; }
+        /// <summary>
+        /// List of bindings
+        /// </summary>
+        IReadOnlyList<IBinding> Bindings { get; }
+
+        /// <summary>
+        /// Dependencies manager
+        /// </summary>
         IDependencyManager Dependency { get; }
+
+        /// <summary>
+        /// Metadata
+        /// </summary>
         IMetadata[] Metadata { get; }
 
-        void Load(IXApplication app, IEnumerable<IBinding> bindings, IRawDependencyGroup dependencies, IMetadata[] metadata);
+        /// <summary>
+        /// Loads bindings and dependencies
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="bindings">Bindings</param>
+        /// <param name="dependencies">Dependencies</param>
+        /// <param name="metadata">Metadata</param>
+        void Load(IXApplication app, IReadOnlyList<IBinding> bindings, IRawDependencyGroup dependencies, IMetadata[] metadata);
     }
 }

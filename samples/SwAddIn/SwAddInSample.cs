@@ -232,7 +232,7 @@ namespace SwAddInExample
 
             public object GetValue(object context)
             {
-                var dict = context as Dictionary<string, object>;
+                var dict = (Dictionary<string, object>)context;
                 
                 if (!dict.TryGetValue(Name, out object val)) 
                 {
@@ -244,7 +244,7 @@ namespace SwAddInExample
 
             public void SetValue(object context, object value)
             {
-                var dict = context as Dictionary<string, object>;
+                var dict = (Dictionary<string, object>)context;
                 dict[Name] = value;
             }
         }
@@ -539,34 +539,6 @@ namespace SwAddInExample
         {
         }
 
-        private IControlDescriptor[] OnCreateDynamicControls(IGroup parent, object tag)
-        {
-            return new IControlDescriptor[]
-            {
-                new DictionaryControl()
-                {
-                    DataType = typeof(string),
-                    Name = "A",
-                    Attributes = new Xarial.XCad.UI.PropertyPage.Base.IAttribute[]
-                    {
-                        new ControlOptionsAttribute(backgroundColor: System.Drawing.KnownColor.Yellow)
-                    }
-                },
-                new DictionaryControl()
-                {
-                    DataType = typeof(ContextMenuCommands_e),
-                    Name = "B"
-                },
-                new DictionaryControl()
-                {
-                    DataType = typeof(int),
-                    Name = "C",
-                    Icon = ResourceHelper.GetResource<IXImage>(typeof(Resources), nameof(Resources.xarial)),
-                    Description = ""
-                }
-            };
-        }
-
         private void OnPageClosed(PageCloseReasons_e reason)
         {
         }
@@ -644,7 +616,7 @@ namespace SwAddInExample
                             m_Page.Preview -= OnPagePreview;
                             m_Page.Closed -= OnPageClosed;
                         }
-                        m_Page = this.CreatePage<PmpData>(OnCreateDynamicControls);
+                        m_Page = this.CreatePage<PmpData>();
                         m_Page.Closed += OnPageClosed;
                         m_Page.Navigate += OnNavigate;
                         m_Page.KeystrokeHook += OnPageKeystrokeHook;

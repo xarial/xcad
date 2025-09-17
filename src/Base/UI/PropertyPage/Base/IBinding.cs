@@ -8,7 +8,7 @@
 using System;
 using Xarial.XCad.UI.PropertyPage.Base;
 
-namespace Xarial.XCad.Utils.PageBuilder.Base
+namespace Xarial.XCad.UI.PropertyPage.Base
 {
     /// <summary>
     /// Represents binding between UI control and data model
@@ -39,6 +39,11 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
         /// Metadata associated with this binding
         /// </summary>
         IMetadata[] Metadata { get; }
+
+        /// <summary>
+        /// Descriptor of the control
+        /// </summary>
+        IControlDescriptor ControlDescriptor { get; }
 
         /// <summary>
         /// Control associated with the binding

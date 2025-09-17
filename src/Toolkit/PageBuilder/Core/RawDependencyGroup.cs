@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using Xarial.XCad.Toolkit.PageBuilder.Exceptions;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.Utils.PageBuilder.Base;
@@ -48,7 +49,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             }
             else
             {
-                throw new Exception($"Tag is not unique '{tag}'");
+                throw new DuplicateTagException(tag);
             }
         }
 

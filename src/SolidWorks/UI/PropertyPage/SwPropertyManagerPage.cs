@@ -99,6 +99,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             set => m_Page.Page.Pinned = value;
         }
 
+        public IReadOnlyList<IBinding> Bindings => m_Page.Binding.Bindings;
+
         private readonly IServiceProvider m_SvcProvider;
 
         private readonly IContextProvider m_ContextProvider;
@@ -115,14 +117,12 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
         /// <summary>Creates instance of property manager page</summary>
         /// <param name="app">Pointer to session of SOLIDWORKS where the property manager page to be created</param>
-        internal SwPropertyManagerPage(SwApplication app, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
-            CreateDynamicControlsDelegate createDynCtrlHandler)
-            : this(app, null, svcProvider, handler, createDynCtrlHandler)
+        internal SwPropertyManagerPage(SwApplication app, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler)
+            : this(app, null, svcProvider, handler)
         {
         }
 
-        internal SwPropertyManagerPage(SwApplication app, IPageSpec pageSpec, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler,
-            CreateDynamicControlsDelegate createDynCtrlHandler)
+        internal SwPropertyManagerPage(SwApplication app, IPageSpec pageSpec, IServiceProvider svcProvider, SwPropertyManagerPageHandler handler)
         {
             m_App = app;
 
@@ -152,7 +152,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             m_ContextProvider = new BaseContextProvider();
 
-            m_Page = m_PmpBuilder.CreatePage<TModel>(createDynCtrlHandler, m_ContextProvider);
+            m_Page = m_PmpBuilder.CreatePage<TModel>(m_ContextProvider);
 
             var ctrls = new Dictionary<int, IControl>();
 

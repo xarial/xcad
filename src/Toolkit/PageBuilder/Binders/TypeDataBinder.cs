@@ -23,19 +23,27 @@ using Xarial.XCad.Utils.PageBuilder.Core;
 
 namespace Xarial.XCad.Utils.PageBuilder.Binders
 {
+    /// <summary>
+    /// Type-based data binder
+    /// </summary>
     public class TypeDataBinder : IDataModelBinder
     {
         private readonly IXLogger m_Logger;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="logger">Logger</param>
         public TypeDataBinder(IXLogger logger) 
         {
             m_Logger = logger;
         }
 
+        /// <inheritdoc/>
         public void Bind<TDataModel>(CreateBindingPageDelegate pageCreator,
-            CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator,
+            CreateBindingControlDelegate ctrlCreator,
             IContextProvider contextProvider,
-            out IEnumerable<IBinding> bindings, out IRawDependencyGroup dependencies, out IMetadata[] metadata)
+            out IReadOnlyList<IBinding> bindings, out IRawDependencyGroup dependencies, out IMetadata[] metadata)
         {
             var type = typeof(TDataModel);
 
@@ -53,10 +61,10 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
             dependencies = new RawDependencyGroup();
 
             var metadataMap = new Dictionary<object, PropertyInfoMetadata>();
-            CollectMetadata(type, metadataMap, new PropertyInfo[0], new List<Type>(), contextProvider);
+            CollectMetadata(type, metadataMap, Array.Empty<PropertyInfo>(), new List<Type>(), contextProvider);
 
             TraverseType<TDataModel>(type, new List<IControlDescriptor>(),
-                ctrlCreator, dynCtrlDescCreator, page, metadataMap, bindingsList, dependencies, contextProvider, ref firstCtrlId);
+                ctrlCreator, page, metadataMap, bindingsList, dependencies, contextProvider, ref firstCtrlId);
 
             metadata = metadataMap.Values.ToArray();
 
@@ -95,9 +103,9 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
             var type = prp.DataType;
 
-            var typeAtts = (type.GetCustomAttributes(true) ?? new object[0]).OfType<IAttribute>();
+            var typeAtts = (type.GetCustomAttributes(true) ?? Array.Empty<object>()).OfType<IAttribute>();
 
-            var prpAtts = prp.Attributes ?? new IAttribute[0];
+            var prpAtts = prp.Attributes ?? Array.Empty<IAttribute>();
 
             name = prp.DisplayName;
             desc = prp.Description;
@@ -113,7 +121,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         private IAttributeSet GetAttributeSet(Type type, int ctrlId)
         {
-            var customAtts = type.GetCustomAttributes(true) ?? new object[0];
+            var customAtts = type.GetCustomAttributes(true) ?? Array.Empty<object>();
 
             var typeAtts = customAtts.OfType<IAttribute>();
 
@@ -130,7 +138,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
         }
 
         private void TraverseType<TDataModel>(Type type, List<IControlDescriptor> parents,
-                    CreateBindingControlDelegate ctrlCreator, CreateDynamicControlsDelegate dynCtrlDescCreator,
+                    CreateBindingControlDelegate ctrlCreator,
                     IGroup parentCtrl, IReadOnlyDictionary<object, PropertyInfoMetadata> metadata,
                     List<IBinding> bindings, IRawDependencyGroup dependencies, IContextProvider contextProvider, ref int nextCtrlId)
         {
@@ -154,16 +162,11 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
                 if (dynCtrlAtt != null)
                 {
-                    if (dynCtrlDescCreator != null)
-                    {
-                        ctrlDescriptors = dynCtrlDescCreator.Invoke(parentCtrl, dynCtrlAtt.Tag) ?? Array.Empty<IControlDescriptor>();
-                    }
-                    else 
-                    {
-                        throw new DynamicControlHandlerMissingException(prp);
-                    }
+                    //TODO: might need to cache factory by type
+                    var ctrlsFact = (IDynamicControlFactory)Activator.CreateInstance(dynCtrlAtt.FactoryType);
 
-                    ctrlDescriptors = ctrlDescriptors.Select(d => new ControlDescriptorWrapper(d, prp)).ToArray();
+                    ctrlDescriptors = (ctrlsFact.CreateControls(parentCtrl, dynCtrlAtt.Tag) ?? Array.Empty<IControlDescriptor>())
+                        .Select(c => new ControlDescriptorWrapper(c, prp)).ToArray();
                 }
                 else 
                 {
@@ -286,7 +289,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                                 ctrlDesc
                             };
 
-                            TraverseType<TDataModel>(prpType, grpParents, ctrlCreator, dynCtrlDescCreator,
+                            TraverseType<TDataModel>(prpType, grpParents, ctrlCreator,
                                 ctrl as IGroup, metadata, bindings, dependencies, contextProvider, ref nextCtrlId);
                         }
                     }

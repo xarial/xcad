@@ -28,10 +28,8 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
     {
         private readonly IList<IControlDescriptor> m_Parents;
 
-        /// <summary>
-        /// Descriptor of the control
-        /// </summary>
-        public IControlDescriptor ControlDescriptor { get; }
+        /// <inheritdoc/>
+        public override IControlDescriptor ControlDescriptor { get; }
 
         private readonly IMetadata[] m_Metadata;
 

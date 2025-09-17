@@ -54,7 +54,7 @@ namespace Xarial.XCad.Utils.PageBuilder
             m_ControlConstructors = new ConstructorsContainer<TPage, TGroup>(ctrlsContstrs);
         }
 
-        public virtual TPage CreatePage<TModel>(CreateDynamicControlsDelegate dynCtrlsHandler, IContextProvider modelProvider)
+        public virtual TPage CreatePage<TModel>(IContextProvider modelProvider)
         {
             var page = default(TPage);
 
@@ -68,8 +68,8 @@ namespace Xarial.XCad.Utils.PageBuilder
                 {
                     numberOfUsedIds = 1;
                     return m_ControlConstructors.CreateElement(type, parent, atts, metadata, ref numberOfUsedIds);
-                }, dynCtrlsHandler, modelProvider,
-                    out IEnumerable<IBinding> bindings,
+                }, modelProvider,
+                    out IReadOnlyList<IBinding> bindings,
                     out IRawDependencyGroup dependencies,
                     out IMetadata[] allMetadata);
 

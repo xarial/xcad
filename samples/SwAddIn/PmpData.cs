@@ -31,6 +31,9 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Attributes;
 using SolidWorks.Interop.swconst;
 using SwAddIn.Properties;
+using static SwAddInExample.SwAddInSample;
+using Xarial.XCad.Reflection;
+using Xarial.XCad.UI;
 
 namespace SwAddInExample
 {
@@ -282,6 +285,37 @@ namespace SwAddInExample
             public List<int> ListBox3 { get; set; }
         }
 
+        public class TestDynamicControlFactory : IDynamicControlFactory
+        {
+            public IControlDescriptor[] CreateControls(IGroup parent, object tag)
+            {
+                return new IControlDescriptor[]
+                {
+                    new DictionaryControl()
+                    {
+                        DataType = typeof(string),
+                        Name = "A",
+                        Attributes = new IAttribute[]
+                        {
+                            new ControlOptionsAttribute(backgroundColor: System.Drawing.KnownColor.Yellow)
+                        }
+                    },
+                    new DictionaryControl()
+                    {
+                        DataType = typeof(ContextMenuCommands_e),
+                        Name = "B"
+                    },
+                    new DictionaryControl()
+                    {
+                        DataType = typeof(int),
+                        Name = "C",
+                        Icon = ResourceHelper.GetResource<IXImage>(typeof(Resources), nameof(Resources.xarial)),
+                        Description = ""
+                    }
+                };
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         //[SelectionBoxOptions(Filters = new Type[] { typeof(IXFace) })]
@@ -341,7 +375,7 @@ namespace SwAddInExample
         [Description("Sample button")]
         public Action Button1 { get; }
 
-        [DynamicControls("_Test_")]
+        [DynamicControls(typeof(TestDynamicControlFactory), "_Test_")]
         public Dictionary<string, object> DynamicControls { get; }
 
         //public List<string> List { get; set; }

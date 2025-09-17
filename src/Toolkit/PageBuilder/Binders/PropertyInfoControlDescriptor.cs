@@ -15,7 +15,7 @@ using Xarial.XCad.UI.PropertyPage.Base;
 
 namespace Xarial.XCad.Utils.PageBuilder.Binders
 {
-    public class PropertyInfoControlDescriptor : IControlDescriptor
+    internal class PropertyInfoControlDescriptor : IControlDescriptor
     {
         public string Name => m_PrpInfo.Name;
         public IAttribute[] Attributes { get; }
@@ -35,7 +35,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         private readonly PropertyInfo m_PrpInfo;
 
-        public PropertyInfoControlDescriptor(PropertyInfo prpInfo) 
+        internal PropertyInfoControlDescriptor(PropertyInfo prpInfo) 
         {
             m_PrpInfo = prpInfo;
 

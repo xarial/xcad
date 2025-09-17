@@ -6,6 +6,8 @@
 //*********************************************************************
 
 using System;
+using System.Collections.Generic;
+using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Delegates;
 
 namespace Xarial.XCad.UI.PropertyPage
@@ -50,6 +52,11 @@ namespace Xarial.XCad.UI.PropertyPage
         /// Raised when navigation button is clicked
         /// </summary>
         event PageNavigationDelegate Navigate;
+
+        /// <summary>
+        /// Daat bindings
+        /// </summary>
+        IReadOnlyList<IBinding> Bindings { get; }
 
         /// <summary>
         /// Checks if page is pinned
