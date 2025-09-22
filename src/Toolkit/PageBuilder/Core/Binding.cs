@@ -82,5 +82,15 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             ModelUpdated?.Invoke(this);
             RaiseChangedEvent();
         }
+
+        /// <inheritdoc/>
+        public void SetValue(string val)
+        {
+            //TODO: might need to refactor this and use IControlDescriptor::SetValue
+            Control.SetValue(val);
+            RaiseChangedEvent();
+            UpdateDataModel();
+            UpdateControl();
+        }
     }
 }

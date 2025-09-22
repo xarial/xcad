@@ -15,7 +15,7 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 namespace Xarial.XCad.UI.PropertyPage.Delegates
 {
     /// <summary>
-    /// Delegate of <see cref="IXPropertyPage{TDataModel}.Undo"/>
+    /// Delegate of <see cref="IXPropertyPage.Undo"/>
     /// </summary>
     /// <param name="action">Undo action type</param>
     public delegate void PageUndoDelegate(PageUndoRedoAction_e action);

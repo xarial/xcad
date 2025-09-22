@@ -31,7 +31,7 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         event Action<IBinding> ControlUpdated;
 
         /// <summary>
-        /// Indicates that this binding is silent and <see cref="UI.PropertyPage.IXPropertyPage{TDataModel}.DataChanged"/> should not be raised
+        /// Indicates that this binding is silent and <see cref="IXPropertyPage.DataChanged"/> should not be raised
         /// </summary>
         bool Silent { get; }
 
@@ -59,5 +59,11 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         /// Updated data model
         /// </summary>
         void UpdateDataModel();
+
+        /// <summary>
+        /// Sets the value for the binding
+        /// </summary>
+        /// <param name="val">Value</param>
+        void SetValue(string val);
     }
 }
