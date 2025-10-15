@@ -26,6 +26,7 @@ using Xarial.XCad.SolidWorks.Features;
 using Xarial.XCad.SolidWorks.Geometry.Exceptions;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Exceptions;
+using Xarial.XCad.Utils;
 
 namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 {
@@ -351,7 +352,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
 
                 var x = GetDirection(axesLines[0], pt1);
                 var y = GetDirection(axesLines[1], pt1);
-                var z = GetDirection(axesLines[2], pt1);
+                var z = x.Cross(y);
 
                 double unitConvFactor = 1;
 

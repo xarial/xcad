@@ -520,6 +520,7 @@ namespace SwAddInExample
         }
 
         [ComboBox(ItemsSource = nameof(List1))]
+        [ComboBoxOptions(ComboBoxStyle_e.EditableText)]
         public MyItem Option3Default { get; set; }
 
         [ComboBox(ItemsSource = nameof(List1))]
@@ -539,6 +540,7 @@ namespace SwAddInExample
         public int Option4Default { get; set; }
 
         [ComboBox(1, 2, 3)]
+        [ComboBoxOptions(ComboBoxStyle_e.EditableText)]
         public int Option4Set { get; set; }
 
         [ComboBox(typeof(MyCustomItemsProvider), nameof(Option4Default))]
@@ -549,6 +551,10 @@ namespace SwAddInExample
 
         [ComboBox(typeof(MyCustomItems1Provider), nameof(Option3Set), Parameter = "TestParam")]
         public string Option6 { get; set; }
+
+        [ComboBox("A", "B", "C")]
+        [ComboBoxOptions(ComboBoxStyle_e.EditableText)]
+        public string Option7Set { get; set; }
 
         public Action Button { get; }
 
@@ -566,6 +572,7 @@ namespace SwAddInExample
             m_Option3Set = MyItem.All.Last();
             Option4Set = 2;
             Option5Set = MyItem.All.Last();
+            Option7Set = "X";
 
             //Option1Set = new MyItem() { Name = "_", Id = -1 };
             //Option2Set = (Opts)5;

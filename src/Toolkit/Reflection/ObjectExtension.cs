@@ -9,9 +9,19 @@ using System;
 
 namespace Xarial.XCad.Utils.Reflection
 {
-    internal static class ObjectExtension
+    /// <summary>
+    /// Extension methods of <see cref="object"/>
+    /// </summary>
+    public static class ObjectExtension
     {
-        internal static object Cast(this object value, Type type)
+        /// <summary>
+        /// Casts object to specific type
+        /// </summary>
+        /// <param name="value">value</param>
+        /// <param name="type">Taget type</param>
+        /// <returns>Cast value</returns>
+        /// <exception cref="InvalidCastException"></exception>
+        public static object Cast(this object value, Type type)
         {
             object destVal = null;
 

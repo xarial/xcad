@@ -40,6 +40,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         internal event Action<int, bool> CheckChanged;
         internal event Action<int, int> SelectionChanged;
         internal event Action<int, int> ComboBoxChanged;
+        internal event Action<int, string> ComboBoxEditChanged;
         internal event Action<int, int> ListBoxChanged;
         internal event Action<int> OptionChecked;
         internal event Action<int> ButtonPressed;
@@ -186,8 +187,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void OnComboboxEditChanged(int Id, string Text)
-        {
-        }
+            => ComboBoxEditChanged?.Invoke(Id, Text);
 
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]

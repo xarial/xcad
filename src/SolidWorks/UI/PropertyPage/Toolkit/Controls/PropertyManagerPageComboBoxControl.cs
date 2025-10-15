@@ -7,6 +7,7 @@
 
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using System;
 using System.Linq;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Attributes;
@@ -14,6 +15,7 @@ using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
+using Xarial.XCad.Utils.Reflection;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
@@ -30,6 +32,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_Combobox, ref numberOfUsedIds)
         {
             m_Handler.ComboBoxChanged += OnComboBoxChanged;
+            m_Handler.ComboBoxEditChanged += OnComboBoxEditChanged;
             m_Handler.Opened += OnPageOpened;
             m_Handler.PreClosed += OnPageClosed;
             m_IsPageOpened = false;
@@ -84,6 +87,19 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
+        private void OnComboBoxEditChanged(int id, string text)
+        {
+            if (Id == id)
+            {
+                if (!m_SuspendHandlingChanged)
+                {
+                    var val = (TVal)text?.Cast(typeof(TVal));
+                    m_CurrentValueCached = val;
+                    ValueChanged?.Invoke(this, val);
+                }
+            }
+        }
+
         protected override TVal GetSpecificValue()
         {
             if (!m_IsPageOpened)
@@ -92,7 +108,18 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
             else
             {
-                return GetItem(SwSpecificControl.CurrentSelection);
+                if (SwSpecificControl.CurrentSelection != -1)
+                {
+                    return GetItem(SwSpecificControl.CurrentSelection);
+                }
+                else if (IsEditableText)
+                {
+                    return (TVal)SwSpecificControl.EditText?.Cast(typeof(TVal));
+                }
+                else
+                {
+                    return GetDefaultItemValue();
+                }
             }
         }
 
@@ -102,14 +129,28 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
             var index = GetItemIndex(value);
 
-            SwSpecificControl.CurrentSelection = (short)index;
+            if (index != -1)
+            {
+                SwSpecificControl.CurrentSelection = (short)index;
+            }
+            else if (IsEditableText)
+            {
+                SwSpecificControl.EditText = value?.ToString();
+            }
+            else
+            {
+                SwSpecificControl.CurrentSelection = -1;
+            }
         }
+
+        private bool IsEditableText => ((swPropMgrPageComboBoxStyle_e)SwSpecificControl.Style).HasFlag(swPropMgrPageComboBoxStyle_e.swPropMgrPageComboBoxStyle_EditableText);
 
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
                 m_Handler.ComboBoxChanged -= OnComboBoxChanged;
+                m_Handler.ComboBoxEditChanged -= OnComboBoxEditChanged;
             }
         }
 
@@ -124,7 +165,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     SwSpecificControl.AddItems(newItems.Select(x => x.DisplayName).ToArray());
                 }
 
-                if (newItems?.Any(i => m_EqualityComparer.Equals(i.Value, m_CurrentValueCached)) != true)
+                if (newItems?.Any(i => m_EqualityComparer.Equals(i.Value, m_CurrentValueCached)) != true && !IsEditableText)
                 {
                     //if items source changed dynamically previously cached value might not fit new source
                     var defVal = GetDefaultItemValue();
