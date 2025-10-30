@@ -154,6 +154,8 @@ namespace Xarial.XCad.SolidWorks
     /// <inheritdoc/>
     internal class SwApplication : ISwApplication, IXServiceConsumer
     {
+        internal delegate ISldWorks ConnectToSwDelegate(out int addInId);
+
         #region WinApi
         [DllImport("user32.dll")]
         static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
@@ -360,6 +362,9 @@ namespace Xarial.XCad.SolidWorks
         public SwMaterialsDatabaseRepository MaterialDatabases { get; private set; }
 
         internal ISwVersionMapper VersionMapper { get; private set; }
+        internal ITooltipSpec CurrentTooltip { get; private set; }
+
+        private int? m_AddInId;
 
         internal SwApplication(ISldWorks app, IXServiceCollection customServices) 
             : this(default)
@@ -381,14 +386,19 @@ namespace Xarial.XCad.SolidWorks
         /// <summary>
         /// Only to be used within SwAddInEx
         /// </summary>
-        internal SwApplication(Action<SwApplication> startupCompletedCallback, Func<ISldWorks> swProvider,
+        internal SwApplication(Action<SwApplication> startupCompletedCallback, ConnectToSwDelegate swProvider,
             IXServiceCollection customServices) 
             : this(startupCompletedCallback)
         {
             m_CustomServices = customServices ?? new ServiceCollection();
 
             m_Creator = new ElementCreator<ISldWorks>(
-                c => swProvider.Invoke(),
+                c =>
+                {
+                    var sw = swProvider.Invoke(out var addInId);
+                    m_AddInId = addInId;
+                    return sw;
+                },
                 (s, c) => WatchStartupCompleted((SldWorks)s),
                 null, false);
         }
@@ -649,6 +659,8 @@ namespace Xarial.XCad.SolidWorks
 
         public void ShowTooltip(ITooltipSpec spec)
         {
+            CurrentTooltip = spec;
+
             IXImage icon = null;
 
             spec.GetType().TryGetAttribute<IconAttribute>(a => icon = a.Icon);
@@ -659,9 +671,35 @@ namespace Xarial.XCad.SolidWorks
             {
                 Sw.HideBubbleTooltip();
 
+                int addInId;
+                var link = spec.Link;
+                var linkName = spec.LinkName;
+                swLinkString linkType;
+
+                if (!string.IsNullOrEmpty(spec.Link) || !string.IsNullOrEmpty(linkName))
+                {
+                    if (!m_AddInId.HasValue) 
+                    {
+                        throw new Exception("Tooltip url is only supported in add-ins");
+                    }
+
+                    addInId = m_AddInId.Value;
+                    linkType = swLinkString.swLinkStringUserDefined;
+
+                    if (string.IsNullOrEmpty(linkName)) 
+                    {
+                        linkName = link;
+                    }
+                }
+                else 
+                {
+                    addInId = 0;
+                    linkType = swLinkString.swLinkStringNone;
+                }
+
                 Sw.ShowBubbleTooltipAt2(spec.Position.X, spec.Position.Y, (int)spec.ArrowPosition,
                             spec.Title, spec.Message, (int)bmpType,
-                            bmp?.FilePaths.First(), "", 0, (int)swLinkString.swLinkStringNone, "", "");
+                            bmp?.FilePaths.First(), link, addInId, (int)linkType, linkName, nameof(SwAddInEx.OnTooltipUrlClick));
             }
         }
 

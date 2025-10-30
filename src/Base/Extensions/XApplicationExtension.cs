@@ -26,12 +26,18 @@ namespace Xarial.XCad.Extensions
             public Point Position { get; }
             public TooltipArrowPosition_e ArrowPosition { get; }
 
-            internal TooltipSpec(string title, string msg, Point pt, TooltipArrowPosition_e arrPos) 
+            public string LinkName { get; }
+
+            public string Link { get; }
+
+            internal TooltipSpec(string title, string msg, Point pt, TooltipArrowPosition_e arrPos, string link, string linkName) 
             {
                 Title = title;
                 Message = msg;
                 Position = pt;
                 ArrowPosition = arrPos;
+                LinkName = linkName;
+                Link = link;
             }
         }
 
@@ -43,7 +49,9 @@ namespace Xarial.XCad.Extensions
         /// <param name="msg">Tooltip content (message)</param>
         /// <param name="pt">Tooltip position</param>
         /// <param name="arrPos">Arrow position of the tooltip</param>
-        public static void ShowTooltip(this IXApplication app, string title, string msg, Point pt, TooltipArrowPosition_e arrPos) 
-            => app.ShowTooltip(new TooltipSpec(title, msg, pt, arrPos));
+        /// <param name="link">Tooltip link</param>
+        /// <param name="linkName">User-friendly link name</param>
+        public static void ShowTooltip(this IXApplication app, string title, string msg, Point pt, TooltipArrowPosition_e arrPos, string link = "", string linkName = "") 
+            => app.ShowTooltip(new TooltipSpec(title, msg, pt, arrPos, link, linkName));
     }
 }

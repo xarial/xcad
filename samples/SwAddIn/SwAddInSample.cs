@@ -325,12 +325,17 @@ namespace SwAddInExample
             public System.Drawing.Point Position { get; }
             public TooltipArrowPosition_e ArrowPosition { get; }
 
-            internal MyTooltipSpec(string title, string msg, System.Drawing.Point pt, TooltipArrowPosition_e arrPos)
+            public string LinkName { get; }
+            public string Link { get; }
+
+            internal MyTooltipSpec(string title, string msg, System.Drawing.Point pt, TooltipArrowPosition_e arrPos, string linkName, string link)
             {
                 Title = title;
                 Message = msg;
                 Position = pt;
                 ArrowPosition = arrPos;
+                LinkName = linkName;
+                Link = link;
             }
         }
 
@@ -721,7 +726,7 @@ namespace SwAddInExample
                     case Commands_e.ShowTooltip:
                         var modelView = (Application.Documents.Active as IXDocument3D).ModelViews.Active;
                         var pt = new System.Drawing.Point(modelView.ScreenRect.Left, modelView.ScreenRect.Top);
-                        Application.ShowTooltip(new MyTooltipSpec("xCAD", "Test Message", pt, TooltipArrowPosition_e.LeftTop));
+                        Application.ShowTooltip(new MyTooltipSpec("xCAD", "Test Message", pt, TooltipArrowPosition_e.LeftTop, "Site...", "https://xarial.com"));
                         break;
 
                     case Commands_e.ShowPmpComboBox:

@@ -11,35 +11,31 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xarial.XCad.Base;
 using Xarial.XCad.Exceptions;
+using Xarial.XCad.Services;
 using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI.PropertyPage.Services;
 
 namespace Xarial.XCad.Toolkit.Services
 {
     /// <summary>
-    /// Default help link handler which executes the link
+    /// Default tooltip link handler which executes the link
     /// </summary>
-    public class HelpLinkHandler : IHelpLinkHandler
+    public class TooltipLinkLinkHandler : ITooltipLinkLinkHandler
     {
-
         private readonly IXApplication m_App;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="app">Pointer to application</param>
-        public HelpLinkHandler(IXApplication app)
+        public TooltipLinkLinkHandler(IXApplication app)
         {
             m_App = app;
         }
 
         /// <inheritdoc/>
-        public void OpenHelpLink(string link) => TryOpenLink(link);
-
-        /// <inheritdoc/>
-        public void OpenWhatsNewLink(string whatsNewLink) => TryOpenLink(whatsNewLink);
-
-        private void TryOpenLink(string link) => LinkHelper.TryOpenLink(link, m_App, nameof(IHelpLinkHandler));
+        public void OpenLink(ITooltipSpec tooltip) => LinkHelper.TryOpenLink(tooltip.Link, m_App, nameof(ITooltipLinkLinkHandler));
     }
 }

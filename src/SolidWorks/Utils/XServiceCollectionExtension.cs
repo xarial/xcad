@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xarial.XCad.Services;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Services;
 
@@ -21,6 +22,7 @@ namespace Xarial.XCad.SolidWorks.Utils
         {
             svc.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, replace);
             svc.Add<IHelpLinkHandler>(() => new HelpLinkHandler(app), ServiceLifetimeScope_e.Singleton, replace);
+            svc.Add<ITooltipLinkLinkHandler>(() => new TooltipLinkLinkHandler(app), ServiceLifetimeScope_e.Singleton, replace);
         }
     }
 }

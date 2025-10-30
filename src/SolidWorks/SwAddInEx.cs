@@ -24,6 +24,7 @@ using Xarial.XCad.Extensions;
 using Xarial.XCad.Extensions.Attributes;
 using Xarial.XCad.Extensions.Delegates;
 using Xarial.XCad.Features.CustomFeature;
+using Xarial.XCad.Services;
 using Xarial.XCad.SolidWorks.Attributes;
 using Xarial.XCad.SolidWorks.Base;
 using Xarial.XCad.SolidWorks.Documents;
@@ -137,7 +138,7 @@ namespace Xarial.XCad.SolidWorks
         private SwCommandManager m_CommandManager;
 
         /// <summary>
-        /// Add-ins cookie (id)
+        /// Add-in's cookie (id)
         /// </summary>
         protected int AddInId { get; private set; }
 
@@ -148,14 +149,21 @@ namespace Xarial.XCad.SolidWorks
 
         protected IServiceProvider m_SvcProvider;
 
+        private ITooltipLinkLinkHandler m_TooltipLinkLinkHandler;
+
         private ISldWorks m_Sw;
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public SwAddInEx()
         {   
             m_Disposables = new List<IDisposable>();
             
-            m_Application = new SwApplication(OnStartupCompleted, () =>
+            m_Application = new SwApplication(OnStartupCompleted, (out int addInId) =>
             {
+                addInId = AddInId;
+
                 if (m_Sw != null)
                 {
                     return m_Sw;
@@ -196,6 +204,7 @@ namespace Xarial.XCad.SolidWorks
                 m_SvcProvider = m_Application.Services;
 
                 Logger = m_SvcProvider.GetService<IXLogger>();
+                m_TooltipLinkLinkHandler = m_SvcProvider.GetService<ITooltipLinkLinkHandler>();
 
                 Logger.Log("Loading add-in", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
@@ -214,6 +223,13 @@ namespace Xarial.XCad.SolidWorks
                 HandleException(ex);
                 return false;
             }
+        }
+
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void OnTooltipUrlClick() 
+        {
+            m_TooltipLinkLinkHandler.OpenLink(m_Application.CurrentTooltip);
         }
 
         private void OnConfigureApplicationServices(IXServiceConsumer sender, IXServiceCollection collection)

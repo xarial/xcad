@@ -37,5 +37,15 @@ namespace Xarial.XCad.Base
         /// Position of tooltip arrow
         /// </summary>
         TooltipArrowPosition_e ArrowPosition { get; }
+
+        /// <summary>
+        /// User-friendly name of the link
+        /// </summary>
+        string LinkName { get; }
+
+        /// <summary>
+        /// Link to show in the tooltip
+        /// </summary>
+        string Link { get; }
     }
 }
