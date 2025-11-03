@@ -15,6 +15,7 @@ using Xarial.XCad.Base;
 using Xarial.XCad.Services;
 using Xarial.XCad.Toolkit.PageBuilder.Binders;
 using Xarial.XCad.Toolkit.PageBuilder.Exceptions;
+using Xarial.XCad.Toolkit.PageBuilder.Services;
 using Xarial.XCad.UI.Exceptions;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
@@ -177,7 +178,6 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
                 if (dynCtrlAtt != null)
                 {
-                    //TODO: might need to cache factory by type
                     var ctrlsFact = m_DynCtrlFactProv.Provide(prpPage, dynCtrlAtt.FactoryType, dynCtrlAtt.Tag);
 
                     ctrlDescriptors = (ctrlsFact.CreateControls(parentCtrl, dynCtrlAtt.Tag) ?? Array.Empty<IControlDescriptor>())

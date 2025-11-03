@@ -91,7 +91,7 @@ namespace Xarial.XCad.Toolkit
             }
             else
             {
-                throw new ServiceNotRegisteredException(serviceType);
+                return null;
             }
         }
 
@@ -109,9 +109,72 @@ namespace Xarial.XCad.Toolkit
         }
     }
 
+    /// <summary>
+    /// Additional methods of <see cref="IServiceProvider"/>
+    /// </summary>
     public static class IServiceProviderExtension 
     {
-        public static TService GetService<TService>(this IServiceProvider provider) 
-            => (TService)provider.GetService(typeof(TService));
+        /// <summary>
+        /// Gets specific service (if registered)
+        /// </summary>
+        /// <typeparam name="TService">Service type</typeparam>
+        /// <param name="provider">Service provider</param>
+        /// <returns>Instance of the service</returns>
+        /// <exception cref="ServiceNotRegisteredException">Service is not registered</exception>
+        public static TService GetService<TService>(this IServiceProvider provider)
+        {
+            if (provider.TryGetService<TService>(out var svc))
+            {
+                return svc;
+            }
+            else 
+            {
+                throw new ServiceNotRegisteredException(typeof(TService));
+            }
+        }
+
+        /// <summary>
+        /// Tries to get specific service
+        /// </summary>
+        /// <typeparam name="TService">Service type</typeparam>
+        /// <param name="provider">Service provider</param>
+        /// <param name="service">Instance of the service</param>
+        /// <returns>True if service is registered, False if servcice is not registered</returns>
+        public static bool TryGetService<TService>(this IServiceProvider provider, out TService service)
+        {
+            if (TryGetService(provider, typeof(TService), out var svc))
+            {
+                service = (TService)svc;
+                return true;
+            }
+            else 
+            {
+                service = default;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Tries to get specific service
+        /// </summary>
+        /// <param name="serviceType">Service type</param>
+        /// <param name="provider">Service provider</param>
+        /// <param name="service">Instance of the service</param>
+        /// <returns>True if service is registered, False if servcice is not registered</returns>
+        public static bool TryGetService(this IServiceProvider provider, Type serviceType, out object service)
+        {
+            var svc = provider.GetService(serviceType);
+
+            if (svc != null)
+            {
+                service = svc;
+                return true;
+            }
+            else
+            {
+                service = null;
+                return false;
+            }
+        }
     }
 }

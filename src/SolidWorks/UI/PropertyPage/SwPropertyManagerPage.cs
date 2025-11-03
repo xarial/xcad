@@ -31,6 +31,7 @@ using Xarial.XCad.Utils.Reflection;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.Services;
+using Xarial.XCad.Toolkit.PageBuilder.Services;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
@@ -137,7 +138,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             var helpLinkHandler = m_SvcProvider.GetService<IHelpLinkHandler>();
 
-            var dynCtrlFactProv = m_SvcProvider.GetService<IDynamicControlFactoryProvider>();
+            var dynCtrlFactProv = new DynamicControlFactoryProvider(svcProvider);
 
             Handler = handler;
 

@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Xarial.XCad;
 using Xarial.XCad.Base;
 using Xarial.XCad.Services;
+using Xarial.XCad.Toolkit.PageBuilder.Services;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Base;
@@ -133,8 +134,8 @@ namespace Toolkit.Tests
         public class PageBuilderMock : PageBuilderBase<PageMock, GroupMock, ControlMock>
         {
             public PageBuilderMock(Func<int> idRangeSelector = null)
-                : base(new Moq.Mock<IXApplication>().Object,
-                      new TypeDataBinder(new DefaultDynamicControlFactoryProvider(), new Mock<IXLogger>().Object), 
+                : base(new Mock<IXApplication>().Object,
+                      new TypeDataBinder(new DynamicControlFactoryProvider(Mock.Of<IServiceProvider>()), new Mock<IXLogger>().Object), 
                       new PageMockConstructor(),
                       new ControlMockConstructor(idRangeSelector))
             {

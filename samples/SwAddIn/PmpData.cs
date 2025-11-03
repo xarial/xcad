@@ -5,35 +5,36 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using Xarial.XCad.Features.CustomFeature.Attributes;
-using Xarial.XCad.Features.CustomFeature.Enums;
-using Xarial.XCad.UI.PropertyPage.Attributes;
-using Xarial.XCad.Base.Enums;
-using Xarial.XCad.SolidWorks.UI.PropertyPage;
-using Xarial.XCad.SolidWorks;
-using Xarial.XCad.SolidWorks.Geometry;
-using System;
-using Xarial.XCad;
-using Xarial.XCad.SolidWorks.Documents;
-using System.Collections.ObjectModel;
-using Xarial.XCad.UI.PropertyPage.Base;
-using Xarial.XCad.Base.Attributes;
-using System.Linq;
-using System.ComponentModel;
-using Xarial.XCad.UI.PropertyPage.Services;
-using Xarial.XCad.UI.PropertyPage.Enums;
-using Xarial.XCad.UI.PropertyPage.Structures;
-using Xarial.XCad.Enums;
-using Xarial.XCad.Features;
-using Xarial.XCad.Geometry;
-using Xarial.XCad.SolidWorks.UI.PropertyPage.Attributes;
 using SolidWorks.Interop.swconst;
 using SwAddIn.Properties;
-using static SwAddInExample.SwAddInSample;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using Xarial.XCad;
+using Xarial.XCad.Base.Attributes;
+using Xarial.XCad.Base.Enums;
+using Xarial.XCad.Enums;
+using Xarial.XCad.Features;
+using Xarial.XCad.Features.CustomFeature.Attributes;
+using Xarial.XCad.Features.CustomFeature.Enums;
+using Xarial.XCad.Geometry;
 using Xarial.XCad.Reflection;
+using Xarial.XCad.SolidWorks;
+using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.SolidWorks.Geometry;
+using Xarial.XCad.SolidWorks.UI.PropertyPage;
+using Xarial.XCad.SolidWorks.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI;
+using Xarial.XCad.UI.PropertyPage.Attributes;
+using Xarial.XCad.UI.PropertyPage.Base;
+using Xarial.XCad.UI.PropertyPage.Enums;
+using Xarial.XCad.UI.PropertyPage.Services;
+using Xarial.XCad.UI.PropertyPage.Structures;
+using static SwAddInExample.SwAddInSample;
 
 namespace SwAddInExample
 {
@@ -316,6 +317,24 @@ namespace SwAddInExample
             }
         }
 
+        public class DynamicTextControlFactory : IDynamicControlFactory
+        {
+            private readonly string m_Text;
+
+            public DynamicTextControlFactory(string text) 
+            {
+                m_Text = text;
+            }
+
+            public IControlDescriptor[] CreateControls(IGroup parent, object tag)
+            {
+                return new IControlDescriptor[]
+                {
+                    new TextControlDescriptor(m_Text)
+                };
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         //[SelectionBoxOptions(Filters = new Type[] { typeof(IXFace) })]
@@ -377,6 +396,9 @@ namespace SwAddInExample
 
         [DynamicControls(typeof(TestDynamicControlFactory), "_Test_")]
         public Dictionary<string, object> DynamicControls { get; }
+
+        [DynamicControls(typeof(DynamicTextControlFactory))]
+        public StringBuilder DynamicText { get; }
 
         //public List<string> List { get; set; }
 
@@ -444,6 +466,8 @@ namespace SwAddInExample
             {
                 { "A", "Hello" }
             };
+
+            DynamicText = new StringBuilder();
 
             Lists = new ListsGroup();
 
