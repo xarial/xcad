@@ -155,18 +155,13 @@ namespace Xarial.XCad.SolidWorks.Features
 
         protected override IEnumerable<ISwCutListItem> IterateCutLists(bool ordered)
         {
-            if (m_Part.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2024) && !ordered)
+            if (!ordered && m_Conf.TryGetCutListItems(out var cutListItems))
             {
-                var cutListItems = (object[])m_Conf.Configuration.GetCutListItems();
-
-                if (cutListItems != null)
+                foreach (var cutListItem in cutListItems)
                 {
-                    foreach (ICutListItem cutListItem in cutListItems)
-                    {
-                        var cutList = m_Part.CreateObjectFromDispatch<SwCutListItem>(cutListItem);
-                        cutList.SetParent(m_Part, m_Conf);
-                        yield return cutList;
-                    }
+                    var cutList = m_Part.CreateObjectFromDispatch<SwCutListItem>(cutListItem);
+                    cutList.SetParent(m_Part, m_Conf);
+                    yield return cutList;
                 }
             }
             else
@@ -222,25 +217,20 @@ namespace Xarial.XCad.SolidWorks.Features
 
             if (refDoc is SwPart)
             {
-                if (refDoc.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2024) && refConf.IsCommitted && !ordered)
+                if (!ordered && refConf.TryGetCutListItems(out var cutListItems))
                 {
-                    var cutListItems = (object[])refConf.Configuration.GetCutListItems();
-
-                    if (cutListItems != null)
+                    foreach (var cutListItem in cutListItems)
                     {
-                        foreach (ICutListItem cutListItem in cutListItems)
+                        var compCutListItem = m_Comp.Component.GetCorresponding(cutListItem);
+                        if (compCutListItem != null)
                         {
-                            var compCutListItem = m_Comp.Component.GetCorresponding(cutListItem);
-                            if (compCutListItem != null)
-                            {
-                                var cutList = m_Comp.RootAssembly.CreateObjectFromDispatch<SwCutListItem>(cutListItem);
-                                cutList.SetParent((SwPart)refDoc, refConf);
-                                yield return cutList;
-                            }
-                            else 
-                            {
-                                throw new Exception("Failed to get corresponding cut list item");
-                            }
+                            var cutList = m_Comp.RootAssembly.CreateObjectFromDispatch<SwCutListItem>(cutListItem);
+                            cutList.SetParent((SwPart)refDoc, refConf);
+                            yield return cutList;
+                        }
+                        else
+                        {
+                            throw new Exception("Failed to get corresponding cut list item");
                         }
                     }
                 }

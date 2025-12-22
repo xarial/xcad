@@ -8,6 +8,7 @@
 using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Xarial.XCad.Annotations;
@@ -25,6 +26,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         ISwDMSheet Sheet { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDmSheet : SwDmSelObject, ISwDmSheet
     {
         #region Not Supported

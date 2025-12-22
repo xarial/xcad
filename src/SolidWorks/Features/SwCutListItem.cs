@@ -74,26 +74,24 @@ namespace Xarial.XCad.SolidWorks.Features
             {
                 m_CutListItemLazy = new Lazy<ICutListItem>(() =>
                 {
-                    if (m_ParentConf.IsCommitted)
+                    if (m_ParentConf.TryGetCutListItems(out var cutLists))
                     {
-                        var cutLists = (object[])m_ParentConf.Configuration.GetCutListItems();
-                        if (cutLists != null)
-                        {
-                            var cutList = (ICutListItem)cutLists.FirstOrDefault(c => string.Equals(((IFeature)c).Name, feat.Name,
+                        var cutList = cutLists.FirstOrDefault(c => string.Equals(((IFeature)c).Name, feat.Name,
                                 StringComparison.CurrentCultureIgnoreCase));
 
-                            if (cutList != null)
-                            {
-                                return cutList;
-                            }
-                            else
-                            {
-                                throw new Exception("Failed to find cut list item by name");
-                            }
+                        if (cutList != null)
+                        {
+                            return cutList;
+                        }
+                        else
+                        {
+                            throw new Exception("Failed to find cut list item by name");
                         }
                     }
-
-                    return null;
+                    else 
+                    {
+                        return null;
+                    }
                 });
             }
         }

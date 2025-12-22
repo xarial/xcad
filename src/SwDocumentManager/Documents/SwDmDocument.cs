@@ -147,17 +147,21 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             get 
             {
+                DateTime localCreationDate;
+
                 if (OwnerApplication.IsVersionNewerOrEqual(SwDmVersion_e.Sw2015))
                 {
-                    var id = Convert.ToInt64(((ISwDMDocument19)Document).CreationDate2);
-                    return new XIdentifier(id);
+                    localCreationDate = DateTimeOffset.FromUnixTimeSeconds(Convert.ToInt64(((ISwDMDocument19)Document).CreationDate2)).DateTime.ToLocalTime();
                 }
                 else 
                 {
-                    var creationDate = DateTime.Parse(Document.CreationDate).ToUniversalTime();
-                    var id = new DateTimeOffset(creationDate).ToUnixTimeSeconds();
-                    return new XIdentifier(id);
+                    localCreationDate = new DateTime(DateTime.Parse(Document.CreationDate).Ticks, DateTimeKind.Local);
                 }
+
+                //NOTE: local date is returned based on the current DST offset (not teh DST of the date)
+                var utcCreationDate = new DateTime(localCreationDate.Subtract(TimeZoneInfo.Local.GetUtcOffset(DateTime.Now)).Ticks, DateTimeKind.Utc);
+
+                return new XIdentifier(utcCreationDate);
             }
         }
 

@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,12 @@ namespace Xarial.XCad.Services
     {
         private readonly Dictionary<string, object> m_CachedProperties;
 
+        /// <summary>
+        /// Gets cached property value
+        /// </summary>
+        /// <typeparam name="T">Type of property</typeparam>
+        /// <param name="prpName">Property name</param>
+        /// <returns>Cached property value or default</returns>
         public T Get<T>([CallerMemberName]string prpName = "")
         {
             object val;
@@ -29,19 +36,36 @@ namespace Xarial.XCad.Services
             if (!m_CachedProperties.TryGetValue(prpName, out val))
             {
                 val = default(T);
-                m_CachedProperties.Add(prpName, val);
             }
 
             return (T)val;
         }
 
+        /// <summary>
+        /// Sets cached property value
+        /// </summary>
+        /// <typeparam name="T">Type of property</typeparam>
+        /// <param name="val">Value of property</param>
+        /// <param name="prpName">Property name</param>
         public void Set<T>(T val, [CallerMemberName]string prpName = "")
         {
             m_CachedProperties[prpName] = val;
         }
 
+        /// <summary>
+        /// Checks if the cached propery has been changed
+        /// </summary>
+        /// <typeparam name="T">Type of property</typeparam>
+        /// <param name="prpName">Property name</param>
+        /// <returns>True if cached property changed</returns>
         public bool Has<T>([CallerMemberName] string prpName = "") 
             => m_CachedProperties.ContainsKey(prpName);
+
+        /// <summary>
+        /// Check if any of cached properties were set
+        /// </summary>
+        /// <returns>True if any cached property is set</returns>
+        public bool Any() => m_CachedProperties.Any();
 
         internal CachedProperties() 
         {

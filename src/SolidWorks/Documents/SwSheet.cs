@@ -257,11 +257,13 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly SwDrawingViewsCollection m_DrawingViews;
 
+        internal bool HasAnyCachedProperties() => m_Creator.CachedProperties.Any();
+
         internal void InitFromExisting(SwSheet swSheet, CancellationToken cancellationToken)
             => m_Creator.Init(swSheet.Sheet, cancellationToken);
 
-        internal void SetFromExisting(SwSheet swSheet)
-            => m_Creator.Set(swSheet.Sheet);
+        internal void SetFromExisting(ISheet sheet)
+            => m_Creator.Set(sheet);
 
         internal SwSheet(ISheet sheet, SwDrawing draw, SwApplication app) : base(sheet, draw, app)
         {

@@ -151,6 +151,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         public virtual ISwCustomPropertiesCollection Properties => m_PropertiesLazy.Value;
         public ISwDimensionsCollection Dimensions => m_DimensionsLazy.Value;
 
+        internal void SetFromExisting(IConfiguration conf) => m_Creator.Set(conf);
+
         private readonly Lazy<SwCustomPropertiesCollection> m_PropertiesLazy;
         private readonly Lazy<SwDimensionsCollection> m_DimensionsLazy;
 
@@ -727,5 +729,40 @@ namespace Xarial.XCad.SolidWorks.Documents
         public override void Commit(CancellationToken cancellationToken) => throw new InactiveLdrConfigurationNotSupportedException();
         public override object Dispatch => throw new InactiveLdrConfigurationNotSupportedException();
         public override ISwCustomPropertiesCollection Properties => throw new InactiveLdrConfigurationNotSupportedException();
+    }
+
+    internal static class SwConfigurationExtension 
+    {
+        internal static bool TryGetCutListItems(this ISwConfiguration conf, out ICutListItem[] cutListItems)
+        {
+            if (conf.IsCommitted)
+            {
+                if (conf.OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2024))
+                {
+                    try
+                    {
+                        var cutLists = (object[])conf.Configuration.GetCutListItems();
+
+                        if (cutLists != null)
+                        {
+                            cutListItems = cutLists.Cast<ICutListItem>().ToArray();
+                        }
+                        else
+                        {
+                            cutListItems = Array.Empty<ICutListItem>();
+                        }
+
+                        return true;
+                    }
+                    catch (AccessViolationException)
+                    {
+                        //NOTE: AccessViolationException exception is thrown in some cases, so ignoring to fallback to legacy feature-based cut-lists
+                    }
+                }
+            }
+
+            cutListItems = null;
+            return false;
+        }
     }
 }

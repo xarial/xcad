@@ -42,17 +42,17 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         internal SwDocument3D(IModelDoc2 model, SwApplication app, IXLogger logger, bool isCreated) : base(model, app, logger, isCreated)
         {
-            m_Configurations = new Lazy<ISwConfigurationCollection>(CreateConfigurations);
+            m_ConfigurationsLazy = new Lazy<ISwConfigurationCollection>(CreateConfigurations);
             m_ModelViewsLazy = new Lazy<ISwModelViews3DCollection>(() => new SwModelViews3DCollection(this, app));
 
             Graphics = new SwDocumentGraphics(this);
             DisplayState = new SwDisplayState(new SwDocumentLevelDisplayStateDispatch(this), this, app);
         }
 
-        private Lazy<ISwConfigurationCollection> m_Configurations;
+        private Lazy<ISwConfigurationCollection> m_ConfigurationsLazy;
         private Lazy<ISwModelViews3DCollection> m_ModelViewsLazy;
 
-        public ISwConfigurationCollection Configurations => m_Configurations.Value;
+        public ISwConfigurationCollection Configurations => m_ConfigurationsLazy.Value;
 
         public abstract IXDocumentEvaluation Evaluation { get; }
 
@@ -113,9 +113,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (disposing)
             {
-                if (m_Configurations.IsValueCreated)
+                if (m_ConfigurationsLazy.IsValueCreated)
                 {
-                    m_Configurations.Value.Dispose();
+                    m_ConfigurationsLazy.Value.Dispose();
                 }
             }
         }
@@ -170,5 +170,33 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public override IXSaveOperation PreCreateSaveAsOperation(string filePath) => ((IXDocument3D)this).PreCreateSaveAsOperation(filePath);
+
+        protected override void GetInitialSheetOrConfiguration(out SwSheet sheet, out SwConfiguration conf)
+        {
+            sheet = null;
+            conf = null;
+
+            if (m_ConfigurationsLazy.IsValueCreated)
+            {
+                conf = (SwConfiguration)m_ConfigurationsLazy.Value.Active;
+            }
+        }
+
+        protected override void SetInitialSheetOrConfiguration(SwSheet sheet, SwConfiguration conf, IModelDoc2 model)
+        {
+            if (conf != null)
+            {
+                var confSw = (IConfiguration)model.GetConfigurationByName(conf.Name);
+
+                if (confSw != null)
+                {
+                    conf.SetFromExisting(confSw);
+                }
+                else
+                {
+                    throw new Exception("Initial configuration is not found");
+                }
+            }
+        }
     }
 }

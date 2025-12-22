@@ -1661,6 +1661,56 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void InitialConfigurationSheetTest() 
+        {
+            string activeConfName;
+            string activeConfName1;
+            bool activeConfCommitted;
+
+            string activeSheetName;
+            string activeSheetName1;
+            bool activeSheetCommitted;
+
+            using (var dataFile = GetDataFile("Configs1.SLDPRT"))
+            {
+                using (var part = Application.Documents.PreCreate<IXPart>())
+                {
+                    part.Path = dataFile.FilePath;
+                    var activeConf = (IXPartConfiguration)part.Configurations["Conf1"];
+                    part.Configurations.Active = activeConf;
+                    part.Commit();
+
+                    activeConfName = ((ISwPart)part).Model.ConfigurationManager.ActiveConfiguration.Name;
+                    activeConfCommitted = activeConf.IsCommitted;
+                    activeConfName1 = activeConf.Name;
+                }
+            }
+
+            using (var dataFile = GetDataFile("Sheets1.SLDDRW"))
+            {
+                using (var drw = Application.Documents.PreCreate<IXDrawing>())
+                {
+                    drw.Path = dataFile.FilePath;
+                    var activeSheet = drw.Sheets["Sheet3"];
+                    drw.Sheets.Active = activeSheet;
+                    drw.Commit();
+
+                    activeSheetName = ((ISwDrawing)drw).Drawing.IGetCurrentSheet().GetName();
+                    activeSheetCommitted = activeSheet.IsCommitted;
+                    activeSheetName1 = activeSheet.Name;
+                }
+            }
+
+            Assert.AreEqual("Conf1", activeConfName);
+            Assert.AreEqual("Conf1", activeConfName1);
+            Assert.IsTrue(activeConfCommitted);
+
+            Assert.AreEqual("Sheet3", activeSheetName);
+            Assert.AreEqual("Sheet3", activeSheetName1);
+            Assert.IsTrue(activeSheetCommitted);
+        }
+
+        [Test]
         public void CommitCachedFeatures()
         {
             var doc = Application.Documents.PreCreatePart();
@@ -1868,18 +1918,16 @@ namespace SolidWorks.Tests.Integration
         [Test]
         public void IdTest()
         {
-            //1729551544
-            //Tuesday, 22 October 2024 9:59:04 AM
+            //UTC: 21/10/2024 11:59:04 PM
             var part1IdExp = new byte[]
             {
-                184, 220, 22, 103, 0, 0, 0, 0
+                0, 20, 124, 87, 44, 242, 220, 8
             };
 
-            //1729551663
-            //Tuesday, 22 October 2024 10:01:03 AM
+            //UTC: 22/10/2024 12:01:03 AM
             var part2IdExp = new byte[]
             {
-                47, 221, 22, 103, 0, 0, 0, 0
+                128, 9, 106, 158, 44, 242, 220, 8
             };
 
             byte[] id1;

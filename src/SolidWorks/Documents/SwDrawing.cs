@@ -168,5 +168,38 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         public override IXSaveOperation PreCreateSaveAsOperation(string filePath) => ((IXDrawing)this).PreCreateSaveAsOperation(filePath);
+
+        protected override void GetInitialSheetOrConfiguration(out SwSheet sheet, out SwConfiguration conf)
+        {
+            conf = null;
+            sheet = null;
+
+            if (m_SheetsLazy.IsValueCreated)
+            {
+                var activeSheet = m_SheetsLazy.Value.Active;
+
+                if (activeSheet != null && !(activeSheet is UncommittedPreviewOnlySheet))
+                {
+                    sheet = (SwSheet)activeSheet;
+                }
+            }
+        }
+
+        protected override void SetInitialSheetOrConfiguration(SwSheet sheet, SwConfiguration conf, IModelDoc2 model)
+        {
+            if (sheet != null)
+            {
+                var sheetSw = ((IDrawingDoc)model).Sheet[sheet.Name];
+
+                if (sheetSw != null)
+                {
+                    sheet.SetFromExisting(sheetSw);
+                }
+                else
+                {
+                    throw new Exception("Initial sheet is not found");
+                }
+            }
+        }
     }
 }

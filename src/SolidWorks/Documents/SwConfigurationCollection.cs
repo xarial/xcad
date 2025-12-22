@@ -63,6 +63,8 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         private readonly RepositoryHelper<IXConfiguration> m_RepoHelper;
 
+        private SwConfiguration m_ActiveConfigurationCache;
+
         internal SwConfigurationCollection(SwDocument3D doc, SwApplication app)
         {
             m_App = app;
@@ -73,11 +75,18 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             ActiveNonCommittedConfigurationLazy = new Lazy<ISwConfiguration>(() => 
             {
-                var activeConfName = m_App.Sw.GetActiveConfigurationName(m_Doc.Path);
+                if (m_ActiveConfigurationCache != null) 
+                {
+                    return m_ActiveConfigurationCache;
+                }
+                else
+                {
+                    var activeConfName = m_App.Sw.GetActiveConfigurationName(m_Doc.Path);
 
-                var conf = PreCreate();
-                conf.Name = activeConfName;
-                return conf;
+                    var conf = PreCreate();
+                    conf.Name = activeConfName;
+                    return conf;
+                }
             });
         }
 
@@ -146,14 +155,21 @@ namespace Xarial.XCad.SolidWorks.Documents
                     return ActiveNonCommittedConfigurationLazy.Value;
                 }
             } 
-            set 
+            set
             {
-                if (m_Doc.Model.ConfigurationManager.ActiveConfiguration != value.Configuration)
+                if (m_Doc.IsCommitted)
                 {
-                    if (!m_Doc.Model.ShowConfiguration2(value.Name))
+                    if (m_Doc.Model.ConfigurationManager.ActiveConfiguration != value.Configuration)
                     {
-                        throw new Exception($"Failed to activate configuration '{value.Name}'");
+                        if (!m_Doc.Model.ShowConfiguration2(value.Name))
+                        {
+                            throw new Exception($"Failed to activate configuration '{value.Name}'");
+                        }
                     }
+                }
+                else 
+                {
+                    m_ActiveConfigurationCache = (SwConfiguration)value;
                 }
             }
         }

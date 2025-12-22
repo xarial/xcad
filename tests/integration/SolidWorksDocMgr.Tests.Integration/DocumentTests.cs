@@ -830,18 +830,16 @@ namespace SolidWorksDocMgr.Tests.Integration
         [Test]
         public void IdTest() 
         {
-            //1729551544
-            //Tuesday, 22 October 2024 9:59:04 AM
+            //UTC: 21/10/2024 11:59:04 PM
             var part1IdExp = new byte[]
             {
-                184, 220, 22, 103, 0, 0, 0, 0
+                0, 20, 124, 87, 44, 242, 220, 8
             };
 
-            //1729551663
-            //Tuesday, 22 October 2024 10:01:03 AM
+            //UTC: 22/10/2024 12:01:03 AM
             var part2IdExp = new byte[]
             {
-                47, 221, 22, 103, 0, 0, 0, 0
+                128, 9, 106, 158, 44, 242, 220, 8
             };
 
             byte[] id1;

@@ -246,9 +246,12 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             get
             {
-                var creationDate = DateTime.Parse(Model.SummaryInfo[(int)swSummInfoField_e.swSumInfoCreateDate2]).ToUniversalTime();
-                var id = new DateTimeOffset(creationDate).ToUnixTimeSeconds();
-                return new XIdentifier(id);
+                var localCreationDate = new DateTime(DateTime.Parse(Model.SummaryInfo[(int)swSummInfoField_e.swSumInfoCreateDate2]).Ticks, DateTimeKind.Local);
+
+                //NOTE: local date is returned based on the current DST offset (not teh DST of the date)
+                var utcCreationDate = new DateTime(localCreationDate.Subtract(TimeZoneInfo.Local.GetUtcOffset(DateTime.Now)).Ticks, DateTimeKind.Utc);
+
+                return new XIdentifier(utcCreationDate);
             }
         }
 
@@ -843,78 +846,136 @@ namespace Xarial.XCad.SolidWorks.Documents
 
             if (m_NativeFileExts.TryGetValue(System.IO.Path.GetExtension(Path), out swDocumentTypes_e docType))
             {
-                swOpenDocOptions_e opts = 0;
-
-                if (State.HasFlag(DocumentState_e.ReadOnly))
-                {
-                    opts |= swOpenDocOptions_e.swOpenDocOptions_ReadOnly;
-                }
-
-                if (State.HasFlag(DocumentState_e.ViewOnly))
-                {
-                    opts |= swOpenDocOptions_e.swOpenDocOptions_ViewOnly;
-                }
-
-                if (State.HasFlag(DocumentState_e.Silent))
-                {
-                    opts |= swOpenDocOptions_e.swOpenDocOptions_Silent;
-                }
-
-                if (State.HasFlag(DocumentState_e.Rapid))
-                {
-                    if (docType == swDocumentTypes_e.swDocDRAWING)
-                    {
-                        if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2020))
-                        {
-                            opts |= swOpenDocOptions_e.swOpenDocOptions_OpenDetailingMode;
-                        }
-                    }
-                    else if (docType == swDocumentTypes_e.swDocASSEMBLY)
-                    {
-                        opts |= swOpenDocOptions_e.swOpenDocOptions_ViewOnly;
-
-                        if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2021, 4, 1))
-                        {
-                            opts |= swOpenDocOptions_e.swOpenDocOptions_LDR_EditAssembly;
-                        }
-                    }
-                    else if (docType == swDocumentTypes_e.swDocPART)
-                    {
-                        //There is no rapid option for SOLIDWORKS part document
-                    }
-                }
-
-                if (State.HasFlag(DocumentState_e.Lightweight))
-                {
-                    if (docType == swDocumentTypes_e.swDocDRAWING
-                        || docType == swDocumentTypes_e.swDocASSEMBLY)
-                    {
-                        opts |= swOpenDocOptions_e.swOpenDocOptions_OverrideDefaultLoadLightweight | swOpenDocOptions_e.swOpenDocOptions_LoadLightweight;
-                    }
-                    else if (docType == swDocumentTypes_e.swDocPART)
-                    {
-                        //There is no rapid option for SOLIDWORKS part document
-                    }
-                }
-                else 
-                {
-                    if (docType == swDocumentTypes_e.swDocDRAWING || docType == swDocumentTypes_e.swDocASSEMBLY)
-                    {
-                        opts |= swOpenDocOptions_e.swOpenDocOptions_OverrideDefaultLoadLightweight;
-                    }
-                    else if (docType == swDocumentTypes_e.swDocPART)
-                    {
-                        //There is no rapid option for SOLIDWORKS part document
-                    }
-                }
-
                 if (!IsDocumentTypeCompatible(docType))
                 {
                     throw new DocumentPathIncompatibleException(this);
                 }
 
-                int warns = -1;
-                model = OwnerApplication.Sw.OpenDoc6(Path, (int)docType, (int)opts, "", ref errorCode, ref warns);
+                GetInitialSheetOrConfiguration(out var initSheet, out var initConf);
+
+                if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2008))
+                {
+                    var openDocSpec = (IDocumentSpecification)OwnerApplication.Sw.GetOpenDocSpec(Path);
+                    openDocSpec.DocumentType = (int)docType;
+
+                    openDocSpec.ReadOnly = State.HasFlag(DocumentState_e.ReadOnly);
+                    openDocSpec.ViewOnly = State.HasFlag(DocumentState_e.ViewOnly);
+                    openDocSpec.Silent = State.HasFlag(DocumentState_e.Silent);
+                    
+                    if (State.HasFlag(DocumentState_e.Rapid))
+                    {
+                        if (docType == swDocumentTypes_e.swDocDRAWING)
+                        {
+                            openDocSpec.DetailingMode = true;
+                        }
+                        else if (docType == swDocumentTypes_e.swDocASSEMBLY)
+                        {
+                            openDocSpec.ViewOnly = true;
+                        }
+                    }
+
+                    openDocSpec.UseLightWeightDefault = false;
+                    openDocSpec.LightWeight = State.HasFlag(DocumentState_e.Lightweight);
+                    openDocSpec.SheetName = initSheet?.Name;
+                    openDocSpec.ConfigurationName = initConf?.Name;
+                    //openDocSpec.AddToRecentDocumentList
+
+                    model = OwnerApplication.Sw.OpenDoc7(openDocSpec);
+                    errorCode = openDocSpec.Error;
+                }
+                else 
+                {
+                    swOpenDocOptions_e opts = 0;
+
+                    if (State.HasFlag(DocumentState_e.ReadOnly))
+                    {
+                        opts |= swOpenDocOptions_e.swOpenDocOptions_ReadOnly;
+                    }
+
+                    if (State.HasFlag(DocumentState_e.ViewOnly))
+                    {
+                        opts |= swOpenDocOptions_e.swOpenDocOptions_ViewOnly;
+                    }
+
+                    if (State.HasFlag(DocumentState_e.Silent))
+                    {
+                        opts |= swOpenDocOptions_e.swOpenDocOptions_Silent;
+                    }
+
+                    if (State.HasFlag(DocumentState_e.Rapid))
+                    {
+                        if (docType == swDocumentTypes_e.swDocDRAWING)
+                        {
+                            if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2020))
+                            {
+                                opts |= swOpenDocOptions_e.swOpenDocOptions_OpenDetailingMode;
+                            }
+                        }
+                        else if (docType == swDocumentTypes_e.swDocASSEMBLY)
+                        {
+                            opts |= swOpenDocOptions_e.swOpenDocOptions_ViewOnly;
+
+                            if (OwnerApplication.IsVersionNewerOrEqual(SwVersion_e.Sw2021, 4, 1))
+                            {
+                                opts |= swOpenDocOptions_e.swOpenDocOptions_LDR_EditAssembly;
+                            }
+                        }
+                        else if (docType == swDocumentTypes_e.swDocPART)
+                        {
+                            //There is no rapid option for SOLIDWORKS part document
+                        }
+                    }
+
+                    if (State.HasFlag(DocumentState_e.Lightweight))
+                    {
+                        if (docType == swDocumentTypes_e.swDocDRAWING
+                            || docType == swDocumentTypes_e.swDocASSEMBLY)
+                        {
+                            opts |= swOpenDocOptions_e.swOpenDocOptions_OverrideDefaultLoadLightweight | swOpenDocOptions_e.swOpenDocOptions_LoadLightweight;
+                        }
+                        else if (docType == swDocumentTypes_e.swDocPART)
+                        {
+                            //There is no rapid option for SOLIDWORKS part document
+                        }
+                    }
+                    else
+                    {
+                        if (docType == swDocumentTypes_e.swDocDRAWING || docType == swDocumentTypes_e.swDocASSEMBLY)
+                        {
+                            opts |= swOpenDocOptions_e.swOpenDocOptions_OverrideDefaultLoadLightweight;
+                        }
+                        else if (docType == swDocumentTypes_e.swDocPART)
+                        {
+                            //There is no rapid option for SOLIDWORKS part document
+                        }
+                    }
+
+                    int warns = -1;
+                    model = OwnerApplication.Sw.OpenDoc6(Path, (int)docType, (int)opts, initConf?.Name, ref errorCode, ref warns);
+
+                    if (model != null)
+                    {
+                        if (initSheet != null)
+                        {
+                            if (model is IDrawingDoc)
+                            {
+                                if (!((IDrawingDoc)model).ActivateSheet(initSheet.Name))
+                                {
+                                    throw new Exception("Failed to activate initial sheet");
+                                }
+                            }
+                            else
+                            {
+                                throw new NotSupportedException();
+                            }
+                        }
+                    }
+                }
+
+                if (model != null) 
+                {
+                    SetInitialSheetOrConfiguration(initSheet, initConf, model);
+                }
             }
             else
             {
@@ -990,6 +1051,9 @@ namespace Xarial.XCad.SolidWorks.Documents
             width = -1;
             height = -1;
         }
+
+        protected abstract void GetInitialSheetOrConfiguration(out SwSheet sheet, out SwConfiguration conf);
+        protected abstract void SetInitialSheetOrConfiguration(SwSheet sheet, SwConfiguration conf, IModelDoc2 model);
 
         //NOTE: closing of document might note necessarily unload if from memory (if this document is used in active assembly or drawing)
         //do not dispose or set m_IsClosed flag in this function
@@ -1424,6 +1488,16 @@ namespace Xarial.XCad.SolidWorks.Documents
         protected override bool IsDocumentTypeCompatible(swDocumentTypes_e docType) => true;
 
         public override IXSaveOperation PreCreateSaveAsOperation(string filePath) => throw new NotSupportedException();
+
+        protected override void GetInitialSheetOrConfiguration(out SwSheet sheet, out SwConfiguration conf)
+        {
+            sheet = null;
+            conf = null;
+        }
+
+        protected override void SetInitialSheetOrConfiguration(SwSheet sheet, SwConfiguration conf, IModelDoc2 model)
+        {
+        }
     }
 
     internal class SwUnknownDocument3D : SwUnknownDocument, ISwDocument3D

@@ -1472,7 +1472,11 @@ namespace SolidWorks.Tests.Integration
 
                 const int swCommands_Insert_Sheet = 857;
 
+                Application.Sw.PresetNewDrawingParameters("", false, 100, 200);
+
                 Application.Sw.RunCommand(swCommands_Insert_Sheet, "");
+
+                Application.Sw.ResetPresetDrawingParameters();
 
                 newSheetName = ((string[])drwDoc.Drawing.GetSheetNames()).Except(sheetNames).First();
             }

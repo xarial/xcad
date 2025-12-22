@@ -8,6 +8,7 @@
 using SolidWorks.Interop.swdocumentmgr;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -36,6 +37,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         ISwDMView DrawingView { get; }
     }
 
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     internal class SwDmDrawingView : SwDmSelObject, ISwDmDrawingView
     {
         #region Not Supported
@@ -110,11 +112,16 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 {
                     if (!ReferencedDocument.IsCommitted)
                     {
-                        ReferencedDocument.Commit();
+                        try
+                        {
+                            ReferencedDocument.Commit();
+                        }
+                        catch 
+                        {
+                        }
                     }
 
-                    return ReferencedDocument.Configurations.FirstOrDefault(
-                        c => string.Equals(c.Name, confName, StringComparison.CurrentCultureIgnoreCase));
+                    return ReferencedDocument.Configurations[confName];
                 }
                 else 
                 {

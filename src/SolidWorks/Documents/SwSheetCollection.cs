@@ -44,6 +44,8 @@ namespace Xarial.XCad.SolidWorks.Documents
             m_TemplatePlaceholderSheet = new SwSheet(null, drw, app);
         }
 
+        internal ISwSheet Active { get; set; }
+
         protected override void CommitEntitiesFromCache(IReadOnlyList<IXSheet> ents, CancellationToken cancellationToken)
         {
             if (m_Drw.IsCommitted)
@@ -74,7 +76,18 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                     foreach (SwSheet sheet in m_Repo)
                     {
-                        sheet.SetupSheet(m_TemplatePlaceholderSheet);
+                        if (m_TemplatePlaceholderSheet.HasAnyCachedProperties())
+                        {
+                            if (string.IsNullOrEmpty(m_Drw.Path))
+                            {
+                                //only setup sheet if cached properties were changed
+                                sheet.SetupSheet(m_TemplatePlaceholderSheet);
+                            }
+                            else 
+                            {
+                                throw new NotSupportedException("Modifying sheet properties is only supported for new drawing creation");
+                            }
+                        }
 
                         //only commiting drawing views to the first sheet from the placeholder in case template has more than one
                         if (isFirst)
@@ -98,7 +111,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                         isFirst = false;
                     }
 
-                    m_TemplatePlaceholderSheet.SetFromExisting(placeholderSheetReplacement);
+                    m_TemplatePlaceholderSheet.SetFromExisting(placeholderSheetReplacement.Sheet);
                 }
             }
             else 
@@ -215,7 +228,19 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else 
             {
-                return m_Cache.TryGet(name, out ent);
+                if (m_Cache.TryGet(name, out ent))
+                {
+                    return true;
+                }
+                else 
+                {
+                    ent = new SwSheet(null, m_Drawing, m_App) 
+                    {
+                        Name = name
+                    };
+
+                    return true;
+                }
             }
         }
 
@@ -244,19 +269,26 @@ namespace Xarial.XCad.SolidWorks.Documents
                 }
                 else 
                 {
-                    return new UncommittedPreviewOnlySheet(m_Drawing, m_App);
+                    return m_Cache.Active ?? new UncommittedPreviewOnlySheet(m_Drawing, m_App);
                 }
             }
             set 
             {
-                var currentSheet = m_Drawing.Drawing.IGetCurrentSheet();
-                
-                if (m_App.Sw.IsSame(currentSheet, value.Sheet) != (int)swObjectEquality.swObjectSame)
+                if (m_Drawing.IsCommitted)
                 {
-                    if (!m_Drawing.Drawing.ActivateSheet(value.Name))
+                    var currentSheet = m_Drawing.Drawing.IGetCurrentSheet();
+
+                    if (m_App.Sw.IsSame(currentSheet, value.Sheet) != (int)swObjectEquality.swObjectSame)
                     {
-                        throw new Exception($"Failed to activate '{value.Name}'");
+                        if (!m_Drawing.Drawing.ActivateSheet(value.Name))
+                        {
+                            throw new Exception($"Failed to activate '{value.Name}'");
+                        }
                     }
+                }
+                else 
+                {
+                    m_Cache.Active = value;
                 }
             }
         }
