@@ -8,12 +8,14 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Exceptions;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Windows.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
@@ -86,11 +88,46 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
     internal class PropertyManagerPageOptionBoxControl : PropertyManagerPageItemsSourceControl<object, PropertyManagerPageOptionBox>
     {
+        private class OptionBoxItemsControlManager : ItemsControlManager<object>
+        {
+            private readonly PropertyManagerPageOptionBoxControl m_OptionBoxCtrl;
+
+            private ItemsControlItem[] m_InitialItemsCopy;
+
+            public OptionBoxItemsControlManager(PropertyManagerPageOptionBoxControl optionBoxCtrl, IXApplication app, IAttributeSet atts, IMetadata[] metadata) 
+                : base(optionBoxCtrl, app, atts, metadata)
+            {
+                m_OptionBoxCtrl = optionBoxCtrl;
+            }
+
+            protected override ItemsControlItem[] LoadInitialItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] items)
+            {
+                m_InitialItemsCopy = items?.ToArray();
+
+                m_OptionBoxCtrl.SwSpecificControl.CreateControls(items);
+                return items;
+            }
+
+            protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
+            {
+                if (Items != newItems || !CompareItems(m_InitialItemsCopy, newItems))
+                {
+                    throw new DynamicControlsNotSupportedException();
+                }
+            }
+
+            protected override void SetItemDisplayName(ItemsControlItem item, int index, string newDispName)
+            {
+                if (index != -1 && m_OptionBoxCtrl.SwSpecificControl.Controls.Length > index)
+                {
+                    m_OptionBoxCtrl.SwSpecificControl.Controls[index].Caption = newDispName;
+                }
+            }
+        }
+
         private delegate IPropertyManagerPageOption ControlCreatorDelegate(int id, short controlType, string caption, short leftAlign, int options, string tip);
 
         protected override event ControlValueChangedDelegate<object> ValueChanged;
-
-        private ItemsControlItem[] m_InitialItemsCopy;
 
         public PropertyManagerPageOptionBoxControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
@@ -99,6 +136,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             m_Handler.OptionChecked += OnOptionChecked;
             numberOfUsedIds = Items.Length;
         }
+
+        protected override ItemsControlManager<object> CreateItemsControlManager(SwApplication app, IAttributeSet atts, IMetadata[] metadata)
+            => new OptionBoxItemsControlManager(this, app, atts, metadata);
 
         protected override PropertyManagerPageOptionBox Create(IGroup host, int id, string name, ControlLeftAlign_e align,
             AddControlOptions_e options, string description, swPropertyManagerPageControlType_e type)
@@ -156,18 +196,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected override void SetSpecificValue(object value)
         {
-            var index = -1;
-
-            for (int i = 0; i < Items.Length; i++) 
-            {
-                var item = Items[i];
-
-                if (m_EqualityComparer.Equals(item.Value, value)) 
-                {
-                    index = i;
-                    break;
-                }
-            }
+            var index = ItemsCountrolManager.GetItemIndex(value);
 
             if (index != -1)
             {
@@ -179,30 +208,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             else 
             {
                 throw new Exception("Value is not in the source");
-            }
-        }
-
-        protected override ItemsControlItem[] LoadInitialItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] items)
-        {
-            m_InitialItemsCopy = items?.ToArray();
-
-            SwSpecificControl.CreateControls(items);
-            return items;
-        }
-
-        protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
-        {
-            if (Items != newItems || !CompareItems(m_InitialItemsCopy, newItems))
-            {
-                throw new DynamicControlsNotSupportedException();
-            }
-        }
-
-        protected override void SetItemDisplayName(ItemsControlItem item, int index, string newDispName)
-        {
-            if (index != -1 && SwSpecificControl.Controls.Length > index)
-            {
-                SwSpecificControl.Controls[index].Caption = newDispName;
             }
         }
 

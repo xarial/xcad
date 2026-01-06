@@ -19,10 +19,11 @@ using Xarial.XCad.UI;
 using Xarial.XCad.UI.TaskPane;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Windows.UI;
 
 namespace Xarial.XCad.SolidWorks.UI.Toolkit
 {
-    internal class TaskPaneTabCreator<TControl> : CustomControlCreator<ITaskpaneView, TControl>
+    internal class TaskPaneTabCreator<TControl> : CustomControlHost<ITaskpaneView, TControl>
     {
         private readonly ISwApplication m_App;
         private readonly IServiceProvider m_SvcProvider;
@@ -58,15 +59,15 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             }
         }
 
-        protected override ITaskpaneView HostNetControl(Control winCtrlHost, TControl ctrl, string title, IXImage image)
+        protected override ITaskpaneView HostWinFormsControl(Control winCtrl, string title, IXImage image)
         {
             using (var icon = CreateTaskPaneIcon(m_SvcProvider.GetService<IIconsCreator>(), image))
             {
                 var taskPaneView = CreateTaskPaneView(title, icon);
 
-                if (!m_ControlProvider.ProvideNetControl(taskPaneView, winCtrlHost))
+                if (!m_ControlProvider.ProvideNetControl(taskPaneView, winCtrl))
                 {
-                    throw new NetControlHostException(winCtrlHost.Handle);
+                    throw new NetControlHostException(winCtrl.Handle);
                 }
 
                 return taskPaneView;

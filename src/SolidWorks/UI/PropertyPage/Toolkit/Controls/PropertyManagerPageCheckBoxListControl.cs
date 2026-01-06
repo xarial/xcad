@@ -21,6 +21,7 @@ using Xarial.XCad.Reflection;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Exceptions;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Windows.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
@@ -93,6 +94,131 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
     internal class PropertyManagerPageCheckBoxListControl : PropertyManagerPageItemsSourceControl<object, PropertyManagerPageCheckBoxList>
     {
+        private class CheckBoxListItemsManager : ItemsControlManager<object>
+        {
+            private readonly PropertyManagerPageCheckBoxListControl m_CheckBoxListCtrl;
+
+            private ItemsControlItem[] m_InitialItemsCopy;
+
+            public CheckBoxListItemsManager(PropertyManagerPageCheckBoxListControl checkBoxListCtrl, IXApplication app, IAttributeSet atts, IMetadata[] metadata)
+                : base(checkBoxListCtrl, app, atts, metadata)
+            {
+                m_CheckBoxListCtrl = checkBoxListCtrl;
+            }
+
+            protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
+            {
+                if (Items != newItems || !CompareItems(m_InitialItemsCopy, newItems))
+                {
+                    throw new DynamicControlsNotSupportedException();
+                }
+            }
+
+            protected override ItemsControlItem[] CreateEnumItems(Type enumType)
+            {
+                if (enumType.IsEnum
+                    && enumType.GetCustomAttribute<FlagsAttribute>() != null)
+                {
+                    var flags = GetEnumFlags(enumType);
+
+                    var items = GetEnumValueOrderAsDefined(enumType);
+
+                    var itemsList = new List<FlagEnumItem>();
+                    var hiddenFlagsList = new List<Enum>();
+
+                    foreach (Enum item in items)
+                    {
+                        var visible = true;
+                        Reflection.EnumExtension.TryGetAttribute<BrowsableAttribute>(item, a => visible = a.Browsable);
+
+                        if (visible)
+                        {
+                            var affectedFlags = flags.Where(item.HasFlag).ToArray();
+
+                            var name = "";
+
+                            item.TryGetAttribute<DisplayNameAttribute>(a => name = a.DisplayName);
+
+                            if (string.IsNullOrEmpty(name))
+                            {
+                                name = item.ToString();
+                            }
+
+                            var desc = "";
+
+                            item.TryGetAttribute<DescriptionAttribute>(a => desc = a.Description);
+
+                            itemsList.Add(new FlagEnumItem(item, name, desc, affectedFlags));
+                        }
+                        else
+                        {
+                            hiddenFlagsList.Add(item);
+                        }
+                    }
+
+                    m_CheckBoxListCtrl.m_HiddenFlags = hiddenFlagsList;
+                    return itemsList.ToArray();
+                }
+                else
+                {
+                    throw new NotSupportedException("Only flag enums are supported");
+                }
+            }
+
+            private Enum[] GetEnumFlags(Type enumType)
+            {
+                if (!enumType.IsEnum)
+                {
+                    throw new Exception("Only flag enums are supported");
+                }
+
+                var flags = new List<Enum>();
+
+                var flag = 0x1;
+
+                foreach (Enum value in Enum.GetValues(enumType))
+                {
+                    var bits = Convert.ToInt32(value);
+
+                    if (bits != 0)
+                    {
+                        while (flag < bits)
+                        {
+                            flag <<= 1;
+                        }
+                        if (flag == bits)
+                        {
+                            flags.Add(value);
+                        }
+                    }
+                }
+
+                return flags.ToArray();
+            }
+
+            private Array GetEnumValueOrderAsDefined(Type enumType)
+            {
+                var fields = enumType.GetFields(BindingFlags.Static | BindingFlags.Public);
+                return Array.ConvertAll(fields, x => (Enum)x.GetValue(null));
+            }
+
+            protected override ItemsControlItem[] LoadInitialItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] items)
+            {
+                m_InitialItemsCopy = items?.ToArray();
+
+                m_CheckBoxListCtrl.SwSpecificControl.CreateControls(items);
+                return items;
+            }
+
+            protected override void SetItemDisplayName(ItemsControlItem item, int index, string newDispName)
+            {
+                if (index != -1 && m_CheckBoxListCtrl.SwSpecificControl.Controls.Length > index)
+                {
+                    m_CheckBoxListCtrl.SwSpecificControl.Controls[index].Caption = newDispName;
+                }
+            }
+        }
+
         private enum EnumItemType_e
         {
             Default,
@@ -136,8 +262,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         private object m_Value;
         private bool m_IsSettingValues;
 
-        private ItemsControlItem[] m_InitialItemsCopy;
-
         public PropertyManagerPageCheckBoxListControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
             : base(app, parentGroup, iconConv, atts, metadata, swPropertyManagerPageControlType_e.swControlType_Checkbox, ref numberOfUsedIds)
@@ -146,56 +270,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             numberOfUsedIds = Items.Length;
         }
 
-        protected override ItemsControlItem[] CreateEnumItems(Type enumType)
-        {
-            if (enumType.IsEnum
-                && enumType.GetCustomAttribute<FlagsAttribute>() != null)
-            {
-                var flags = GetEnumFlags(enumType);
-
-                var items = GetEnumValueOrderAsDefined(enumType);
-
-                var itemsList = new List<FlagEnumItem>();
-                var hiddenFlagsList = new List<Enum>();
-
-                foreach (Enum item in items)
-                {
-                    var visible = true;
-                    Reflection.EnumExtension.TryGetAttribute<BrowsableAttribute>(item, a => visible = a.Browsable);
-
-                    if (visible)
-                    {
-                        var affectedFlags = flags.Where(item.HasFlag).ToArray();
-
-                        var name = "";
-
-                        item.TryGetAttribute<DisplayNameAttribute>(a => name = a.DisplayName);
-
-                        if (string.IsNullOrEmpty(name))
-                        {
-                            name = item.ToString();
-                        }
-
-                        var desc = "";
-
-                        item.TryGetAttribute<DescriptionAttribute>(a => desc = a.Description);
-
-                        itemsList.Add(new FlagEnumItem(item, name, desc, affectedFlags));
-                    }
-                    else
-                    {
-                        hiddenFlagsList.Add(item);
-                    }
-                }
-
-                m_HiddenFlags = hiddenFlagsList;
-                return itemsList.ToArray();
-            }
-            else 
-            {
-                throw new NotSupportedException("Only flag enums are supported");
-            }
-        }
+        protected override ItemsControlManager<object> CreateItemsControlManager(SwApplication app, IAttributeSet atts, IMetadata[] metadata)
+            => new CheckBoxListItemsManager(this, app, atts, metadata);
 
         protected override void InitData(IControlOptionsAttribute opts, IAttributeSet atts)
         {
@@ -259,37 +335,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     }
                 }
             }
-        }
-
-        private Enum[] GetEnumFlags(Type enumType)
-        {
-            if (!enumType.IsEnum)
-            {
-                throw new Exception("Only flag enums are supported");
-            }
-
-            var flags = new List<Enum>();
-
-            var flag = 0x1;
-
-            foreach (Enum value in Enum.GetValues(enumType))
-            {
-                var bits = Convert.ToInt32(value);
-
-                if (bits != 0)
-                {
-                    while (flag < bits)
-                    {
-                        flag <<= 1;
-                    }
-                    if (flag == bits)
-                    {
-                        flags.Add(value);
-                    }
-                }
-            }
-
-            return flags.ToArray();
         }
 
         private int GetIndex(int id) => id - Id;
@@ -479,7 +524,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 {
                     var elem = list[i];
 
-                    if (m_EqualityComparer.Equals(elem, val))
+                    if (ItemsCountrolManager.CompareValues(elem, val))
                     {
                         return i;
                     }
@@ -506,36 +551,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
 
             return enumVal;
-        }
-
-        private Array GetEnumValueOrderAsDefined(Type enumType)
-        {
-            var fields = enumType.GetFields(BindingFlags.Static | BindingFlags.Public);
-            return Array.ConvertAll(fields, x => (Enum)x.GetValue(null));
-        }
-
-        protected override ItemsControlItem[] LoadInitialItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] items)
-        {
-            m_InitialItemsCopy = items?.ToArray();
-
-            SwSpecificControl.CreateControls(items);
-            return items;
-        }
-
-        protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
-        {
-            if (Items != newItems || !CompareItems(m_InitialItemsCopy, newItems))
-            {
-                throw new DynamicControlsNotSupportedException();
-            }
-        }
-
-        protected override void SetItemDisplayName(ItemsControlItem item, int index, string newDispName)
-        {
-            if (index != -1 && SwSpecificControl.Controls.Length > index)
-            {
-                SwSpecificControl.Controls[index].Caption = newDispName;
-            }
         }
 
         protected override void Dispose(bool disposing)

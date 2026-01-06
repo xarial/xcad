@@ -55,7 +55,7 @@ namespace Xarial.XCad.SolidWorks.UI
 
         protected override TControl CreateControl()
         {
-            m_CurTabTitle = m_CtrlCreator.CreateControl(typeof(TControl), out TControl ctrl);
+            m_CurTabTitle = m_CtrlCreator.HostControl(typeof(TControl), out TControl ctrl);
             return ctrl;
         }
 

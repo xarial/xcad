@@ -12,8 +12,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Xarial.XCad;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Windows.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
@@ -25,6 +27,80 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
     internal class PropertyManagerPageListBoxControl : PropertyManagerPageItemsSourceControl<object, IPropertyManagerPageListbox>
     {
+        private class ListBoxItemsManager : ItemsControlManager<object>
+        {
+            private readonly PropertyManagerPageListBoxControl m_ListBoxCtrl;
+
+            public ListBoxItemsManager(PropertyManagerPageListBoxControl listBoxCtrl, IXApplication app, IAttributeSet atts, IMetadata[] metadata) : base(listBoxCtrl, app, atts, metadata)
+            {
+                m_ListBoxCtrl = listBoxCtrl;
+            }
+
+            protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
+            {
+                m_ListBoxCtrl.SwSpecificControl.Clear();
+
+                if (newItems?.Any() == true)
+                {
+                    m_ListBoxCtrl.SwSpecificControl.AddItems(newItems.Select(i => i.DisplayName).ToArray());
+                }
+
+                var oldCachedValue = m_ListBoxCtrl.m_CurrentValueCached;
+
+                m_ListBoxCtrl.SetSpecificValue(m_ListBoxCtrl.m_CurrentValueCached);
+
+                var curVal = m_ListBoxCtrl.GetSpecificValue();
+
+                if (m_ListBoxCtrl.IsValueChanged(curVal, oldCachedValue))
+                {
+                    m_ListBoxCtrl.ValueChanged?.Invoke(m_ListBoxCtrl, curVal);
+                }
+            }
+
+            protected override ItemsControlItem[] LoadInitialItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] items)
+            {
+                if (isStatic)
+                {
+                    var sortItems = atts.Has<ListBoxOptionsAttribute>() && atts.Get<ListBoxOptionsAttribute>().Style.HasFlag(ListBoxStyle_e.Sorted);
+
+                    if (sortItems)
+                    {
+                        items = items.OrderBy(i => i.DisplayName).ToArray();
+                    }
+                }
+
+                return items;
+            }
+
+            protected override void SetItemDisplayName(ItemsControlItem item, int index, string newDispName)
+            {
+                if (index != -1 && m_ListBoxCtrl.SwSpecificControl.ItemCount > index)
+                {
+                    m_ListBoxCtrl.m_SuspendHandlingChanged = true;
+
+                    try
+                    {
+                        var selItems = (short[])m_ListBoxCtrl.SwSpecificControl.GetSelectedItems();
+
+                        m_ListBoxCtrl.SwSpecificControl.DeleteItem((short)index);
+                        m_ListBoxCtrl.SwSpecificControl.InsertItem((short)index, newDispName);
+
+                        if (selItems != null)
+                        {
+                            for (short i = 0; i < m_ListBoxCtrl.SwSpecificControl.ItemCount; i++)
+                            {
+                                m_ListBoxCtrl.SwSpecificControl.SetSelectedItem(i, selItems.Contains(i));
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        m_ListBoxCtrl.m_SuspendHandlingChanged = false;
+                    }
+                }
+            }
+        }
+
         protected override event ControlValueChangedDelegate<object> ValueChanged;
 
         private Type m_TargetType;
@@ -39,6 +115,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             m_Handler.ListBoxChanged += OnListBoxChanged;
         }
+
+        protected override ItemsControlManager<object> CreateItemsControlManager(SwApplication app, IAttributeSet atts, IMetadata[] metadata)
+            => new ListBoxItemsManager(this, app, atts, metadata);
 
         protected override void InitData(IControlOptionsAttribute opts, IAttributeSet atts)
         {
@@ -84,20 +163,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             ctrl.Style = style;
         }
 
-        protected override ItemsControlItem[] LoadInitialItems(IAttributeSet atts, bool isStatic, ItemsControlItem[] items)
-        {
-            if (isStatic)
-            {
-                var sortItems = atts.Has<ListBoxOptionsAttribute>() && atts.Get<ListBoxOptionsAttribute>().Style.HasFlag(ListBoxStyle_e.Sorted);
-                
-                if (sortItems)
-                {
-                    items = items.OrderBy(i => i.DisplayName).ToArray();
-                }
-            }
 
-            return items;
-        }
 
         private void OnListBoxChanged(int id, int selIndex)
         {
@@ -120,11 +186,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 if (!m_IsMultiSelect)
                 {
-                    curVal = GetItem(selIndexes.First());
+                    curVal = ItemsCountrolManager.GetItem(selIndexes.First());
                 }
                 else 
                 {
-                    var values = selIndexes.Select(i => GetItem(i)).ToArray();
+                    var values = selIndexes.Select(i => ItemsCountrolManager.GetItem(i)).ToArray();
 
                     if (m_TargetType.IsEnum)
                     {
@@ -145,7 +211,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
             else 
             {
-                curVal = GetDefaultItemValue();
+                curVal = ItemsCountrolManager.GetDefaultItemValue();
             }
 
             m_CurrentValueCached = curVal;
@@ -165,7 +231,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 {
                     foreach (var item in (IList)value)
                     {
-                        selIndices.Add(GetItemIndex(item));
+                        selIndices.Add(ItemsCountrolManager.GetItemIndex(item));
                     }
                 }
                 else if(value is Enum)
@@ -186,30 +252,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
             else 
             {
-                SwSpecificControl.CurrentSelection = (short)GetItemIndex(value);
+                SwSpecificControl.CurrentSelection = (short)ItemsCountrolManager.GetItemIndex(value);
             }
         }
 
-        protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
-        {
-            SwSpecificControl.Clear();
-
-            if (newItems?.Any() == true)
-            {
-                SwSpecificControl.AddItems(newItems.Select(i => i.DisplayName).ToArray());
-            }
-
-            var oldCachedValue = m_CurrentValueCached;
-
-            SetSpecificValue(m_CurrentValueCached);
-
-            var curVal = GetSpecificValue();
-
-            if (IsValueChanged(curVal, oldCachedValue)) 
-            {
-                ValueChanged?.Invoke(this, curVal);
-            }
-        }
+        
 
         private bool IsValueChanged(object oldVal, object newVal) 
         {
@@ -229,7 +276,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     {
                         for (int i = 0; i < oldList.Count; i++)
                         {
-                            if (!m_EqualityComparer.Equals(oldList[i], newList[i]))
+                            if (!ItemsCountrolManager.CompareValues(oldList[i], newList[i]))
                             {
                                 return true;
                             }
@@ -249,35 +296,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
             else
             {
-                return !m_EqualityComparer.Equals(oldVal, newVal);
-            }
-        }
-
-        protected override void SetItemDisplayName(ItemsControlItem item, int index, string newDispName)
-        {
-            if (index != -1 && SwSpecificControl.ItemCount > index)
-            {
-                m_SuspendHandlingChanged = true;
-
-                try
-                {
-                    var selItems = (short[])SwSpecificControl.GetSelectedItems();
-
-                    SwSpecificControl.DeleteItem((short)index);
-                    SwSpecificControl.InsertItem((short)index, newDispName);
-
-                    if (selItems != null)
-                    {
-                        for (short i = 0; i < SwSpecificControl.ItemCount; i++)
-                        {
-                            SwSpecificControl.SetSelectedItem(i, selItems.Contains(i));
-                        }
-                    }
-                }
-                finally
-                {
-                    m_SuspendHandlingChanged = false;
-                }
+                return !ItemsCountrolManager.CompareValues(oldVal, newVal);
             }
         }
 

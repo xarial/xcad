@@ -65,7 +65,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 m_CurrentControl.ValueChanged -= OnDataContextChanged;
             }
 
-            m_CurrentControl = m_Creator.CreateControl(m_CtrlType, out _);
+            m_CurrentControl = m_Creator.HostControl(m_CtrlType, out _);
             m_CurrentControl.ValueChanged += OnDataContextChanged;
         }
 

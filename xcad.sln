@@ -83,6 +83,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "__TemplateNamePlaceholderWp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Common", "tests\integration\Tests.Common\Tests.Common.csproj", "{31879DA7-63FD-4FE6-90A4-DC36BEE98FAD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Toolkit.Windows", "src\Toolkit.Windows\Toolkit.Windows.csproj", "{2CA7324F-D319-A48A-508E-EED2A2B21EDA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -205,6 +207,10 @@ Global
 		{31879DA7-63FD-4FE6-90A4-DC36BEE98FAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{31879DA7-63FD-4FE6-90A4-DC36BEE98FAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{31879DA7-63FD-4FE6-90A4-DC36BEE98FAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CA7324F-D319-A48A-508E-EED2A2B21EDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CA7324F-D319-A48A-508E-EED2A2B21EDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CA7324F-D319-A48A-508E-EED2A2B21EDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CA7324F-D319-A48A-508E-EED2A2B21EDA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

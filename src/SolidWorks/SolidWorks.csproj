@@ -51,7 +51,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Base\Base.csproj" />
-    <ProjectReference Include="..\Toolkit\Toolkit.csproj" />
+    <ProjectReference Include="..\Toolkit.Windows\Toolkit.Windows.csproj" />
   </ItemGroup>
 
   <ItemGroup>

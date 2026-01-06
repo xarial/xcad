@@ -31,99 +31,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
     internal class PropertyManagerPageBuilder
         : PageBuilderBase<PropertyManagerPagePage, PropertyManagerPageGroupBase, IPropertyManagerPageControlEx>
     {
-        private class PmpTypeDataBinder : TypeDataBinder
-        {
-            public PmpTypeDataBinder(IDynamicControlFactoryProvider dynCtrlFactProv, IXLogger logger) : base(dynCtrlFactProv, logger)
-            {
-            }
-
-            internal event Action<IEnumerable<IBinding>> BeforeControlsDataLoad;
-
-            internal event Func<IAttributeSet, IAttributeSet> GetPageAttributeSet;
-
-            protected override void OnBeforeControlsDataLoad(IReadOnlyList<IBinding> bindings)
-            {
-                base.OnBeforeControlsDataLoad(bindings);
-
-                BeforeControlsDataLoad?.Invoke(bindings);
-            }
-
-            protected override void OnGetPageAttributeSet(Type pageType, ref IAttributeSet attSet)
-            {
-                attSet = GetPageAttributeSet?.Invoke(attSet);
-            }
-        }
-
-        private class PmpAttributeSet : IAttributeSet
-        {
-            private readonly IAttributeSet m_BaseAttSet;
-
-            public Type ContextType => m_BaseAttSet.ContextType;
-            public string Description => m_BaseAttSet.Description;
-            public int Id => m_BaseAttSet.Id;
-            public string Name { get; }
-            public object Tag => m_BaseAttSet.Tag;
-            public IControlDescriptor ControlDescriptor => m_BaseAttSet.ControlDescriptor;
-
-            public void Add<TAtt>(TAtt att) where TAtt : XCad.UI.PropertyPage.Base.IAttribute
-            {
-                m_BaseAttSet.Add<TAtt>(att);
-            }
-
-            public TAtt Get<TAtt>() where TAtt : XCad.UI.PropertyPage.Base.IAttribute
-            {
-                return m_BaseAttSet.Get<TAtt>();
-            }
-
-            public IEnumerable<TAtt> GetAll<TAtt>() where TAtt : XCad.UI.PropertyPage.Base.IAttribute
-            {
-                return m_BaseAttSet.GetAll<TAtt>();
-            }
-
-            public bool Has<TAtt>() where TAtt : XCad.UI.PropertyPage.Base.IAttribute
-            {
-                return m_BaseAttSet.Has<TAtt>();
-            }
-
-            internal PmpAttributeSet(IAttributeSet baseAttSet, IPageSpec pageSpec)
-            {
-                m_BaseAttSet = baseAttSet;
-
-                if (!Has<PageOptionsAttribute>())
-                {
-                    //TODO: process pageSpec.Icon
-                    Add(new PageOptionsAttribute(pageSpec.Options));
-                }
-
-                if (!Has<PageButtonsAttribute>())
-                {
-                    Add(new PageButtonsAttribute(pageSpec.Buttons));
-                }
-
-                if (!Has<LockedPageAttribute>())
-                {
-                    Add(new LockedPageAttribute(pageSpec.LockPageStrategy));
-                }
-
-                if (string.IsNullOrEmpty(baseAttSet.Name)
-                    || baseAttSet.Name == ContextType.Name)
-                {
-                    Name = pageSpec.Title;
-                }
-                else
-                {
-                    Name = baseAttSet.Name;
-                }
-            }
-        }
-
         private readonly IPropertyManagerPageElementConstructor[] m_CtrlsContstrs;
-        private readonly PmpTypeDataBinder m_DataBinder;
+        private readonly TypeDataBinder m_DataBinder;
         private readonly IPageSpec m_PageSpec;
 
         internal PropertyManagerPageBuilder(SwApplication app, IIconsCreator iconsConv, IHelpLinkHandler helpLinkHandler, IDynamicControlFactoryProvider dynCtrlFactProv,
             SwPropertyManagerPageHandler handler, IPageSpec pageSpec, IXLogger logger)
-            : this(app, new PmpTypeDataBinder(dynCtrlFactProv, logger),
+            : this(app, new TypeDataBinder(dynCtrlFactProv, logger),
                   new PropertyManagerPageConstructor(app, iconsConv, helpLinkHandler, handler),
                   new PropertyManagerPageGroupControlConstructor(app, iconsConv),
                   new PropertyManagerPageTextBoxControlConstructor(app, iconsConv),
@@ -145,7 +59,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
             m_PageSpec = pageSpec;
         }
 
-        private PropertyManagerPageBuilder(ISwApplication app, PmpTypeDataBinder dataBinder, PropertyManagerPageConstructor pageConstr,
+        private PropertyManagerPageBuilder(ISwApplication app, TypeDataBinder dataBinder, PropertyManagerPageConstructor pageConstr,
             params IPropertyManagerPageElementConstructor[] ctrlsContstrs)
             : base(app, dataBinder, pageConstr, ctrlsContstrs)
         {
@@ -160,7 +74,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
         {
             if (m_PageSpec != null)
             {
-                return new PmpAttributeSet(attSet, m_PageSpec);
+                return m_PageSpec.ToAttributeSet(attSet);
             }
 
             return attSet;

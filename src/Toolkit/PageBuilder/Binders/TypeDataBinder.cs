@@ -31,6 +31,16 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
     /// </summary>
     public class TypeDataBinder : IDataModelBinder
     {
+        /// <summary>
+        /// Called before data loaded into controls
+        /// </summary>
+        public event Action<IEnumerable<IBinding>> BeforeControlsDataLoad;
+
+        /// <summary>
+        /// Loads page attributes
+        /// </summary>
+        public event Func<IAttributeSet, IAttributeSet> GetPageAttributeSet;
+
         private readonly IXLogger m_Logger;
 
         private readonly IDynamicControlFactoryProvider m_DynCtrlFactProv;
@@ -84,6 +94,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
         /// <param name="bindings">Bindings</param>
         protected virtual void OnBeforeControlsDataLoad(IReadOnlyList<IBinding> bindings)
         {
+            BeforeControlsDataLoad?.Invoke(bindings);
         }
 
         /// <summary>
@@ -93,6 +104,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
         /// <param name="attSet">Current attributes</param>
         protected virtual void OnGetPageAttributeSet(Type pageType, ref IAttributeSet attSet)
         {
+            attSet = GetPageAttributeSet?.Invoke(attSet);
         }
 
         private IAttributeSet CreateAttributeSet(int ctrlId, string ctrlName,

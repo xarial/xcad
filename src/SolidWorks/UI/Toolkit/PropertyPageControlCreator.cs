@@ -10,16 +10,18 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
+using System.Windows.Forms.Integration;
 using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit.Windows.UI;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.PropertyPage;
 
 namespace Xarial.XCad.SolidWorks.UI.Toolkit
 {
     internal class PropertyPageControlCreator<TControl>
-        : CustomControlCreator<IXCustomControl, TControl>
+        : CustomControlHost<IXCustomControl, TControl>
     {
         private readonly IPropertyManagerPageWindowFromHandle m_PmpCtrl;
 
@@ -28,10 +30,21 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             m_PmpCtrl = pmpCtrl;
         }
 
-        protected override IXCustomControl HostNetControl(Control winCtrlHost, TControl ctrl, string title, IXImage image)
+        protected override IXCustomControl HostWinFormsControl(Control winCtrl, string title, IXImage image)
         {
-            if (m_PmpCtrl.SetWindowHandlex64(winCtrlHost.Handle.ToInt64()))
+            if (m_PmpCtrl.SetWindowHandlex64(winCtrl.Handle.ToInt64()))
             {
+                TControl ctrl;
+
+                if (winCtrl is ElementHost elemHost)
+                {
+                    ctrl = (TControl)(object)elemHost.Child;
+                }
+                else 
+                {
+                    ctrl = (TControl)(object)winCtrl;
+                }
+
                 if (ctrl is IXCustomControl)
                 {
                     if (ctrl is System.Windows.FrameworkElement)
@@ -47,7 +60,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
                 {
                     if (ctrl is System.Windows.FrameworkElement)
                     {
-                        return new WpfCustomControl((System.Windows.FrameworkElement)(object)ctrl, winCtrlHost);
+                        return new WpfCustomControl((System.Windows.FrameworkElement)(object)ctrl, winCtrl);
                     }
 
                     throw new NotSupportedException($"'{ctrl.GetType()}' must implement '{typeof(IXCustomControl).FullName}' or inherit '{typeof(System.Windows.FrameworkElement).FullName}'");
@@ -55,7 +68,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             }
             else
             {
-                throw new NetControlHostException(winCtrlHost.Handle);
+                throw new NetControlHostException(winCtrl.Handle);
             }
         }
 

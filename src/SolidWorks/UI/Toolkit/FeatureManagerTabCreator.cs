@@ -16,10 +16,11 @@ using Xarial.XCad.UI;
 using Xarial.XCad.Toolkit;
 using System.Linq;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Windows.UI;
 
 namespace Xarial.XCad.SolidWorks.UI.Toolkit
 {
-    internal class FeatureManagerTabCreator<TControl> : CustomControlCreator<Tuple<IFeatMgrView, string>, TControl>
+    internal class FeatureManagerTabCreator<TControl> : CustomControlHost<Tuple<IFeatMgrView, string>, TControl>
     {
         private readonly IServiceProvider m_SvcProvider;
         private readonly ModelViewManager m_ModelViewMgr;
@@ -55,12 +56,11 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             }
         }
 
-        protected override Tuple<IFeatMgrView, string> HostNetControl(Control winCtrlHost, TControl ctrl,
-            string title, IXImage image)
+        protected override Tuple<IFeatMgrView, string> HostWinFormsControl(Control winCtrl, string title, IXImage image)
         {
             using (var img = m_SvcProvider.GetService<IIconsCreator>().ConvertIcon(new FeatMgrViewIcon(image)))
             {
-                var featMgrView = m_TabProvider.ProvideNetControl(m_ModelViewMgr, winCtrlHost, img.FilePaths.First(), title);
+                var featMgrView = m_TabProvider.ProvideNetControl(m_ModelViewMgr, winCtrl, img.FilePaths.First(), title);
 
                 if (featMgrView != null)
                 {
@@ -68,7 +68,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
                 }
                 else
                 {
-                    throw new NetControlHostException(winCtrlHost.Handle);
+                    throw new NetControlHostException(winCtrl.Handle);
                 }
             }
         }

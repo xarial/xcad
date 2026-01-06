@@ -8,8 +8,10 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Collections;
 using System.Linq;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Windows.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Structures;
@@ -21,6 +23,71 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
     internal class PropertyManagerPageComboBoxControl<TVal> : PropertyManagerPageItemsSourceControl<TVal, IPropertyManagerPageCombobox>
     {
+        private class ComboBoxItemsControlManager : ItemsControlManager<TVal>
+        {
+            private readonly PropertyManagerPageComboBoxControl<TVal> m_ComboBox;
+
+            public ComboBoxItemsControlManager(PropertyManagerPageComboBoxControl<TVal> comboBox, IXApplication app, IAttributeSet atts, IMetadata[] metadata) 
+                : base(comboBox, app, atts, metadata)
+            {
+                m_ComboBox = comboBox;
+            }
+
+            public void ReloadItems() 
+            {
+                LoadItemsIntoControl(Items);
+            }
+
+            protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
+            {
+                if (m_ComboBox.m_IsPageOpened)
+                {
+                    m_ComboBox.SwSpecificControl.Clear();
+
+                    if (newItems?.Any() == true)
+                    {
+                        m_ComboBox.SwSpecificControl.AddItems(newItems.Select(x => x.DisplayName).ToArray());
+                    }
+
+                    if (newItems?.Any(i => CompareValues(i.Value, m_ComboBox.m_CurrentValueCached)) != true && !m_ComboBox.IsEditableText)
+                    {
+                        //if items source changed dynamically previously cached value might not fit new source
+                        var defVal = GetDefaultItemValue();
+
+                        if (!CompareValues(m_ComboBox.m_CurrentValueCached, defVal))
+                        {
+                            m_ComboBox.m_CurrentValueCached = defVal;
+                            m_ComboBox.ValueChanged?.Invoke(m_ComboBox, m_ComboBox.m_CurrentValueCached);
+                        }
+                    }
+
+                    m_ComboBox.SetSpecificValue(m_ComboBox.m_CurrentValueCached);
+                }
+            }
+
+            protected override void SetItemDisplayName(ItemsControlItem item, int index, string newDispName)
+            {
+                if (index != -1)
+                {
+                    m_ComboBox.m_SuspendHandlingChanged = true;
+
+                    try
+                    {
+                        var curSel = m_ComboBox.SwSpecificControl.CurrentSelection;
+
+                        m_ComboBox.SwSpecificControl.DeleteItem((short)index);
+                        m_ComboBox.SwSpecificControl.InsertItem((short)index, newDispName);
+
+                        m_ComboBox.SwSpecificControl.CurrentSelection = curSel;
+                    }
+                    finally
+                    {
+                        m_ComboBox.m_SuspendHandlingChanged = false;
+                    }
+                }
+            }
+        }
+
         protected override event ControlValueChangedDelegate<TVal> ValueChanged;
 
         private TVal m_CurrentValueCached;
@@ -37,6 +104,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             m_Handler.PreClosed += OnPageClosed;
             m_IsPageOpened = false;
         }
+
+        protected override ItemsControlManager<TVal> CreateItemsControlManager(SwApplication app, IAttributeSet atts, IMetadata[] metadata)
+            => new ComboBoxItemsControlManager(this, app, atts, metadata);
 
         protected override void SetOptions(IPropertyManagerPageCombobox ctrl, IControlOptionsAttribute opts, IAttributeSet atts)
         {
@@ -63,7 +133,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             m_IsPageOpened = true;
 
-            LoadItemsIntoControl(Items);
+            ((ComboBoxItemsControlManager)ItemsCountrolManager).ReloadItems();
         }
 
         private void OnPageClosed(swPropertyManagerPageCloseReasons_e reason)
@@ -71,7 +141,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             m_IsPageOpened = false;
             SwSpecificControl.Clear();
             SwSpecificControl.CurrentSelection = -1;
-            m_CurrentValueCached = GetDefaultItemValue();
+            m_CurrentValueCached = ItemsCountrolManager.GetDefaultItemValue();
         }
 
         private void OnComboBoxChanged(int id, int selIndex)
@@ -80,7 +150,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 if (!m_SuspendHandlingChanged)
                 {
-                    var val = GetItem(selIndex);
+                    var val = ItemsCountrolManager.GetItem(selIndex);
                     m_CurrentValueCached = val;
                     ValueChanged?.Invoke(this, val);
                 }
@@ -110,7 +180,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 if (SwSpecificControl.CurrentSelection != -1)
                 {
-                    return GetItem(SwSpecificControl.CurrentSelection);
+                    return ItemsCountrolManager.GetItem(SwSpecificControl.CurrentSelection);
                 }
                 else if (IsEditableText)
                 {
@@ -118,7 +188,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 }
                 else
                 {
-                    return GetDefaultItemValue();
+                    return ItemsCountrolManager.GetDefaultItemValue();
                 }
             }
         }
@@ -127,7 +197,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             m_CurrentValueCached = value;
 
-            var index = GetItemIndex(value);
+            var index = ItemsCountrolManager.GetItemIndex(value);
 
             if (index != -1)
             {
@@ -151,55 +221,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 m_Handler.ComboBoxChanged -= OnComboBoxChanged;
                 m_Handler.ComboBoxEditChanged -= OnComboBoxEditChanged;
-            }
-        }
-
-        protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
-        {
-            if (m_IsPageOpened)
-            {
-                SwSpecificControl.Clear();
-
-                if (newItems?.Any() == true)
-                {
-                    SwSpecificControl.AddItems(newItems.Select(x => x.DisplayName).ToArray());
-                }
-
-                if (newItems?.Any(i => m_EqualityComparer.Equals(i.Value, m_CurrentValueCached)) != true && !IsEditableText)
-                {
-                    //if items source changed dynamically previously cached value might not fit new source
-                    var defVal = GetDefaultItemValue();
-
-                    if (!m_EqualityComparer.Equals(m_CurrentValueCached, defVal))
-                    {
-                        m_CurrentValueCached = defVal;
-                        ValueChanged?.Invoke(this, m_CurrentValueCached);
-                    }
-                }
-
-                SetSpecificValue(m_CurrentValueCached);
-            }
-        }
-
-        protected override void SetItemDisplayName(ItemsControlItem item, int index, string newDispName)
-        {
-            if (index != -1)
-            {
-                m_SuspendHandlingChanged = true;
-
-                try
-                {
-                    var curSel = SwSpecificControl.CurrentSelection;
-
-                    SwSpecificControl.DeleteItem((short)index);
-                    SwSpecificControl.InsertItem((short)index, newDispName);
-
-                    SwSpecificControl.CurrentSelection = curSel;
-                }
-                finally
-                {
-                    m_SuspendHandlingChanged = false;
-                }
             }
         }
     }

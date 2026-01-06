@@ -16,10 +16,11 @@ using Xarial.XCad.Toolkit;
 using System.Linq;
 using System.Windows.Forms;
 using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
+using Xarial.XCad.Toolkit.Windows.UI;
 
 namespace Xarial.XCad.SolidWorks.UI.Toolkit
 {
-    internal class ModelViewTabCreator<TControl> : CustomControlCreator<string, TControl>
+    internal class ModelViewTabCreator<TControl> : CustomControlHost<string, TControl>
     {
         private readonly IServiceProvider m_SvcProvider;
         private readonly ModelViewManager m_ModelViewMgr;
@@ -47,16 +48,15 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             }
         }
 
-        protected override string HostNetControl(Control winCtrlHost, TControl ctrl,
-            string title, IXImage image)
+        protected override string HostWinFormsControl(Control winCtrl, string title, IXImage image)
         {
-            if (m_CtrlProvider.ProvideNetControl(m_ModelViewMgr, winCtrlHost, title))
+            if (m_CtrlProvider.ProvideNetControl(m_ModelViewMgr, winCtrl, title))
             {
                 return title;
             }
             else
             {
-                throw new NetControlHostException(winCtrlHost.Handle);
+                throw new NetControlHostException(winCtrl.Handle);
             }
         }
     }

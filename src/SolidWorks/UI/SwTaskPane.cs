@@ -8,21 +8,23 @@
 using SolidWorks.Interop.sldworks;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
+using System.Windows.Forms.Integration;
+using System.Windows.Interop;
+using Xarial.XCad.Base;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures;
+using Xarial.XCad.SolidWorks.UI.Toolkit;
 using Xarial.XCad.SolidWorks.Utils;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.TaskPane;
 using Xarial.XCad.UI.TaskPane.Delegates;
-using Xarial.XCad.Toolkit;
-using Xarial.XCad.SolidWorks.UI.Toolkit;
-using Xarial.XCad.Base;
-using System.Runtime.InteropServices;
-using System.ComponentModel;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
@@ -90,9 +92,23 @@ namespace Xarial.XCad.SolidWorks.UI
             m_Creator = creator;
 
             TControl ctrl;
-            TaskPaneView = m_Creator.CreateControl(typeof(TControl), out ctrl, out m_WinCtrl);
+            TaskPaneView = m_Creator.HostControl(typeof(TControl), out ctrl);
             Control = ctrl;
-            
+
+            if (ctrl is System.Windows.Forms.Control winCtrl)
+            {
+                m_WinCtrl = winCtrl;
+            }
+            else if (ctrl is UIElement uiElem) 
+            {
+                var hWnd = ((HwndSource)PresentationSource.FromVisual(uiElem))?.Handle;
+
+                if (hWnd.HasValue)
+                {
+                    m_WinCtrl = ElementHost.FromChildHandle(hWnd.Value);
+                }
+            }
+
             m_Logger = logger;
 
             if (ctrl is FrameworkElement)
@@ -117,13 +133,16 @@ namespace Xarial.XCad.SolidWorks.UI
 
         private int OnTaskPaneViewActivate()
         {
-            var hWnd = m_WinCtrl.Handle;
+            if (m_WinCtrl != null)
+            {
+                var hWnd = m_WinCtrl.Handle;
 
-            WinAPI.ForcePaint(hWnd);
+                WinAPI.ForcePaint(hWnd);
 
-            Activated?.Invoke(this);
+                Activated?.Invoke(this);
+            }
 
-            return 0;
+            return HResult.S_OK;
         }
 
         private int OnTaskPaneToolbarButtonClicked(int buttonIndex)

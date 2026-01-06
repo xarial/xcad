@@ -122,7 +122,7 @@ namespace Xarial.XCad.SolidWorks.UI
         
         protected override TControl CreateControl()
         {
-            var ctrlData = m_CtrlCreator.CreateControl(typeof(TControl), out TControl ctrl);
+            var ctrlData = m_CtrlCreator.HostControl(typeof(TControl), out TControl ctrl);
             
             m_CurFeatMgrView = ctrlData.Item1;
             m_Title = ctrlData.Item2;

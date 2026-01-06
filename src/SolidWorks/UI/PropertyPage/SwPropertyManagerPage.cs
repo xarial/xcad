@@ -35,6 +35,10 @@ using Xarial.XCad.Toolkit.PageBuilder.Services;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
+    /// <summary>
+    /// SOLIDWORKS-specific property manager page
+    /// </summary>
+    /// <typeparam name="TModel">Data model</typeparam>
     public interface ISwPropertyManagerPage<TModel> : IXPropertyPage<TModel>, IDisposable 
     {
     }
@@ -232,11 +236,13 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             {
                 m_Logger.Log("Disposing page", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
 
-                foreach (var ctrl in m_Page.Binding.Bindings.Select(b => b.Control).OfType<IDisposable>())
+                foreach (var binding in m_Page.Binding.Bindings)
                 {
+                    binding.Changed -= OnBindingValueChanged;
+
                     try
                     {
-                        ctrl.Dispose();
+                        binding.Control.Dispose();
                     }
                     catch (Exception ex)
                     {
