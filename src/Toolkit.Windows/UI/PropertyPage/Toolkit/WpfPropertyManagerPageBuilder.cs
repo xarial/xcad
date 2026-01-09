@@ -1,4 +1,11 @@
-﻿using Xarial.XCad.Base;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2026 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using Xarial.XCad.Base;
 using Xarial.XCad.Toolkit.PageBuilder.Services;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Constructors;

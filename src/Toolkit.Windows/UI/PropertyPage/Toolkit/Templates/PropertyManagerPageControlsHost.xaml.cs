@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2026 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +20,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Xarial.XCad.BimVision.UI.PropertyPage.Toolkit.Templates
+namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Templates
 {
     /// <summary>
     /// Interaction logic for PropertyManagerPageControlsHost.xaml

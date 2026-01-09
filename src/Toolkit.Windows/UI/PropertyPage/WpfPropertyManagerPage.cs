@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xCAD
+//Copyright(C) 2026 Xarial Pty Limited
+//Product URL: https://www.xcad.net
+//License: https://xcad.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -6,13 +13,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using Xarial.XCad.Base;
-using Xarial.XCad.BimVision.UI.PropertyPage.Toolkit;
-using Xarial.XCad.BimVision.UI.PropertyPage.Toolkit.Templates;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.PageBuilder.Services;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit;
 using Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls;
+using Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Templates;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Delegates;

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Windows;
 using Xarial.XCad;
-using Xarial.XCad.BimVision.UI.PropertyPage.Toolkit.Templates;
 using Xarial.XCad.Toolkit.Windows.UI.PropertyPage;
+using Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Templates;
 
 namespace Tester
 {

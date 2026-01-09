@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xCAD
-//Copyright(C) 2025 Xarial Pty Limited
+//Copyright(C) 2026 Xarial Pty Limited
 //Product URL: https://www.xcad.net
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
@@ -148,7 +148,11 @@ namespace Xarial.XCad.SwDocumentManager
 
         [FileRevision(18000)]
         [ReleaseYear(2025)]
-        Sw2025 = 33
+        Sw2025 = 33,
+
+        [FileRevision(19000)]
+        [ReleaseYear(2026)]
+        Sw2026 = 34
     }
 
     public interface ISwDmVersion : IXVersion
