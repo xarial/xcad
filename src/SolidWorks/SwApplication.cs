@@ -41,6 +41,7 @@ using Xarial.XCad.Reflection;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Data;
 using Xarial.XCad.Toolkit.Utils;
+using Xarial.XCad.Toolkit.Windows.Services;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -698,11 +699,11 @@ namespace Xarial.XCad.SolidWorks
 
                 Sw.ShowBubbleTooltipAt2(spec.Position.X, spec.Position.Y, (int)spec.ArrowPosition,
                             spec.Title, spec.Message, (int)bmpType,
-                            bmp?.FilePaths.First(), link, addInId, (int)linkType, linkName, nameof(SwAddInEx.OnTooltipUrlClick));
+                            bmp?.FilePaths()?.First(), link, addInId, (int)linkType, linkName, nameof(SwAddInEx.OnTooltipUrlClick));
             }
         }
 
-        private IImageCollection CreateTooltipIcon(IXImage icon) 
+        private IIconCollection CreateTooltipIcon(IXImage icon) 
         {
             if (icon != null)
             {

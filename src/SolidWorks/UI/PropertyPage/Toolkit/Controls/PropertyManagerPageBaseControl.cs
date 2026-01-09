@@ -43,7 +43,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         protected readonly SwPropertyManagerPageHandler m_Handler;
         protected readonly SwApplication m_App;
 
-        private IImageCollection m_CustomIcon;
+        private IIconCollection m_CustomIcon;
 
         public override Type ValueType { get; }
 
@@ -198,7 +198,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 hasIcon = true;
                 m_CustomIcon = m_IconConv.ConvertIcon(icon);
-                var res = swCtrl.SetPictureLabelByName(m_CustomIcon.FilePaths[0], m_CustomIcon.FilePaths[1]);
+                var res = swCtrl.SetPictureLabelByName(m_CustomIcon[0].FilePath, m_CustomIcon[1].FilePath);
                 Debug.Assert(res);
             }
 

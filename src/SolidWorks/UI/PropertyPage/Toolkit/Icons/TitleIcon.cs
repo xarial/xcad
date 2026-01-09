@@ -13,7 +13,7 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 {
-    internal class TitleIcon : IIcon
+    internal class TitleIcon : IIconDescriptor
     {
         internal IXImage Icon { get; }
 

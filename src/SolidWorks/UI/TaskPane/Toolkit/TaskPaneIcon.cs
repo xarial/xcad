@@ -13,7 +13,7 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI.Commands.Toolkit.Structures
 {
-    internal class TaskPaneIcon : IIcon
+    internal class TaskPaneIcon : IIconDescriptor
     {
         protected readonly IXImage m_Icon;
 

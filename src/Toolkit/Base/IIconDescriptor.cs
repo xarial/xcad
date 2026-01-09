@@ -34,7 +34,7 @@ namespace Xarial.XCad.Toolkit.Base
     /// <summary>
     /// Represents the specific icon descriptor
     /// </summary>
-    public interface IIcon
+    public interface IIconDescriptor
     {
         /// <summary>
         /// Indicates that this icon is permanent and should not be removed on dispose

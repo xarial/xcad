@@ -13,7 +13,7 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using Xarial.XCad.Base;
 
-namespace Xarial.XCad.Toolkit.Windows
+namespace Xarial.XCad.Toolkit.Windows.Utils
 {
     /// <summary>
     /// Utilities for accessing Running Object Table

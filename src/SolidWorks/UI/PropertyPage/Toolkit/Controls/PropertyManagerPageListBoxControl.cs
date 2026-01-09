@@ -186,11 +186,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 if (!m_IsMultiSelect)
                 {
-                    curVal = ItemsCountrolManager.GetItem(selIndexes.First());
+                    curVal = ItemsControlManager.GetItem(selIndexes.First());
                 }
                 else 
                 {
-                    var values = selIndexes.Select(i => ItemsCountrolManager.GetItem(i)).ToArray();
+                    var values = selIndexes.Select(i => ItemsControlManager.GetItem(i)).ToArray();
 
                     if (m_TargetType.IsEnum)
                     {
@@ -211,7 +211,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
             else 
             {
-                curVal = ItemsCountrolManager.GetDefaultItemValue();
+                curVal = ItemsControlManager.GetDefaultItemValue();
             }
 
             m_CurrentValueCached = curVal;
@@ -231,7 +231,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 {
                     foreach (var item in (IList)value)
                     {
-                        selIndices.Add(ItemsCountrolManager.GetItemIndex(item));
+                        selIndices.Add(ItemsControlManager.GetItemIndex(item));
                     }
                 }
                 else if(value is Enum)
@@ -252,7 +252,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
             else 
             {
-                SwSpecificControl.CurrentSelection = (short)ItemsCountrolManager.GetItemIndex(value);
+                SwSpecificControl.CurrentSelection = (short)ItemsControlManager.GetItemIndex(value);
             }
         }
 
@@ -276,7 +276,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     {
                         for (int i = 0; i < oldList.Count; i++)
                         {
-                            if (!ItemsCountrolManager.CompareValues(oldList[i], newList[i]))
+                            if (!ItemsControlManager.CompareValues(oldList[i], newList[i]))
                             {
                                 return true;
                             }
@@ -296,7 +296,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
             else
             {
-                return !ItemsCountrolManager.CompareValues(oldVal, newVal);
+                return !ItemsControlManager.CompareValues(oldVal, newVal);
             }
         }
 

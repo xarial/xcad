@@ -20,6 +20,7 @@ using Xarial.XCad.UI.TaskPane;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Windows.UI;
+using Xarial.XCad.Toolkit.Windows.Services;
 
 namespace Xarial.XCad.SolidWorks.UI.Toolkit
 {
@@ -74,7 +75,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             }
         }
 
-        private ITaskpaneView CreateTaskPaneView(string title, IImageCollection icon)
+        private ITaskpaneView CreateTaskPaneView(string title, IIconCollection icon)
         {
             if (string.IsNullOrEmpty(title))
             {
@@ -85,13 +86,13 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
 
             if (m_App.Sw.SupportsHighResIcons(CompatibilityUtils.HighResIconsScope_e.TaskPane))
             {
-                var taskPaneIconImages = icon?.FilePaths;
+                var taskPaneIconImages = icon?.FilePaths();
 
                 taskPaneView = m_App.Sw.CreateTaskpaneView3(taskPaneIconImages, title);
             }
             else
             {
-                var taskPaneIconImage = icon?.FilePaths.First();
+                var taskPaneIconImage = icon?.FilePaths()?.First();
 
                 taskPaneView = m_App.Sw.CreateTaskpaneView2(taskPaneIconImage, title);
             }
@@ -101,7 +102,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
             return taskPaneView;
         }
 
-        private IImageCollection CreateTaskPaneIcon(IIconsCreator iconConv, IXImage icon) 
+        private IIconCollection CreateTaskPaneIcon(IIconsCreator iconConv, IXImage icon) 
         {
             if (icon == null)
             {
@@ -164,7 +165,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
                         {
                             using (var imageList = iconsConv.ConvertIcon(new CommandGroupHighResIcon(icon)))
                             {
-                                if (!taskPaneView.AddCustomButton2(imageList.FilePaths, tooltip))
+                                if (!taskPaneView.AddCustomButton2(imageList.FilePaths(), tooltip))
                                 {
                                     throw new InvalidOperationException($"Failed to create task pane button for '{tooltip}' with highres icon");
                                 }
@@ -174,7 +175,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
                         {
                             using (var image = iconsConv.ConvertIcon(new CommandGroupIcon(icon)))
                             {
-                                if (!taskPaneView.AddCustomButton(image.FilePaths.First(), tooltip))
+                                if (!taskPaneView.AddCustomButton(image[0].FilePath, tooltip))
                                 {
                                     throw new InvalidOperationException($"Failed to create task pane button for {tooltip}");
                                 }

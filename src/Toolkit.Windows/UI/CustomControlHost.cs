@@ -34,6 +34,19 @@ namespace Xarial.XCad.Toolkit.Windows.UI
         /// <returns>Instance of the host with the control</returns>
         /// <exception cref="NotSupportedException">Type of the control is not supported</exception>
         public TSpecificHost HostControl(Type ctrlType, out TControl specCtrl)
+            => HostControl(null, ctrlType, out specCtrl);
+
+        /// <summary>
+        /// Host control
+        /// </summary>
+        /// <param name="ctrl">Instance of the control to host</param>
+        /// <param name="specCtrl">Specific control created</param>
+        /// <returns>Instance of the host with the control</returns>
+        /// <exception cref="NotSupportedException">Type of the control is not supported</exception>
+        public TSpecificHost HostControl(object ctrl, out TControl specCtrl)
+            => HostControl(ctrl, ctrl.GetType(), out specCtrl);
+        
+        private TSpecificHost HostControl(object ctrl, Type ctrlType, out TControl specCtrl)
         {
             string title;
             IXImage icon;
@@ -48,13 +61,13 @@ namespace Xarial.XCad.Toolkit.Windows.UI
                 }
                 else
                 {
-                    var winCtrl = (System.Windows.Forms.Control)Activator.CreateInstance(ctrlType);
+                    var winCtrl = (System.Windows.Forms.Control)ctrl ?? (System.Windows.Forms.Control)Activator.CreateInstance(ctrlType);
                     return HostWinFormsControl(winCtrl, title, icon, out specCtrl);
                 }
             }
             else if (typeof(System.Windows.UIElement).IsAssignableFrom(ctrlType))
             {
-                var wpfCtrl = (System.Windows.UIElement)Activator.CreateInstance(ctrlType);
+                var wpfCtrl = (System.Windows.UIElement)ctrl ?? (System.Windows.UIElement)Activator.CreateInstance(ctrlType);
                 return HostWpfControl(wpfCtrl, title, icon, out specCtrl);
             }
             else
@@ -102,7 +115,7 @@ namespace Xarial.XCad.Toolkit.Windows.UI
             throw new NotSupportedException();
         }
 
-        private void GetControlAttribution(Type ctrlType, out string title, out IXImage icon)
+        protected virtual void GetControlAttribution(Type ctrlType, out string title, out IXImage icon)
         {
             title = "";
 

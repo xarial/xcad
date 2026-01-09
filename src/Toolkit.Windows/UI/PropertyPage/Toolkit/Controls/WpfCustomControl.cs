@@ -12,12 +12,11 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Interop;
-using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.UI.PropertyPage;
 
-namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
+namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
 {
-    internal class WpfCustomControl : IXCustomControl, IDisposable
+    public class WpfCustomControl : IXCustomControl, IDisposable
     {
         public event CustomControlValueChangedDelegate ValueChanged;
 
@@ -26,7 +25,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private readonly WpfControlKeystrokePropagator m_KeystrokePropagator;
 
-        internal WpfCustomControl(FrameworkElement elem, System.Windows.Forms.Control host) 
+        public WpfCustomControl(FrameworkElement elem, System.Windows.Forms.Control host = null) 
         {
             m_Elem = elem;
             m_Elem.DataContextChanged += OnDataContextChanged;
@@ -47,11 +46,11 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             m_KeystrokePropagator.Dispose();
             
-            m_Host.Dispose();
+            m_Host?.Dispose();
         }
     }
 
-    internal class WpfCustomControlWrapper : IXCustomControl, IDisposable
+    public class WpfCustomControlWrapper : IXCustomControl, IDisposable
     {
         public event CustomControlValueChangedDelegate ValueChanged 
         {
@@ -69,7 +68,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private readonly WpfControlKeystrokePropagator m_KeystrokePropagator;
 
-        internal WpfCustomControlWrapper(IXCustomControl customWpfControl)
+        public WpfCustomControlWrapper(IXCustomControl customWpfControl)
         {
             m_CustomWpfControl = customWpfControl;
             m_KeystrokePropagator = new WpfControlKeystrokePropagator((FrameworkElement)customWpfControl);

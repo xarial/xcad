@@ -13,49 +13,144 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Xarial.XCad.Toolkit.Base;
 using Xarial.XCad.Toolkit.Exceptions;
+using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI;
 
-namespace Xarial.XCad.Toolkit.Services
+namespace Xarial.XCad.Toolkit.Windows.Services
 {
-    /// <summary>
-    /// Container for images
-    /// </summary>
-    /// <remarks>This container is used to automate disposing of temp images</remarks>
-    public interface IImageCollection : IDisposable
+    public class BaseIcon : IIcon
     {
-        /// <summary>
-        /// File paths of the images
-        /// </summary>
-        string[] FilePaths { get; }
+        public Image Image => m_Bmp;
+
+        public string FilePath 
+        {
+            get 
+            {
+                if (!m_IsFileCreated) 
+                {
+                    CreateFile();
+                    m_IsFileCreated = true;
+                }
+
+                return m_FilePath;
+            }
+        }
+
+        private void CreateFile()
+        {
+            var dir = Path.GetDirectoryName(m_FilePath);
+
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            ImageFormat imgFormat;
+
+            switch (m_Format)
+            {
+                case IconImageFormat_e.Bmp:
+                    imgFormat = ImageFormat.Bmp;
+                    break;
+
+                case IconImageFormat_e.Png:
+                    imgFormat = ImageFormat.Png;
+                    break;
+
+                case IconImageFormat_e.Jpeg:
+                    imgFormat = ImageFormat.Jpeg;
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+
+            m_Bmp.Save(m_FilePath, imgFormat);
+        }
+
+        private string m_FilePath;
+
+        private bool m_IsFileCreated;
+
+        private readonly bool m_IsPermanent;
+
+        private bool m_IsDisposed;
+
+        private readonly IconImageFormat_e m_Format;
+
+        private readonly Bitmap m_Bmp;
+
+        public BaseIcon(Bitmap bmp, string filePath, IconImageFormat_e format, bool isPermanent)
+        {
+            m_Bmp = bmp;
+            m_FilePath = filePath;
+            m_Format = format;
+
+            m_IsPermanent = isPermanent;
+
+            m_IsDisposed = isPermanent;
+
+            m_IsFileCreated = false;
+            m_IsDisposed = false;
+        }
+
+        public void Dispose()
+        {
+            if (!m_IsDisposed)
+            {
+                m_IsDisposed = true;
+
+                m_Bmp.Dispose();
+
+                if (m_IsFileCreated)
+                {
+                    try
+                    {
+                        if (File.Exists(m_FilePath))
+                        {
+                            File.Delete(m_FilePath);
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
     }
 
     /// <inheritdoc/>
-    public class ImageCollection : IImageCollection
+    public class IconCollection : IIconCollection
     {
-        /// <inheritdoc/>
-        public string[] FilePaths { get; }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         private bool m_IsDisposed;
 
         internal string TempDirectory { get; }
 
+        /// <inheritdoc/>
+        public IIcon this[int index] => m_Images[index];
+
         private readonly bool m_IsPermanent;
+
+        private readonly IReadOnlyList<IIcon> m_Images;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="dir">Temp directory to store temp images</param>
-        /// <param name="filePaths">File paths of the temp images</param>
+        /// <param name="imgs">List of images</param>
         /// <param name="permanent">True if images are permanent and should not be deleted</param>
-        public ImageCollection(string dir, string[] filePaths, bool permanent)
+        public IconCollection(string dir, IReadOnlyList<IIcon> imgs, bool permanent)
         {
             TempDirectory = dir;
             m_IsPermanent = permanent;
-            FilePaths = filePaths;
+            m_Images = imgs ?? Array.Empty<IIcon>();
         }
 
         public void Dispose()
@@ -64,25 +159,13 @@ namespace Xarial.XCad.Toolkit.Services
             {
                 m_IsDisposed = true;
 
+                foreach (var img in m_Images)
+                {
+                    img.Dispose();
+                }
+
                 if (!m_IsPermanent)
                 {
-                    if (FilePaths != null)
-                    {
-                        foreach (var tempIcon in FilePaths)
-                        {
-                            try
-                            {
-                                if (File.Exists(tempIcon))
-                                {
-                                    File.Delete(tempIcon);
-                                }
-                            }
-                            catch
-                            {
-                            }
-                        }
-                    }
-
                     try
                     {
                         if (Directory.Exists(TempDirectory))
@@ -99,13 +182,30 @@ namespace Xarial.XCad.Toolkit.Services
                 }
             }
         }
+
+        public IEnumerator<IIcon> GetEnumerator() => m_Images.GetEnumerator();
+    }
+
+    public static class IconCollectionExtension
+    {
+        public static string[] FilePaths(this IIconCollection imgColl)
+        {
+            if (imgColl != null)
+            {
+                return imgColl.Select(i => i.FilePath).ToArray();
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 
     public class BaseIconsCreator : IIconsCreator
     {
         private readonly string m_DefaultFolder;
 
-        private readonly List<ImageCollection> m_CreatedImages;
+        private readonly List<IconCollection> m_CreatedImages;
 
         public BaseIconsCreator()
             : this(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()))
@@ -113,11 +213,10 @@ namespace Xarial.XCad.Toolkit.Services
         }
 
         /// <param name="iconsDir">Directory to store the icons</param>
-        /// <param name="disposeIcons">True to remove the icons when class is disposed</param>
         public BaseIconsCreator(string iconsDir)
         {
             m_DefaultFolder = iconsDir;
-            m_CreatedImages = new List<ImageCollection>();
+            m_CreatedImages = new List<IconCollection>();
         }
 
         /// <summary>
@@ -153,23 +252,25 @@ namespace Xarial.XCad.Toolkit.Services
             return maskImg;
         }
 
-        public IImageCollection ConvertIcon(IIcon icon, string folder = "")
+        public IIconCollection ConvertIcon(Base.IIconDescriptor icon, string folder = "")
         {
             var iconsFolder = GetIconsFolder(folder);
 
             var sizes = icon.IconSizes;
 
-            var bitmapPaths = new string[sizes.Length];
+            var images = new List<BaseIcon>();
 
             for(int i = 0; i< sizes.Length; i++)
             {
-                bitmapPaths[i] = Path.Combine(iconsFolder, IconSpec.CreateFileName(sizes[i].BaseName, sizes[i].TargetSize, icon.Format));
+                var bitmapPath = Path.Combine(iconsFolder, IconSpec.CreateFileName(sizes[i].BaseName, sizes[i].TargetSize, icon.Format));
 
-                CreateBitmap(new IXImage[] { sizes[i].SourceImage },
-                    bitmapPaths[i], sizes[i].TargetSize, sizes[i].Margin, icon.TransparencyKey, sizes[i].Mask, icon.Format);
+                var bitmap = CreateBitmap(new IXImage[] { sizes[i].SourceImage },
+                    sizes[i].TargetSize, sizes[i].Margin, icon.TransparencyKey, sizes[i].Mask);
+
+                images.Add(new BaseIcon(bitmap, bitmapPath, icon.Format, icon.IsPermanent));
             }
 
-            var imgsColl = new ImageCollection(iconsFolder, bitmapPaths, icon.IsPermanent);
+            var imgsColl = new IconCollection(iconsFolder, images, icon.IsPermanent);
 
             m_CreatedImages.Add(imgsColl);
 
@@ -177,7 +278,7 @@ namespace Xarial.XCad.Toolkit.Services
         }
         
         /// <inheritdoc/>
-        public IImageCollection ConvertIconsGroup(IIcon[] icons, string folder = "")
+        public IIconCollection ConvertIconsGroup(Base.IIconDescriptor[] icons, string folder = "")
         {
             if (icons == null || !icons.Any())
             {
@@ -188,6 +289,7 @@ namespace Xarial.XCad.Toolkit.Services
 
             var transparencyKey = icons.First().TransparencyKey;
             var format = icons.First().Format;
+            var isPermanent = icons.First().IsPermanent;
 
             var iconsFolder = GetIconsFolder(folder);
 
@@ -211,23 +313,26 @@ namespace Xarial.XCad.Toolkit.Services
                 }
             }
 
-            var iconsPaths = new string[iconsDataGroup.GetLength(0)];
+            var images = new List<BaseIcon>();
 
             for (int i = 0; i < iconsDataGroup.GetLength(0); i++)
             {
                 var imgs = new IXImage[iconsDataGroup.GetLength(1)];
+
                 for (int j = 0; j < iconsDataGroup.GetLength(1); j++)
                 {
                     imgs[j] = iconsDataGroup[i, j].SourceImage;
                 }
 
-                iconsPaths[i] = Path.Combine(iconsFolder, IconSpec.CreateFileName(iconsDataGroup[i, 0].BaseName, iconsDataGroup[i, 0].TargetSize, format));
+                var bitmapPath = Path.Combine(iconsFolder, IconSpec.CreateFileName(iconsDataGroup[i, 0].BaseName, iconsDataGroup[i, 0].TargetSize, format));
 
-                CreateBitmap(imgs, iconsPaths[i],
-                    iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Margin, transparencyKey, iconsDataGroup[i, 0].Mask, format);
+                var bitmap = CreateBitmap(imgs,
+                    iconsDataGroup[i, 0].TargetSize, iconsDataGroup[i, 0].Margin, transparencyKey, iconsDataGroup[i, 0].Mask);
+
+                images.Add(new BaseIcon(bitmap, bitmapPath, format, isPermanent));
             }
 
-            var imgsColl = new ImageCollection(iconsFolder, iconsPaths, icons.First().IsPermanent);
+            var imgsColl = new IconCollection(iconsFolder, images, isPermanent);
 
             m_CreatedImages.Add(imgsColl);
 
@@ -237,97 +342,68 @@ namespace Xarial.XCad.Toolkit.Services
         private string GetIconsFolder(string folder)
             => string.IsNullOrEmpty(folder) ? m_DefaultFolder : folder;
 
-        private void CreateBitmap(IXImage[] sourceIcons,
-            string targetIcon, Size size, int margin, Color background, ColorMaskDelegate mask, IconImageFormat_e format)
+        private Bitmap CreateBitmap(IXImage[] sourceIcons, Size size, int margin, Color background, ColorMaskDelegate mask)
         {
             var width = size.Width * sourceIcons.Length;
             var height = size.Height;
 
             var pixelFormat = background == Color.Transparent ? PixelFormat.Format32bppArgb : PixelFormat.Format24bppRgb;
 
-            using (var bmp = new Bitmap(width, height, pixelFormat))
+            var bmp = new Bitmap(width, height, pixelFormat);
+
+            using (var graph = System.Drawing.Graphics.FromImage(bmp))
             {
-                using (var graph = System.Drawing.Graphics.FromImage(bmp))
+                graph.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graph.SmoothingMode = SmoothingMode.HighQuality;
+                graph.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                if (background != Color.Transparent)
                 {
-                    graph.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                    graph.SmoothingMode = SmoothingMode.HighQuality;
-                    graph.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-                    if (background != Color.Transparent)
+                    using (var brush = new SolidBrush(background))
                     {
-                        using (var brush = new SolidBrush(background))
-                        {
-                            graph.FillRectangle(brush, 0, 0, bmp.Width, bmp.Height);
-                        }
-                    }
-
-                    for (int i = 0; i < sourceIcons.Length; i++)
-                    {
-                        var targSize = new Size(size.Width - margin * 2, size.Height - margin * 2);
-
-                        var sourceIcon = CreateImage(sourceIcons[i], targSize, mask, background);
-
-                        if (bmp.HorizontalResolution != sourceIcon.HorizontalResolution
-                                || bmp.VerticalResolution != sourceIcon.VerticalResolution)
-                        {
-                            bmp.SetResolution(
-                                sourceIcon.HorizontalResolution,
-                                sourceIcon.VerticalResolution);
-                        }
-
-                        var widthScale = (double)targSize.Width / (double)sourceIcon.Width;
-                        var heightScale = (double)targSize.Height / (double)sourceIcon.Height;
-                        var scale = Math.Min(widthScale, heightScale);
-
-                        if (scale < 0)
-                        {
-                            throw new Exception("Target size of the icon cannot be calculated due to offset constraint");
-                        }
-
-                        var destX = (int)(size.Width - sourceIcon.Width * scale) / 2;
-                        var destY = (int)(size.Height - sourceIcon.Height * scale) / 2;
-
-                        int destWidth = (int)(sourceIcon.Width * scale);
-                        int destHeight = (int)(sourceIcon.Height * scale);
-
-                        destX += i * size.Width;
-
-                        graph.DrawImage(sourceIcon,
-                            new Rectangle(destX, destY, destWidth, destHeight),
-                            new Rectangle(0, 0, sourceIcon.Width, sourceIcon.Height),
-                            GraphicsUnit.Pixel);
+                        graph.FillRectangle(brush, 0, 0, bmp.Width, bmp.Height);
                     }
                 }
 
-                var dir = Path.GetDirectoryName(targetIcon);
-
-                if (!Directory.Exists(dir))
+                for (int i = 0; i < sourceIcons.Length; i++)
                 {
-                    Directory.CreateDirectory(dir);
+                    var targSize = new Size(size.Width - margin * 2, size.Height - margin * 2);
+
+                    var sourceIcon = CreateImage(sourceIcons[i], targSize, mask, background);
+
+                    if (bmp.HorizontalResolution != sourceIcon.HorizontalResolution
+                            || bmp.VerticalResolution != sourceIcon.VerticalResolution)
+                    {
+                        bmp.SetResolution(
+                            sourceIcon.HorizontalResolution,
+                            sourceIcon.VerticalResolution);
+                    }
+
+                    var widthScale = (double)targSize.Width / (double)sourceIcon.Width;
+                    var heightScale = (double)targSize.Height / (double)sourceIcon.Height;
+                    var scale = Math.Min(widthScale, heightScale);
+
+                    if (scale < 0)
+                    {
+                        throw new Exception("Target size of the icon cannot be calculated due to offset constraint");
+                    }
+
+                    var destX = (int)(size.Width - sourceIcon.Width * scale) / 2;
+                    var destY = (int)(size.Height - sourceIcon.Height * scale) / 2;
+
+                    int destWidth = (int)(sourceIcon.Width * scale);
+                    int destHeight = (int)(sourceIcon.Height * scale);
+
+                    destX += i * size.Width;
+
+                    graph.DrawImage(sourceIcon,
+                        new Rectangle(destX, destY, destWidth, destHeight),
+                        new Rectangle(0, 0, sourceIcon.Width, sourceIcon.Height),
+                        GraphicsUnit.Pixel);
                 }
-
-                ImageFormat imgFormat;
-
-                switch (format) 
-                {
-                    case IconImageFormat_e.Bmp:
-                        imgFormat = ImageFormat.Bmp;
-                        break;
-
-                    case IconImageFormat_e.Png:
-                        imgFormat = ImageFormat.Png;
-                        break;
-
-                    case IconImageFormat_e.Jpeg:
-                        imgFormat = ImageFormat.Jpeg;
-                        break;
-
-                    default:
-                        throw new NotSupportedException();
-                }
-
-                bmp.Save(targetIcon, imgFormat);
             }
+
+            return bmp;
         }
 
         protected virtual Image CreateImage(IXImage icon, 

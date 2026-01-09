@@ -53,7 +53,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private readonly SwApplication m_App;
 
-        private IImageCollection m_PageIcon;
+        private IIconCollection m_PageIcon;
 
         private readonly Dictionary<int, bool> m_GroupExpandStates;
 
@@ -211,7 +211,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             if (titleIcon != null)
             {
                 m_PageIcon = iconsConv.ConvertIcon(titleIcon);
-                Page.SetTitleBitmap2(m_PageIcon.FilePaths[0]);
+                Page.SetTitleBitmap2(m_PageIcon[0].FilePath);
             }
 
             if (atts.Has<MessageAttribute>())

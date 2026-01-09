@@ -38,17 +38,25 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         public ItemsControlItem[] Items
         {
-            get => ItemsCountrolManager.Items;
-            set => ItemsCountrolManager.Items = value;
+            get => ItemsControlManager.Items;
+            set => ItemsControlManager.Items = value;
         }
 
-        protected ItemsControlManager<TVal> ItemsCountrolManager { get; }
+        protected ItemsControlManager<TVal> ItemsControlManager { get; }
 
         public PropertyManagerPageItemsSourceControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata, swPropertyManagerPageControlType_e type, ref int numberOfUsedIds)
             : base(app, parentGroup, iconConv, atts, metadata, type, ref numberOfUsedIds)
         {
-            ItemsCountrolManager = CreateItemsControlManager(app, atts, metadata);
+            ItemsControlManager = CreateItemsControlManager(app, atts, metadata);
+            ItemsControlManager.Init();
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            ItemsControlManager.Update();
         }
 
         protected abstract ItemsControlManager<TVal> CreateItemsControlManager(SwApplication app, IAttributeSet atts, IMetadata[] metadata);

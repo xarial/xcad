@@ -15,7 +15,7 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
-    internal class TooltipIcon : IIcon
+    internal class TooltipIcon : IIconDescriptor
     {
         internal IXImage Icon { get; }
 

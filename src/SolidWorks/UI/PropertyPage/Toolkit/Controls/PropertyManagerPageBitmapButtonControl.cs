@@ -12,6 +12,7 @@ using System.Linq;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Windows.Services;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Enums;
@@ -28,8 +29,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private swPropertyManagerPageControlType_e m_Type;
 
-        private IImageCollection m_Bitmap;
-        private IImageCollection m_ToggledOffBitmap;
+        private IIconCollection m_Bitmap;
+        private IIconCollection m_ToggledOffBitmap;
 
         public PropertyManagerPageBitmapButtonControl(SwApplication app, IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
@@ -77,7 +78,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 if (m_App.IsVersionNewerOrEqual(Enums.SwVersion_e.Sw2016))
                 {
                     m_Bitmap = m_IconConv.ConvertIcon(new BitmapButtonHighResIcon(icon, bmpWidth, bmpHeight));
-                    var icons = m_Bitmap.FilePaths;
+                    var icons = m_Bitmap.FilePaths();
 
                     m_ImgList = icons.Take(6).ToArray();
                     m_MaskImgList = icons.Skip(6).ToArray();
@@ -93,7 +94,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                         {
                             m_ToggledOffBitmap = m_IconConv.ConvertIcon(new BitmapButtonHighResIcon(toggledIcon, bmpWidth, bmpHeight,
                                 ((BitmapToggleButtonAttribute)bmpAtt).ToggledOffEffect));
-                            var toggledIcons = m_ToggledOffBitmap.FilePaths;
+                            var toggledIcons = m_ToggledOffBitmap.FilePaths();
 
                             m_ImgListToggledOff = toggledIcons.Take(6).ToArray();
                             m_MaskImgListToggledOff = toggledIcons.Skip(6).ToArray();
@@ -109,7 +110,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 else
                 {
                     m_Bitmap = m_IconConv.ConvertIcon(new BitmapButtonIcon(icon, bmpWidth, bmpHeight));
-                    var icons = m_Bitmap.FilePaths;
+                    var icons = m_Bitmap.FilePaths();
                     
                     m_LegacyIcon = icons[0];
                     m_MaskLegacyIcon = icons[1];
@@ -123,7 +124,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
                         m_ToggledOffBitmap = m_IconConv.ConvertIcon(new BitmapButtonIcon(toggledOffIcon, bmpWidth, bmpHeight,
                             ((BitmapToggleButtonAttribute)bmpAtt).ToggledOffEffect));
-                        var toggledIcons = m_ToggledOffBitmap.FilePaths;
+                        var toggledIcons = m_ToggledOffBitmap.FilePaths();
                         
                         m_LegacyIconToggledOff = toggledIcons[0];
                         m_MaskLegacyIconToggledOff = toggledIcons[1];

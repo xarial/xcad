@@ -15,7 +15,7 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons
 {
-    internal class MacroFeatureIcon : IIcon
+    internal class MacroFeatureIcon : IIconDescriptor
     {
         protected readonly string m_BaseName;
         protected readonly IXImage m_Icon;
@@ -30,7 +30,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature.Toolkit.Icons
         {
             m_BaseName = baseName;
             m_Icon = icon;
-
+            
             IconSizes = new IIconSpec[]
             {
                 new IconSpec(m_Icon, MacroFeatureIconInfo.Size, 0, m_BaseName)

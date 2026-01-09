@@ -38,7 +38,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         {
             using (var img = m_SvcProvider.GetService<IIconsCreator>().ConvertIcon(new FeatMgrViewIcon(image)))
             {
-                var featMgrView = m_TabProvider.ProvideComControl(m_ModelViewMgr, img.FilePaths.First(), progId, title);
+                var featMgrView = m_TabProvider.ProvideComControl(m_ModelViewMgr, img[0].FilePath, progId, title);
 
                 specCtrl = default;
 
@@ -60,7 +60,7 @@ namespace Xarial.XCad.SolidWorks.UI.Toolkit
         {
             using (var img = m_SvcProvider.GetService<IIconsCreator>().ConvertIcon(new FeatMgrViewIcon(image)))
             {
-                var featMgrView = m_TabProvider.ProvideNetControl(m_ModelViewMgr, winCtrl, img.FilePaths.First(), title);
+                var featMgrView = m_TabProvider.ProvideNetControl(m_ModelViewMgr, winCtrl, img[0].FilePath, title);
 
                 if (featMgrView != null)
                 {

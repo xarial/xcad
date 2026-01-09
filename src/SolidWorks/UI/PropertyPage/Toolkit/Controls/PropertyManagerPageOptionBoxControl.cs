@@ -196,7 +196,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         protected override void SetSpecificValue(object value)
         {
-            var index = ItemsCountrolManager.GetItemIndex(value);
+            var index = ItemsControlManager.GetItemIndex(value);
 
             if (index != -1)
             {

@@ -9,20 +9,20 @@ using System;
 using System.Windows;
 using System.Windows.Interop;
 
-namespace Xarial.XCad.SolidWorks.Utils
+namespace Xarial.XCad.Toolkit.Windows.UI
 {
     /// <summary>
     /// Fixes the blocked keystrokes in WPF controls
     /// </summary>
     /// <remarks>WPF controls hosted in SOLIDWORKS will not handle keystrokes. This class fixes this issue</remarks>
-    internal class WpfControlKeystrokePropagator : IDisposable
+    public class WpfControlKeystrokePropagator : IDisposable
     {
         private readonly FrameworkElement m_Elem;
 
         private HwndSource m_HwndSrc;
         private HwndSourceHook m_HwndSrcHook;
 
-        internal WpfControlKeystrokePropagator(FrameworkElement elem) 
+        public WpfControlKeystrokePropagator(FrameworkElement elem) 
         {
             m_Elem = elem;
 

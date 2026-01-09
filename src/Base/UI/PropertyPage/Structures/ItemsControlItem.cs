@@ -19,7 +19,7 @@ namespace Xarial.XCad.UI.PropertyPage.Structures
     /// Represents the item in the <see cref="Base.IItemsControl"/>
     /// </summary>
     [DebuggerDisplay("{" + nameof(DisplayName) + "} [{" + nameof(Value) + "}]")]
-    public class ItemsControlItem
+    public class ItemsControlItem : INotifyPropertyChanged
     {
         private static string GetDisplayName(object value, string dispMembPath, out object prpOwner, out string prpName)
         {
@@ -100,15 +100,26 @@ namespace Xarial.XCad.UI.PropertyPage.Structures
             }
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
         /// <summary>
         /// Notifies when the display name is changed
         /// </summary>
         public event Action<ItemsControlItem, string> DisplayNameChanged;
-
+        
         /// <summary>
         /// Display name of the item
         /// </summary>
-        public string DisplayName { get; }
+        public string DisplayName 
+        {
+            get => m_DisplayName;
+            private set 
+            {
+                m_DisplayName = value;
+                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayName)));
+                DisplayNameChanged?.Invoke(this, value);
+            }
+        }
 
         /// <summary>
         /// Value of the item
@@ -122,6 +133,8 @@ namespace Xarial.XCad.UI.PropertyPage.Structures
 
         private readonly INotifyPropertyChanged m_DisplayNamePrpOwner;
         private readonly string m_DisplayNamePrpName;
+
+        private string m_DisplayName;
 
         /// <summary>
         /// Constructor
@@ -149,7 +162,7 @@ namespace Xarial.XCad.UI.PropertyPage.Structures
         public ItemsControlItem(object value, string dispName, string desc)
         {
             Value = value;
-            DisplayName = dispName;
+            m_DisplayName = dispName;
             Description = desc;
         }
 
@@ -157,7 +170,7 @@ namespace Xarial.XCad.UI.PropertyPage.Structures
         {
             if (e.PropertyName == m_DisplayNamePrpName)
             {
-                DisplayNameChanged?.Invoke(this, GetPropertyValue(m_DisplayNamePrpOwner, m_DisplayNamePrpName)?.ToString());
+                DisplayName = GetPropertyValue(m_DisplayNamePrpOwner, m_DisplayNamePrpName)?.ToString();
             }
         }
     }

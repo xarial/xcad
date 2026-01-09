@@ -133,7 +133,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             m_IsPageOpened = true;
 
-            ((ComboBoxItemsControlManager)ItemsCountrolManager).ReloadItems();
+            ((ComboBoxItemsControlManager)ItemsControlManager).ReloadItems();
         }
 
         private void OnPageClosed(swPropertyManagerPageCloseReasons_e reason)
@@ -141,7 +141,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             m_IsPageOpened = false;
             SwSpecificControl.Clear();
             SwSpecificControl.CurrentSelection = -1;
-            m_CurrentValueCached = ItemsCountrolManager.GetDefaultItemValue();
+            m_CurrentValueCached = ItemsControlManager.GetDefaultItemValue();
         }
 
         private void OnComboBoxChanged(int id, int selIndex)
@@ -150,7 +150,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 if (!m_SuspendHandlingChanged)
                 {
-                    var val = ItemsCountrolManager.GetItem(selIndex);
+                    var val = ItemsControlManager.GetItem(selIndex);
                     m_CurrentValueCached = val;
                     ValueChanged?.Invoke(this, val);
                 }
@@ -180,7 +180,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             {
                 if (SwSpecificControl.CurrentSelection != -1)
                 {
-                    return ItemsCountrolManager.GetItem(SwSpecificControl.CurrentSelection);
+                    return ItemsControlManager.GetItem(SwSpecificControl.CurrentSelection);
                 }
                 else if (IsEditableText)
                 {
@@ -188,7 +188,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 }
                 else
                 {
-                    return ItemsCountrolManager.GetDefaultItemValue();
+                    return ItemsControlManager.GetDefaultItemValue();
                 }
             }
         }
@@ -197,7 +197,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             m_CurrentValueCached = value;
 
-            var index = ItemsCountrolManager.GetItemIndex(value);
+            var index = ItemsControlManager.GetItemIndex(value);
 
             if (index != -1)
             {

@@ -16,7 +16,7 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 {
-    internal class BitmapButtonIcon : IIcon
+    internal class BitmapButtonIcon : IIconDescriptor
     {
         protected const int BORDER_SIZE = 3;
 

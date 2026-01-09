@@ -15,6 +15,7 @@ using Xarial.XCad.SolidWorks.UI.Commands.Exceptions;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit.Windows.UI;
+using Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.UI;
 using Xarial.XCad.UI.PropertyPage;
 

@@ -62,7 +62,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
         }
 
-        private IImageCollection m_TabIcon;
+        private IIconCollection m_TabIcon;
 
         private object m_Data;
         private MethodInfo m_ClickHandlerFunction;
@@ -142,7 +142,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 m_TabIcon = m_IconsConv.ConvertIcon(new TabIcon(icon));
 
                 //NOTE: tab icon must be in 256 color bitmap, otherwise it is not displayed
-                TryConvertIconTo8bit(m_TabIcon.FilePaths[0]);
+                TryConvertIconTo8bit(m_TabIcon[0].FilePath);
             }
 
             return hostPage.AddTab(atts.Id, atts.Name, iconPath, OPTIONS_NOT_USED);

@@ -102,7 +102,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private void OnGroupChecked(int id, bool val)
         {
-            if (id == Id) 
+            if (id == Id)
             {
                 m_ToggleMetadata.Value = val;
                 ValueChanged?.Invoke(this, val);

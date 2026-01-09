@@ -34,6 +34,7 @@ using System.Collections.Specialized;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.SolidWorks.UI.Commands.Attributes;
 using System.Reflection;
+using Xarial.XCad.Toolkit.Windows.Services;
 
 namespace Xarial.XCad.SolidWorks.UI.Commands
 {
@@ -119,8 +120,8 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
 
         private readonly ICommandGroupTabConfigurer m_TabConfigurer;
 
-        private IImageCollection m_MainIcon;
-        private IImageCollection m_ToolbarIcons;
+        private IIconCollection m_MainIcon;
+        private IIconCollection m_ToolbarIcons;
 
         internal SwCommandManager(ISwApplication app, int addinCookie, IServiceProvider svcProvider)
         {
@@ -414,7 +415,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             return docType;
         }
 
-        private IImageCollection CreateMainIcon(CommandGroupSpec cmdBar, IIconsCreator iconsConv)
+        private IIconCollection CreateMainIcon(CommandGroupSpec cmdBar, IIconsCreator iconsConv)
         {
             var mainIcon = cmdBar.Icon;
 
@@ -433,7 +434,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }
         }
 
-        private IImageCollection CreateToolbarIcons(CommandGroupSpec cmdBar, IIconsCreator iconsConv)
+        private IIconCollection CreateToolbarIcons(CommandGroupSpec cmdBar, IIconsCreator iconsConv)
         {
             IXImage[] iconList = null;
 
@@ -466,17 +467,17 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
             }
         }
 
-        private void SetCommandGroupIcons(CommandGroup cmdGroup, IImageCollection mainIcon, IImageCollection toolbarIcons)
+        private void SetCommandGroupIcons(CommandGroup cmdGroup, IIconCollection mainIcon, IIconCollection toolbarIcons)
         {
             //NOTE: if commands are not used, main icon will fail if toolbar commands image list is not specified, so it is required to specify it explicitly
             if (CompatibilityUtils.SupportsHighResIcons(m_App.Sw, CompatibilityUtils.HighResIconsScope_e.CommandManager))
             {
-                cmdGroup.MainIconList = mainIcon.FilePaths;
-                cmdGroup.IconList = toolbarIcons?.FilePaths;
+                cmdGroup.MainIconList = mainIcon.FilePaths();
+                cmdGroup.IconList = toolbarIcons?.FilePaths();
             }
             else
             {
-                var mainIconPath = mainIcon?.FilePaths ?? new string[] { null, null };
+                var mainIconPath = mainIcon?.FilePaths() ?? new string[] { null, null };
 
                 var smallIcon = mainIconPath[0];
                 var largeIcon = mainIconPath[1];
@@ -484,7 +485,7 @@ namespace Xarial.XCad.SolidWorks.UI.Commands
                 cmdGroup.SmallMainIcon = smallIcon;
                 cmdGroup.LargeMainIcon = largeIcon;
 
-                var iconListPath = toolbarIcons?.FilePaths ?? new string[] { null, null };
+                var iconListPath = toolbarIcons?.FilePaths() ?? new string[] { null, null };
                 var smallIconList = iconListPath[0];
                 var largeIconList = iconListPath[1];
 

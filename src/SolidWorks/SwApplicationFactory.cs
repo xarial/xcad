@@ -19,6 +19,7 @@ using Xarial.XCad.Toolkit;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.Toolkit.Windows.Utils;
 
 namespace Xarial.XCad.SolidWorks
 {

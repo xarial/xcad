@@ -100,6 +100,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
             private ItemsControlItem[] m_InitialItemsCopy;
 
+            internal IReadOnlyList<Enum> HiddenFlags { get; private set; }
+
             public CheckBoxListItemsManager(PropertyManagerPageCheckBoxListControl checkBoxListCtrl, IXApplication app, IAttributeSet atts, IMetadata[] metadata)
                 : base(checkBoxListCtrl, app, atts, metadata)
             {
@@ -156,7 +158,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                         }
                     }
 
-                    m_CheckBoxListCtrl.m_HiddenFlags = hiddenFlagsList;
+                    HiddenFlags = hiddenFlagsList;
                     return itemsList.ToArray();
                 }
                 else
@@ -255,8 +257,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         private delegate PropertyManagerPageCheckBoxList ControlCreatorDelegate(int id, short controlType, string caption, short leftAlign, int options, string tip);
 
         protected override event ControlValueChangedDelegate<object> ValueChanged;
-
-        private IReadOnlyList<Enum> m_HiddenFlags;
 
         private Type m_TargetType;
         private object m_Value;
@@ -524,7 +524,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 {
                     var elem = list[i];
 
-                    if (ItemsCountrolManager.CompareValues(elem, val))
+                    if (ItemsControlManager.CompareValues(elem, val))
                     {
                         return i;
                     }
@@ -538,7 +538,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private Enum RemoveDanglingHiddentEnumValues(Enum enumVal)
         {
-            foreach (var hiddenItem in m_HiddenFlags)
+            foreach (var hiddenItem in ((CheckBoxListItemsManager)ItemsControlManager).HiddenFlags)
             {
                 var hiddenItemsGroup = Items.Cast<FlagEnumItem>().Where(i => i.Value.HasFlag(hiddenItem));
 

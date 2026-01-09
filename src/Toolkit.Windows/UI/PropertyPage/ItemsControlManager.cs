@@ -57,16 +57,22 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage
 
         private readonly IItemsControl m_ItemsCtrl;
 
+        private readonly bool m_IsStatic;
+
+        private readonly IAttributeSet m_Atts;
+
         public ItemsControlManager(IItemsControl itemsCtrl, IXApplication app, IAttributeSet atts, IMetadata[] metadata)
         {
             m_ItemsCtrl = itemsCtrl;
 
+            m_Atts = atts;
+
             m_SpecificItemType = atts.ContextType;
 
-            ParseItems(app, atts, metadata, out bool isStatic, out ItemsControlItem[] staticItems,
+            ParseItems(app, atts, metadata, out m_IsStatic, out ItemsControlItem[] staticItems,
                 out m_SrcMetadata, out m_DispMembPath, out m_EqualityComparer);
 
-            if (isStatic)
+            if (m_IsStatic)
             {
                 m_Items = staticItems;
             }
@@ -79,8 +85,11 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage
                     m_Items = LoadItemsFromSource(m_CurMetadataValue);
                 }
             }
+        }
 
-            Items = LoadInitialItems(atts, isStatic, m_Items);
+        public void Init() 
+        {
+            Items = LoadInitialItems(m_Atts, m_IsStatic, m_Items);
         }
 
         public ItemsControlItem[] Items
@@ -110,20 +119,20 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage
             }
         }
 
-        //public virtual void Update()
-        //{
-        //    if (m_SrcMetadata != null)
-        //    {
-        //        var thisMetadataVal = m_SrcMetadata.Value;
+        public void Update()
+        {
+            if (m_SrcMetadata != null)
+            {
+                var thisMetadataVal = m_SrcMetadata.Value;
 
-        //        if (m_CurMetadataValue != thisMetadataVal)
-        //        {
-        //            m_CurMetadataValue = thisMetadataVal;
+                if (m_CurMetadataValue != thisMetadataVal)
+                {
+                    m_CurMetadataValue = thisMetadataVal;
 
-        //            Items = LoadItemsFromSource(m_CurMetadataValue);
-        //        }
-        //    }
-        //}
+                    Items = LoadItemsFromSource(m_CurMetadataValue);
+                }
+            }
+        }
 
         public TVal GetItem(int index)
         {

@@ -21,6 +21,7 @@ using Xarial.XCad.SolidWorks.Enums;
 using Xarial.XCad.SolidWorks.Exceptions;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.Toolkit.Windows;
+using Xarial.XCad.Toolkit.Windows.Utils;
 
 namespace Xarial.XCad.SolidWorks.Utils
 {

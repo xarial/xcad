@@ -230,43 +230,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             }
         }
 
-        public void Dispose()
-        {
-            if (!m_IsDisposed)
-            {
-                m_Logger.Log("Disposing page", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
-
-                foreach (var binding in m_Page.Binding.Bindings)
-                {
-                    binding.Changed -= OnBindingValueChanged;
-
-                    try
-                    {
-                        binding.Control.Dispose();
-                    }
-                    catch (Exception ex)
-                    {
-                        m_Logger.Log(ex);
-                    }
-                }
-
-                m_Page.Dispose();
-
-                Handler.Keystroke -= OnKeystroke;
-                Handler.Preview -= OnPreview;
-                Handler.Undo -= OnUndo;
-                Handler.Redo -= OnRedo;
-                Handler.PreviousPage -= OnPreviousPage;
-                Handler.NextPage -= OnNextPage;
-                Handler.Closed -= OnClosed;
-                Handler.Closing -= OnClosing;
-
-                m_IsDisposed = true;
-
-                Disposed?.Invoke(this);
-            }
-        }
-
         /// <inheritdoc/>
         public void Show(TModel model)
         {
@@ -455,6 +418,43 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             else 
             {
                 throw new Exception("Page is not suppressed");
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!m_IsDisposed)
+            {
+                m_Logger.Log("Disposing page", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
+
+                foreach (var binding in m_Page.Binding.Bindings)
+                {
+                    binding.Changed -= OnBindingValueChanged;
+
+                    try
+                    {
+                        binding.Control.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        m_Logger.Log(ex);
+                    }
+                }
+
+                m_Page.Dispose();
+
+                Handler.Keystroke -= OnKeystroke;
+                Handler.Preview -= OnPreview;
+                Handler.Undo -= OnUndo;
+                Handler.Redo -= OnRedo;
+                Handler.PreviousPage -= OnPreviousPage;
+                Handler.NextPage -= OnNextPage;
+                Handler.Closed -= OnClosed;
+                Handler.Closing -= OnClosing;
+
+                m_IsDisposed = true;
+
+                Disposed?.Invoke(this);
             }
         }
     }

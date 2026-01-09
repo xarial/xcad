@@ -14,7 +14,7 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 {
-    internal class ControlIcon : IIcon
+    internal class ControlIcon : IIconDescriptor
     {
         internal IXImage Icon { get; }
         internal IXImage Mask { get; }

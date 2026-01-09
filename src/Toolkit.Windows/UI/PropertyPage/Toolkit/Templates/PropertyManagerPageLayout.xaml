@@ -1,0 +1,81 @@
+﻿<UserControl x:Class="Xarial.XCad.BimVision.UI.PropertyPage.Toolkit.Templates.PropertyManagerPageLayout"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Xarial.XCad.BimVision.UI.PropertyPage.Toolkit.Templates"
+             xmlns:pmpenum="clr-namespace:Xarial.XCad.UI.PropertyPage.Enums;assembly=Xarial.XCad"
+             xmlns:wpf="clr-namespace:Xarial.XCad.Toolkit.Windows.UI.Wpf"
+             mc:Ignorable="d" Background="White"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <wpf:EnumFlagToVisibilityConverter x:Key="enumFlagToVisConv"/>
+        <wpf:NotNullOrEmptyToVisibilityConverter x:Key="notNullToVisConv"/>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+            <Grid.Resources>
+                <Style TargetType="TextBlock" x:Key="RowHeaderButtonStyle">
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="RenderTransform">
+                                <Setter.Value>
+                                    <ScaleTransform ScaleX="1.1" ScaleY="1.1"/>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </Style.Triggers>
+                    <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                </Style>
+            </Grid.Resources>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Margin="1" Grid.Column="0" HorizontalAlignment="Left">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="&#10004;" ToolTip="Apply" Margin="1" Visibility="{Binding Path=Buttons, Converter={StaticResource enumFlagToVisConv}, ConverterParameter={x:Static pmpenum:PageButtons_e.Okay}}" Cursor="Hand" Foreground="Green" MouseDown="OnOkClick" Style="{StaticResource RowHeaderButtonStyle}"/>
+                <TextBlock Text="&#10060;" ToolTip="Cancel" Margin="1" Visibility="{Binding Path=Buttons, Converter={StaticResource enumFlagToVisConv}, ConverterParameter={x:Static pmpenum:PageButtons_e.Cancel}}" Cursor="Hand" Foreground="Red" Grid.Column="1" MouseDown="OnCancelClick" Style="{StaticResource RowHeaderButtonStyle}"/>
+            </Grid>
+
+            <Image Source="{Binding Path=Icon}" RenderOptions.BitmapScalingMode="Fant" Grid.Column="1" HorizontalAlignment="Center" Margin="2" Width="12" Height="12">
+                <Image.Style>
+                    <Style TargetType="{x:Type Image}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=Icon}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Image.Style>
+            </Image>
+
+            <Grid Margin="1" Grid.Column="2" HorizontalAlignment="Right">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="&#9733;" ToolTip="What's New" Visibility="{Binding Path=WhatsNewLink, Converter={StaticResource notNullToVisConv}}" Margin="1" Cursor="Hand" Foreground="Goldenrod" MouseDown="OnWhatsNewClick" Style="{StaticResource RowHeaderButtonStyle}"/>
+                <TextBlock Text="&#10068;" ToolTip="Help" Visibility="{Binding Path=HelpLink, Converter={StaticResource notNullToVisConv}}" Margin="1" Cursor="Hand" Foreground="Blue" Grid.Column="1" MouseDown="OnHelpClick" Style="{StaticResource RowHeaderButtonStyle}"/>
+            </Grid>
+
+        </Grid>
+        
+        <Border Background="LightYellow" Margin="2" BorderThickness="1" Grid.Row="2" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"
+                Visibility="{Binding Path=Message, Converter={StaticResource notNullToVisConv}}">
+            <TextBlock Text="{Binding Path=Message}" Margin="2" TextWrapping="Wrap"/>
+        </Border>
+        <local:PropertyManagerPageControlsHost Grid.Row="3" Margin="2"/>
+    </Grid>
+</UserControl>

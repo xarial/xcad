@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xarial.XCad.Services;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Windows.Services;
 using Xarial.XCad.UI.PropertyPage.Services;
 
 namespace Xarial.XCad.SolidWorks.Utils

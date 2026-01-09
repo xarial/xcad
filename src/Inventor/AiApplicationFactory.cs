@@ -21,6 +21,7 @@ using System.Linq;
 using Xarial.XCad.Inventor.Utils;
 using Xarial.XCad.Base;
 using Xarial.XCad.Inventor.Services;
+using Xarial.XCad.Toolkit.Windows.Utils;
 
 namespace Xarial.XCad.Inventor
 {

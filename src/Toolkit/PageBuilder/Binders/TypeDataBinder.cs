@@ -104,7 +104,10 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
         /// <param name="attSet">Current attributes</param>
         protected virtual void OnGetPageAttributeSet(Type pageType, ref IAttributeSet attSet)
         {
-            attSet = GetPageAttributeSet?.Invoke(attSet);
+            if (GetPageAttributeSet != null)
+            {
+                attSet = GetPageAttributeSet.Invoke(attSet);
+            }
         }
 
         private IAttributeSet CreateAttributeSet(int ctrlId, string ctrlName,

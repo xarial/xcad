@@ -13,7 +13,7 @@ using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.UI
 {
-    internal class FeatMgrViewIcon : IIcon
+    internal class FeatMgrViewIcon : IIconDescriptor
     {
         protected readonly IXImage m_Icon;
 

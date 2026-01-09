@@ -1,0 +1,89 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:local="clr-namespace:Xarial.XCad.BimVision.UI.PropertyPage.Toolkit.Templates"
+                    xmlns:prpenum="clr-namespace:Xarial.XCad.UI.PropertyPage.Enums;assembly=Xarial.XCad"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <DataTemplate x:Key="PropertyManagerPageGroupTemplate">
+        <Border BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" CornerRadius="5">
+            <Expander Header="{Binding Path=Header}" IsExpanded="{Binding Path=IsExpanded, Mode=OneWay}">
+                <local:PropertyManagerPageControlsHost Margin="5"/>
+            </Expander>
+        </Border>
+    </DataTemplate>
+    
+    <DataTemplate x:Key="PropertyManagerPageComboBoxTemplate">
+        <ComboBox ItemsSource="{Binding Path=Items}" SelectedItem="{Binding Path=SelectedItem}">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Path=DisplayName}" ToolTip="{Binding Path=Description}"/>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PropertyManagerPageTextBoxTemplate">
+        <TextBox Text="{Binding Path=Text, UpdateSourceTrigger=PropertyChanged}"/>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PropertyManagerPageTextBlockTemplate">
+        <TextBlock Text="{Binding Path=Text}" TextWrapping="Wrap"/>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PropertyManagerPageCheckBoxTemplate">
+        <CheckBox IsChecked="{Binding Path=Checked, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center">
+            <TextBlock Text="{Binding Path=Name}" Margin="2"/>
+        </CheckBox>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PropertyManagerPageButtonTemplate">
+        <Button Command="{Binding Path=ClickCommand}" VerticalContentAlignment="Center">
+            <TextBlock Text="{Binding Path=Name}" Margin="2"/>
+            <Button.Style>
+                <Style TargetType="{x:Type Button}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=Align}" Value="{x:Static prpenum:ControlLeftAlign_e.Indent}">
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PropertyManagerPageBitmapTemplate">
+        <TextBlock Text="Not Implemented" Margin="2" Foreground="Red"/>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PropertyManagerPageBitmapButtonTemplate">
+        <TextBlock Text="Not Implemented" Margin="2" Foreground="Red"/>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PropertyManagerPageCheckBoxListTemplate">
+        <TextBlock Text="Not Implemented" Margin="2" Foreground="Red"/>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PropertyManagerPageCustomControlTemplate">
+        <ContentControl Content="{Binding Path=UI}"/>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PropertyManagerPageListBoxTemplate">
+        <TextBlock Text="Not Implemented" Margin="2" Foreground="Red"/>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PropertyManagerPageNumberBoxTemplate">
+        <TextBlock Text="Not Implemented" Margin="2" Foreground="Red"/>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PropertyManagerPageOptionBoxTemplate">
+        <TextBlock Text="Not Implemented" Margin="2" Foreground="Red"/>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PropertyManagerPageSelectionBoxTemplate">
+        <TextBlock Text="Not Implemented" Margin="2" Foreground="Red"/>
+    </DataTemplate>
+
+    <DataTemplate x:Key="PropertyManagerPageTabTemplate">
+        <TextBlock Text="Not Implemented" Margin="2" Foreground="Red"/>
+    </DataTemplate>
+
+</ResourceDictionary>
