@@ -12,15 +12,12 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using Xarial.XCad.Base;
-using Xarial.XCad.Services;
+using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.PageBuilder.Binders;
 using Xarial.XCad.Toolkit.PageBuilder.Exceptions;
-using Xarial.XCad.Toolkit.PageBuilder.Services;
-using Xarial.XCad.UI.Exceptions;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
-using Xarial.XCad.UI.PropertyPage.Delegates;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Core;
 
@@ -43,16 +40,16 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
         private readonly IXLogger m_Logger;
 
-        private readonly IDynamicControlFactoryProvider m_DynCtrlFactProv;
+        private readonly IServiceProvider m_SvcProv;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="logger">Logger</param>
-        /// <param name="dynCtrlFactProv">Provider of dynamic control factory</param>
-        public TypeDataBinder(IDynamicControlFactoryProvider dynCtrlFactProv, IXLogger logger) 
+        /// <param name="svcProv">Dependency injection services</param>
+        public TypeDataBinder(IServiceProvider svcProv, IXLogger logger) 
         {
-            m_DynCtrlFactProv = dynCtrlFactProv;
+            m_SvcProv = svcProv;
             m_Logger = logger;
         }
 
@@ -193,7 +190,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
 
                 if (dynCtrlAtt != null)
                 {
-                    var ctrlsFact = m_DynCtrlFactProv.Provide(prpPage, dynCtrlAtt.FactoryType, dynCtrlAtt.Tag);
+                    var ctrlsFact = ProvideDynamicControlFactory(dynCtrlAtt.FactoryType);
 
                     ctrlDescriptors = (ctrlsFact.CreateControls(parentCtrl, dynCtrlAtt.Tag) ?? Array.Empty<IControlDescriptor>())
                         .Select(c => new ControlDescriptorWrapper(c, prp)).ToArray();
@@ -365,6 +362,18 @@ namespace Xarial.XCad.Utils.PageBuilder.Binders
                 {
                     m_Logger.Log($"Type '{prpType.FullName}' is skipped as it was already processed while extracting metadata", XCad.Base.Enums.LoggerMessageSeverity_e.Debug);
                 }
+            }
+        }
+
+        private IDynamicControlFactory ProvideDynamicControlFactory(Type ctrlFactType)
+        {
+            if (m_SvcProv.TryGetService(ctrlFactType, out var svc))
+            {
+                return (IDynamicControlFactory)svc;
+            }
+            else
+            {
+                return (IDynamicControlFactory)Activator.CreateInstance(ctrlFactType);
             }
         }
     }

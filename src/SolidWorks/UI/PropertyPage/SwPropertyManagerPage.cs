@@ -19,11 +19,9 @@ using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Delegates;
 using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Structures;
-using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.UI.PropertyPage.Base;
-using Xarial.XCad.UI.Exceptions;
 using Xarial.XCad.SolidWorks.UI.Toolkit;
 using System.ComponentModel;
 using Xarial.XCad.Utils.PageBuilder;
@@ -31,7 +29,6 @@ using Xarial.XCad.Utils.Reflection;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.Services;
-using Xarial.XCad.Toolkit.PageBuilder.Services;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 {
@@ -142,8 +139,6 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
 
             var helpLinkHandler = m_SvcProvider.GetService<IHelpLinkHandler>();
 
-            var dynCtrlFactProv = new DynamicControlFactoryProvider(svcProvider);
-
             Handler = handler;
 
             ValidateHandler(Handler);
@@ -156,7 +151,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage
             Handler.NextPage += OnNextPage;
             Handler.Closed += OnClosed;
             Handler.Closing += OnClosing;
-            m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, helpLinkHandler, dynCtrlFactProv, Handler, pageSpec, m_Logger);
+            m_PmpBuilder = new PropertyManagerPageBuilder(app, m_IconsConv, helpLinkHandler, Handler, pageSpec, m_Logger);
 
             m_ContextProvider = new BaseContextProvider();
 

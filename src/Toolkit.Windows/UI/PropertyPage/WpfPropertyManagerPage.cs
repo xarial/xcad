@@ -8,13 +8,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using Xarial.XCad.Base;
-using Xarial.XCad.Toolkit;
-using Xarial.XCad.Toolkit.PageBuilder.Services;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit;
 using Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls;
@@ -26,7 +21,6 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder;
-using Xarial.XCad.Utils.PageBuilder.Base;
 
 namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage
 {
@@ -84,15 +78,18 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage
 
         private readonly IXLogger m_Logger;
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="app">Application</param>
+        /// <param name="svcProvider">Services</param>
         public WpfPropertyManagerPage(IXApplication app, IServiceProvider svcProvider) 
         {
             m_Logger = svcProvider.GetService<IXLogger>();
 
             m_ContextProvider = new BaseContextProvider();
 
-            var dynCtrlFactProv = new DynamicControlFactoryProvider(svcProvider);
-
-            m_PmpBuilder = new WpfPropertyManagerPageBuilder(app, dynCtrlFactProv, svcProvider.GetService<IIconsCreator>(), svcProvider.GetService<IHelpLinkHandler>(), m_Logger);
+            m_PmpBuilder = new WpfPropertyManagerPageBuilder(app, svcProvider, svcProvider.GetService<IIconsCreator>(), svcProvider.GetService<IHelpLinkHandler>(), m_Logger);
 
             m_Page = m_PmpBuilder.CreatePage(this, m_ContextProvider);
 

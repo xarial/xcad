@@ -5,8 +5,8 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using Xarial.XCad.Base;
-using Xarial.XCad.Toolkit.PageBuilder.Services;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Constructors;
 using Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls;
@@ -19,9 +19,9 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit
     internal class WpfPropertyManagerPageBuilder
         : PageBuilderBase<WpfPropertyManagerPagePage, WpfPropertyManagerPageGroup, IWpfPropertyManagerPageControl>
     {
-        public WpfPropertyManagerPageBuilder(IXApplication app, IDynamicControlFactoryProvider dynCtrlFactProv,
+        public WpfPropertyManagerPageBuilder(IXApplication app, IServiceProvider svcProv,
             IIconsCreator iconConv, IHelpLinkHandler helpLinkHandler, IXLogger logger)
-            : this(app, new TypeDataBinder(dynCtrlFactProv, logger), iconConv, helpLinkHandler)
+            : this(app, new TypeDataBinder(svcProv, logger), iconConv, helpLinkHandler)
         {
         }
 

@@ -11,14 +11,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Xarial.XCad.Base;
-using Xarial.XCad.Services;
-using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Constructors;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls;
 using Xarial.XCad.SolidWorks.Utils;
-using Xarial.XCad.Toolkit.PageBuilder.Services;
 using Xarial.XCad.Toolkit.Services;
-using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Services;
 using Xarial.XCad.Utils.Diagnostics;
@@ -35,9 +31,9 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit
         private readonly TypeDataBinder m_DataBinder;
         private readonly IPageSpec m_PageSpec;
 
-        internal PropertyManagerPageBuilder(SwApplication app, IIconsCreator iconsConv, IHelpLinkHandler helpLinkHandler, IDynamicControlFactoryProvider dynCtrlFactProv,
+        internal PropertyManagerPageBuilder(SwApplication app, IIconsCreator iconsConv, IHelpLinkHandler helpLinkHandler,
             SwPropertyManagerPageHandler handler, IPageSpec pageSpec, IXLogger logger)
-            : this(app, new TypeDataBinder(dynCtrlFactProv, logger),
+            : this(app, new TypeDataBinder(app.Services, logger),
                   new PropertyManagerPageConstructor(app, iconsConv, helpLinkHandler, handler),
                   new PropertyManagerPageGroupControlConstructor(app, iconsConv),
                   new PropertyManagerPageTextBoxControlConstructor(app, iconsConv),
