@@ -11,14 +11,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xarial.XCad.Base;
-using Xarial.XCad.Toolkit.PageBuilder.Services;
-using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.Utils.PageBuilder;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.Binders;
-using static Toolkit.Tests.PageBuilderTests;
 
 namespace Toolkit.Tests
 {
@@ -54,7 +51,7 @@ namespace Toolkit.Tests
         [Test]
         public void TestBindSimple()
         {
-            var binder = new TypeDataBinder(new DynamicControlFactoryProvider(Mock.Of<IServiceProvider>()), new Mock<IXLogger>().Object);
+            var binder = new TypeDataBinder(Mock.Of<IServiceProvider>(), new Mock<IXLogger>().Object);
             IReadOnlyList<IBinding> bindings;
 
             IRawDependencyGroup dependencies;
@@ -89,7 +86,7 @@ namespace Toolkit.Tests
         [Test]
         public void TestBindGroup()
         {
-            var binder = new TypeDataBinder(new DynamicControlFactoryProvider(Mock.Of<IServiceProvider>()), new Mock<IXLogger>().Object);
+            var binder = new TypeDataBinder(Mock.Of<IServiceProvider>(), new Mock<IXLogger>().Object);
             IReadOnlyList<IBinding> bindings;
 
             IRawDependencyGroup dependencies;
@@ -147,7 +144,7 @@ namespace Toolkit.Tests
         [Test]
         public void TestBindParent()
         {
-            var binder = new TypeDataBinder(new DynamicControlFactoryProvider(Mock.Of<IServiceProvider>()), new Mock<IXLogger>().Object);
+            var binder = new TypeDataBinder(Mock.Of<IServiceProvider>(), new Mock<IXLogger>().Object);
             IReadOnlyList<IBinding> bindings;
 
             IPage page = null;
@@ -212,7 +209,7 @@ namespace Toolkit.Tests
         [Test]
         public void TestBindIds()
         {
-            var binder = new TypeDataBinder(new DynamicControlFactoryProvider(Mock.Of<IServiceProvider>()), new Mock<IXLogger>().Object);
+            var binder = new TypeDataBinder(Mock.Of<IServiceProvider>(), new Mock<IXLogger>().Object);
             IReadOnlyList<IBinding> bindings;
 
             IPage page = null;
