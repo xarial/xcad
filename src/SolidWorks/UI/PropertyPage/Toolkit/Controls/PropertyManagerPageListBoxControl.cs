@@ -136,7 +136,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 height = 50;
             }
 
-            ctrl.Height = height;
+            ctrl.Height = (short)height;
 
             int style = 0;
 

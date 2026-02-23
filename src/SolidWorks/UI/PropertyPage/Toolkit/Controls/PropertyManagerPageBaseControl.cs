@@ -154,17 +154,17 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
             if (opts.Left != -1)
             {
-                swCtrl.Left = opts.Left;
+                swCtrl.Left = (short)opts.Left;
             }
 
             if (opts.Top != -1)
             {
-                swCtrl.Top = opts.Top;
+                swCtrl.Top = (short)opts.Top;
             }
 
             if (opts.Width != -1)
             {
-                swCtrl.Width = opts.Width;
+                swCtrl.Width = (short)opts.Width;
             }
 
             if (opts.ResizeOptions != 0)

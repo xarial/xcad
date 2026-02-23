@@ -29,7 +29,6 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
             }
         }
 
-
         public override DataTemplate Template { get; }
 
         private bool m_Checked;

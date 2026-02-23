@@ -16,15 +16,17 @@ using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using Xarial.XCad.Toolkit.Base;
 using Xarial.XCad.Toolkit.Services;
+using Xarial.XCad.Toolkit.Utils;
 using Xarial.XCad.UI;
+using Xarial.XCad.UI.PropertyPage.Enums;
 
 namespace Xarial.XCad.Toolkit.Windows.UI
 {
     internal class WpfIcon : IIconDescriptor
     {
-        public static BitmapImage CreateBitmapImage(IXImage icon, IIconsCreator iconConv)
+        public static BitmapImage CreateBitmapImage(IXImage icon, IIconsCreator iconConv, BitmapEffect_e effect = BitmapEffect_e.None)
         {
-            using (var img = iconConv.ConvertIcon(new WpfIcon(icon))[0].Image)
+            using (var img = iconConv.ConvertIcon(new WpfIcon(icon, effect))[0].Image)
             {
                 using (var stream = new MemoryStream())
                 {
@@ -55,15 +57,31 @@ namespace Xarial.XCad.Toolkit.Windows.UI
 
         public IconImageFormat_e Format => IconImageFormat_e.Png;
 
-        internal WpfIcon(IXImage icon)
+        internal BitmapEffect_e Effect { get; }
+
+        private WpfIcon(IXImage icon, BitmapEffect_e effect = BitmapEffect_e.None)
         {
             Icon = icon;
+            Effect = effect;
             IconSizes = new IIconSpec[]
             {
-                new IconSpec(Icon, new Size(64, 64))
+                new IconSpec(Icon, new Size(64, 64), ApplyEffect)
             };
         }
 
         public IIconSpec[] IconSizes { get; }
+
+        private void ApplyEffect(ref byte r, ref byte g, ref byte b, ref byte a)
+        {
+            if (Effect.HasFlag(BitmapEffect_e.Grayscale))
+            {
+                ColorUtils.ConvertPixelToGrayscale(ref r, ref g, ref b);
+            }
+
+            if (Effect.HasFlag(BitmapEffect_e.Transparent))
+            {
+                a = (byte)((double)a / 2);
+            }
+        }
     }
 }

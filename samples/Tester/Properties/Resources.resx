@@ -121,4 +121,7 @@
   <data name="sample-icon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\sample-icon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="sample_icon1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\sample-icon1.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

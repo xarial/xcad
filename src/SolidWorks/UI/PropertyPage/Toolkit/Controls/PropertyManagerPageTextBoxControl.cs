@@ -33,7 +33,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
             if (height != -1)
             {
-                ctrl.Height = height;
+                ctrl.Height = (short)height;
             }
 
             if (atts.Has<TextBoxOptionsAttribute>())

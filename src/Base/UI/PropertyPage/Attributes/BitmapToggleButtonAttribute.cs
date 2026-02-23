@@ -26,16 +26,15 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         /// </summary>
         public BitmapEffect_e ToggledOffEffect { get; }
 
-        public BitmapToggleButtonAttribute(Type resType, string imgResName, string toggledOffImgResName, 
-            int width = 24, int height = 24) 
-            : base(resType, imgResName, width, height)
+        public BitmapToggleButtonAttribute(Type resType, string imgResName, string toggledOffImgResName) 
+            : base(resType, imgResName)
         {
             ToggledOffIcon = ResourceHelper.GetResource<IXImage>(resType, toggledOffImgResName);
         }
 
         public BitmapToggleButtonAttribute(Type resType, string imgResName,
-            BitmapEffect_e toggledOffEffect, int width = 24, int height = 24)
-            : base(resType, imgResName, width, height)
+            BitmapEffect_e toggledOffEffect)
+            : base(resType, imgResName)
         {
             ToggledOffIcon = ResourceHelper.GetResource<IXImage>(resType, imgResName);
             ToggledOffEffect = toggledOffEffect;

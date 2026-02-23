@@ -43,22 +43,22 @@ namespace Xarial.XCad.UI.PropertyPage.Base
         /// <summary>
         /// Left offset of the control
         /// </summary>
-        short Left { get; }
+        int Left { get; }
 
         /// <summary>
         /// Top offset of the control
         /// </summary>
-        short Top { get; }
+        int Top { get; }
 
         /// <summary>
         /// Width of the control
         /// </summary>
-        short Width { get; }
+        int Width { get; }
 
         /// <summary>
         /// Height of the control
         /// </summary>
-        short Height { get; }
+        int Height { get; }
 
         /// <summary>
         /// Resize options

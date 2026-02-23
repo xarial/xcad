@@ -30,16 +30,23 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
 {
     internal class WpfPropertyManagerPagePage : Page, IWpfPropertyManagerPageControlsHost
     {
+        internal event Action<WpfPropertyManagerPagePage> PageShowing;
+        internal event Action<WpfPropertyManagerPagePage> PageClosed;
+
         internal string Name { get; }
         internal PropertyManagerPageLayout Layout { get; }
-
+        
         public BitmapImage Icon { get; }
 
         public string Tooltip { get; }
 
         public string Label => null;
         public ControlLeftAlign_e Align => ControlLeftAlign_e.LeftEdge;
+
+        public double? Width => null;
         public double? Height => null;
+        public double? Top => null;
+        public double? Left => null;
 
         public PageButtons_e Buttons { get; }
         public string Message { get; }
@@ -109,6 +116,15 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
             }
         }
 
+        public override void ShowTooltip(string title, string msg)
+        {
+            //TODO: implement
+        }
+
+        internal void OnPageShowing() => PageShowing?.Invoke(this);
+
+        internal void OnPageClosed() => PageClosed?.Invoke(this);
+
         private void OnHelp()
         {
             m_HelpLinkHandler.OpenHelpLink(HelpLink);
@@ -117,11 +133,6 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
         private void OnWhatsNew()
         {
             m_HelpLinkHandler.OpenWhatsNewLink(WhatsNewLink);
-        }
-
-        public override void ShowTooltip(string title, string msg)
-        {
-            throw new NotImplementedException();
         }
     }
 }

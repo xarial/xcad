@@ -28,16 +28,16 @@ namespace Xarial.XCad.UI.PropertyPage.Attributes
         public KnownColor TextColor { get; }
 
         /// <inheritdoc/>
-        public short Left { get; }
+        public int Left { get; }
 
         /// <inheritdoc/>
-        public short Top { get; }
+        public int Top { get; }
 
         /// <inheritdoc/>
-        public short Width { get; }
+        public int Width { get; }
 
         /// <inheritdoc/>
-        public short Height { get; }
+        public int Height { get; }
 
         /// <inheritdoc/>
         public ControlOnResizeOptions_e ResizeOptions { get; }

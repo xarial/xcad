@@ -86,7 +86,7 @@ namespace Xarial.XCad.Toolkit.Services
 
             foreach (var dep in depDocs ?? Array.Empty<IXDocument3D>())
             {
-                if (!usedPaths.Contains(dep.Path, StringComparer.CurrentCultureIgnoreCase))
+                if (ShouldProcessChildren(dep, usedPaths))
                 {
                     if (!isSrcReadOnly)
                     {
@@ -125,6 +125,15 @@ namespace Xarial.XCad.Toolkit.Services
                 }
             }
         }
+
+        /// <summary>
+        /// Checks if children needs to be processed
+        /// </summary>
+        /// <param name="doc">Document to check</param>
+        /// <param name="usedPaths">List of processed document paths</param>
+        /// <returns>True if children should be process</returns>
+        /// <remarks>This methods allows avoiding infinite loops</remarks>
+        protected virtual bool ShouldProcessChildren(IXDocument doc, IReadOnlyList<string> usedPaths) => !usedPaths.Contains(doc.Path, StringComparer.CurrentCultureIgnoreCase);
 
         private IXDocument3D[] TryCommitAndGetDependencies(IXDocument doc)
         {

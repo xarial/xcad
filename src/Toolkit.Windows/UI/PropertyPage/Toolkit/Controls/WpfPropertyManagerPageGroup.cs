@@ -40,7 +40,13 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
         public BitmapImage Icon => null;
         public string Label => null;
         public ControlLeftAlign_e Align => ControlLeftAlign_e.LeftEdge;
+
+        public double? Width => null;
         public double? Height => null;
+        public double? Top => null;
+        public double? Left => null;
+
+        internal WpfPropertyManagerPagePage ParentPage { get; }
 
         private bool m_Enabled;
         private bool m_Visible;
@@ -60,6 +66,8 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
             {
                 throw new NotSupportedException();
             }
+
+            ParentPage = parentGroup.FindParentPage();
 
             Header = atts.Name;
 

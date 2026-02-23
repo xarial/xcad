@@ -29,6 +29,7 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Templates
         internal static DataTemplate Button { get; }
         internal static DataTemplate Bitmap { get; }
         internal static DataTemplate BitmapButton { get; }
+        internal static DataTemplate BitmapToggleButton { get; }
         internal static DataTemplate CheckBoxList { get; }
         internal static DataTemplate CustomControl { get; }
         internal static DataTemplate ListBox { get; }
@@ -46,7 +47,8 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Templates
             CheckBox = LoadFromResources(BASE_PATH + DICT_NAME, "PropertyManagerPageCheckBoxTemplate");
             Button = LoadFromResources(BASE_PATH + DICT_NAME, "PropertyManagerPageButtonTemplate");
             Bitmap = LoadFromResources(BASE_PATH + DICT_NAME, "PropertyManagerPageBitmapTemplate");
-            Bitmap = LoadFromResources(BASE_PATH + DICT_NAME, "PropertyManagerPageBitmapButtonTemplate");
+            BitmapButton = LoadFromResources(BASE_PATH + DICT_NAME, "PropertyManagerPageBitmapButtonTemplate");
+            BitmapToggleButton = LoadFromResources(BASE_PATH + DICT_NAME, "PropertyManagerPageBitmapToggleButtonTemplate");
             CheckBoxList = LoadFromResources(BASE_PATH + DICT_NAME, "PropertyManagerPageCheckBoxListTemplate");
             CustomControl = LoadFromResources(BASE_PATH + DICT_NAME, "PropertyManagerPageCustomControlTemplate");
             ListBox = LoadFromResources(BASE_PATH + DICT_NAME, "PropertyManagerPageListBoxTemplate");

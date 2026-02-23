@@ -112,7 +112,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
         {
             if (opts.Height != -1)
             {
-                SwSpecificControl.Height = opts.Height;
+                SwSpecificControl.Height = (short)opts.Height;
             }
 
             if (atts.Has<ComboBoxOptionsAttribute>())

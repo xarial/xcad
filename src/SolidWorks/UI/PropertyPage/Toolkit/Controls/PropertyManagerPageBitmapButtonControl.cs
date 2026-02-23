@@ -23,6 +23,8 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {
     internal class PropertyManagerPageBitmapButtonControl : PropertyManagerPageBaseControl<object, IPropertyManagerPageBitmapButton>
     {
+        private const int DEFAULT_SIZE = 24;
+
         protected override event ControlValueChangedDelegate<object> ValueChanged;
 
         private Action m_ButtonClickHandler;
@@ -70,8 +72,18 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
             else
             {
-                var bmpWidth = bmpAtt.Width;
-                var bmpHeight = bmpAtt.Height;
+                var bmpWidth = opts.Width;
+                var bmpHeight = opts.Height;
+                
+                if (bmpWidth <= 0) 
+                {
+                    bmpWidth = DEFAULT_SIZE;
+                }
+
+                if (bmpHeight <= 0)
+                {
+                    bmpHeight = DEFAULT_SIZE;
+                }
 
                 var icon = bmpAtt.Icon ?? Defaults.Icon;
 

@@ -18,39 +18,38 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Icons
 {
     internal class BitmapButtonHighResIcon : BitmapButtonIcon
     {
-        internal BitmapButtonHighResIcon(IXImage icon, int width, int height, BitmapEffect_e effect = BitmapEffect_e.None)
-            : base(icon, width, height, effect)
-        {
-            IconSizes = new IIconSpec[]
-            {
-                new IconSpec(Icon, new Size(AdjustSize(m_Width, 20), AdjustSize(m_Height, 20)), ApplyEffect, BORDER_SIZE),
-                new IconSpec(Icon, new Size(AdjustSize(m_Width, 32), AdjustSize(m_Height, 32)), ApplyEffect, BORDER_SIZE),
-                new IconSpec(Icon, new Size(AdjustSize(m_Width, 40), AdjustSize(m_Height, 40)), ApplyEffect, BORDER_SIZE),
-                new IconSpec(Icon, new Size(AdjustSize(m_Width, 64), AdjustSize(m_Height, 64)), ApplyEffect, BORDER_SIZE),
-                new IconSpec(Icon, new Size(AdjustSize(m_Width, 96), AdjustSize(m_Height, 96)), ApplyEffect, BORDER_SIZE),
-                new IconSpec(Icon, new Size(AdjustSize(m_Width, 128), AdjustSize(m_Height, 128)), ApplyEffect, BORDER_SIZE),
-
-                new IconSpec(Icon, new Size(AdjustSize(m_Width, 20), AdjustSize(m_Height, 20)), CreateMask, BORDER_SIZE),
-                new IconSpec(Icon, new Size(AdjustSize(m_Width, 32), AdjustSize(m_Height, 32)), CreateMask, BORDER_SIZE),
-                new IconSpec(Icon, new Size(AdjustSize(m_Width, 40), AdjustSize(m_Height, 40)), CreateMask, BORDER_SIZE),
-                new IconSpec(Icon, new Size(AdjustSize(m_Width, 64), AdjustSize(m_Height, 64)), CreateMask, BORDER_SIZE),
-                new IconSpec(Icon, new Size(AdjustSize(m_Width, 96), AdjustSize(m_Height, 96)), CreateMask, BORDER_SIZE),
-                new IconSpec(Icon, new Size(AdjustSize(m_Width, 128), AdjustSize(m_Height, 128)), CreateMask, BORDER_SIZE)
-            };
-        }
-
-        public override IIconSpec[] IconSizes { get; }
+        private const double DEFAULT_SIZE = 20; //default size of the button in newer versions of SOLIDWORKS
 
         /// <summary>
         /// Adjusting the size of the icons to match older version of SOLIDWORKS, so if add-in is updated from 2016 - the size of buttons remains the same
         /// </summary>
-        private int AdjustSize(int baseSize, int actualSize)
+        internal double WidthScale { get; }
+        internal double HeightScale { get; }
+
+        internal BitmapButtonHighResIcon(IXImage icon, int width, int height, BitmapEffect_e effect = BitmapEffect_e.None)
+            : base(icon, width, height, effect)
         {
-            const double DEFAULT_SIZE = 20; //default size of the button in newer versions of SOLIDWORKS
+            WidthScale = m_Width / DEFAULT_SIZE;
+            HeightScale = m_Height / DEFAULT_SIZE;
 
-            var scale = baseSize / DEFAULT_SIZE;
+            IconSizes = new IIconSpec[]
+            {
+                new IconSpec(Icon, new Size(Convert.ToInt32(WidthScale * 20d), Convert.ToInt32(HeightScale * 20d)), ApplyEffect, BORDER_SIZE),
+                new IconSpec(Icon, new Size(Convert.ToInt32(WidthScale * 32d), Convert.ToInt32(HeightScale * 32d)), ApplyEffect, BORDER_SIZE),
+                new IconSpec(Icon, new Size(Convert.ToInt32(WidthScale * 40d), Convert.ToInt32(HeightScale * 40d)), ApplyEffect, BORDER_SIZE),
+                new IconSpec(Icon, new Size(Convert.ToInt32(WidthScale * 64d), Convert.ToInt32(HeightScale * 64d)), ApplyEffect, BORDER_SIZE),
+                new IconSpec(Icon, new Size(Convert.ToInt32(WidthScale * 96d), Convert.ToInt32(HeightScale * 96d)), ApplyEffect, BORDER_SIZE),
+                new IconSpec(Icon, new Size(Convert.ToInt32(WidthScale * 128d), Convert.ToInt32(HeightScale * 128d)), ApplyEffect, BORDER_SIZE),
 
-            return (int)(scale * actualSize);
+                new IconSpec(Icon, new Size(Convert.ToInt32(WidthScale * 20d), Convert.ToInt32(HeightScale * 20d)), CreateMask, BORDER_SIZE),
+                new IconSpec(Icon, new Size(Convert.ToInt32(WidthScale * 32d), Convert.ToInt32(HeightScale * 32d)), CreateMask, BORDER_SIZE),
+                new IconSpec(Icon, new Size(Convert.ToInt32(WidthScale * 40d), Convert.ToInt32(HeightScale * 40d)), CreateMask, BORDER_SIZE),
+                new IconSpec(Icon, new Size(Convert.ToInt32(WidthScale * 64d), Convert.ToInt32(HeightScale * 64d)), CreateMask, BORDER_SIZE),
+                new IconSpec(Icon, new Size(Convert.ToInt32(WidthScale * 96d), Convert.ToInt32(HeightScale * 96d)), CreateMask, BORDER_SIZE),
+                new IconSpec(Icon, new Size(Convert.ToInt32(WidthScale * 128d), Convert.ToInt32(HeightScale * 128d)), CreateMask, BORDER_SIZE)
+            };
         }
+
+        public override IIconSpec[] IconSizes { get; }
     }
 }

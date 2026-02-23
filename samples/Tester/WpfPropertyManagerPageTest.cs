@@ -239,22 +239,39 @@ namespace Tester
         }
     }
 
+    public class SimplePageData 
+    {
+        public class Group 
+        {
+            [BitmapButton(typeof(Resources), nameof(Resources.sample_icon))]
+            [ControlOptions(width: 50, height: 50, top: 0, left: 0)]
+            public bool CheckButton1 { get; set; }
+
+            [BitmapButton(typeof(Resources), nameof(Resources.sample_icon1))]
+            [ControlOptions(width: 50, height: 50, top: 0, left: 60)]
+            public bool CheckButton2 { get; set; }
+
+            [ControlOptions(top: 0, left: 80)]
+            public string Text { get; set; }
+        }
+
+        public Group Group1 { get; }
+
+        public SimplePageData() 
+        {
+            Group1 = new Group();
+        }
+    }
+
     public static class WpfPropertyManagerPageTest
     {
         private static PageData m_Data;
 
-        public static void TestPageBuilder() 
+        public static void TestPageBuilderAll()
         {
             var app = new TestApplication();
 
-            var svcColl = new ServiceCollection();
-
-            svcColl.Add<IXLogger>(() => new TraceLogger("Test"), ServiceLifetimeScope_e.Singleton, false);
-            svcColl.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, false);
-            svcColl.Add<IHelpLinkHandler>(() => new HelpLinkHandler(app), ServiceLifetimeScope_e.Singleton, false);
-            svcColl.Add<ITooltipLinkLinkHandler>(() => new TooltipLinkLinkHandler(app), ServiceLifetimeScope_e.Singleton, false);
-
-            var svcProv = svcColl.CreateProvider();
+            var svcProv = CreateServiceProvider(app);
 
             var page = new TestWpfPropertyManagerPage<PageData>(app, svcProv);
 
@@ -264,6 +281,32 @@ namespace Tester
             m_Data = new PageData();
 
             page.Show(m_Data);
+        }
+
+        public static void TestPageBuilderSimple()
+        {
+            var app = new TestApplication();
+
+            var svcProv = CreateServiceProvider(app);
+
+            var page = new TestWpfPropertyManagerPage<SimplePageData>(app, svcProv);
+
+            var data = new SimplePageData();
+
+            page.Show(data);
+        }
+
+        private static IServiceProvider CreateServiceProvider(TestApplication app)
+        {
+            var svcColl = new ServiceCollection();
+
+            svcColl.Add<IXLogger>(() => new TraceLogger("Test"), ServiceLifetimeScope_e.Singleton, false);
+            svcColl.Add<IIconsCreator, BaseIconsCreator>(ServiceLifetimeScope_e.Singleton, false);
+            svcColl.Add<IHelpLinkHandler>(() => new HelpLinkHandler(app), ServiceLifetimeScope_e.Singleton, false);
+            svcColl.Add<ITooltipLinkLinkHandler>(() => new TooltipLinkLinkHandler(app), ServiceLifetimeScope_e.Singleton, false);
+
+            var svcProv = svcColl.CreateProvider();
+            return svcProv;
         }
 
         private static void OnPageClosing(PageCloseReasons_e reason, PageClosingArg arg)

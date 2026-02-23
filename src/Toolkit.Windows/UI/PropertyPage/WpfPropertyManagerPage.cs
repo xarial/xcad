@@ -115,6 +115,8 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage
         {
             Model = model;
 
+            m_Page.OnPageShowing();
+
             m_ContextProvider.NotifyContextChanged(model);
 
             foreach (var binding in m_Page.Binding.Bindings ?? Enumerable.Empty<IBinding>())
@@ -156,6 +158,8 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage
         protected void HandleClosed(bool cancel)
         {
             Closed?.Invoke(cancel ? PageCloseReasons_e.Cancel : PageCloseReasons_e.Okay);
+
+            m_Page.OnPageClosed();
         }
 
         public void Dispose()

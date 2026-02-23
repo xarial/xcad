@@ -19,12 +19,15 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Constructors
     internal class WpfPropertyManagerPageSelectionBoxConstructor
         : WpfPropertyManagerPageBaseControlConstructor<WpfPropertyManagerPageSelectionBox>
     {
+        private readonly IXApplication m_App;
+
         public WpfPropertyManagerPageSelectionBoxConstructor(IXApplication app, IIconsCreator iconsConv)
             : base(app, iconsConv)
         {
+            m_App = app;
         }
 
         protected override WpfPropertyManagerPageSelectionBox Create(IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, ref int numberOfUsedIds)
-            => new WpfPropertyManagerPageSelectionBox(parentGroup, m_IconConv, atts, metadata);
+            => new WpfPropertyManagerPageSelectionBox(parentGroup, m_IconConv, m_App, atts, metadata);
     }
 }

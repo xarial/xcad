@@ -12,25 +12,27 @@
         <wpf:EnumFlagToVisibilityConverter x:Key="enumFlagToVisConv"/>
         <wpf:NotNullOrEmptyToVisibilityConverter x:Key="notNullToVisConv"/>
     </UserControl.Resources>
-    <ItemsControl ItemsSource="{Binding Path=Controls}" Grid.Row="1">
-        <ItemsControl.ItemTemplate>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <ItemsControl ItemsSource="{Binding Path=Controls}">
+            <ItemsControl.ItemTemplate>
             <DataTemplate>
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="{Binding Path=Label}" Grid.Row="0" Margin="2" Visibility="{Binding Path=Label, Converter={StaticResource notNullToVisConv}}"/>
+                    <TextBlock Text="{Binding Path=Label}" Grid.Row="0" Margin="{x:Static local:PropertyManagerPageControlHostPanel.Margin}"
+                               Visibility="{Binding Path=Label, Converter={StaticResource notNullToVisConv}}"/>
                     <Grid Grid.Row="1">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Grid Width="12" Height="12" Margin="2" Grid.Column="0" Visibility="{Binding Path=Align, Converter={StaticResource enumFlagToVisConv}, ConverterParameter={x:Static pmpenum:ControlLeftAlign_e.Indent}}"/>
-                        <Grid Width="12" Height="12" Margin="2" Grid.Column="0" Visibility="{Binding Path=Align, Converter={StaticResource enumFlagToVisConv}, ConverterParameter={x:Static pmpenum:ControlLeftAlign_e.DoubleIndent}}"/>
-                        <Grid Width="12" Height="12" Margin="2" Grid.Column="1" Visibility="{Binding Path=Align, Converter={StaticResource enumFlagToVisConv}, ConverterParameter={x:Static pmpenum:ControlLeftAlign_e.DoubleIndent}}"/>
-                        <Image Source="{Binding Path=Icon}" RenderOptions.BitmapScalingMode="Fant" Grid.Column="1" HorizontalAlignment="Center" Margin="2" Width="12" Height="12">
+                        <Grid Width="12" Height="12" Margin="{x:Static local:PropertyManagerPageControlHostPanel.Margin}" Grid.Column="0" Visibility="{Binding Path=Align, Converter={StaticResource enumFlagToVisConv}, ConverterParameter={x:Static pmpenum:ControlLeftAlign_e.Indent}}"/>
+                        <Grid Width="12" Height="12" Margin="{x:Static local:PropertyManagerPageControlHostPanel.Margin}" Grid.Column="0" Visibility="{Binding Path=Align, Converter={StaticResource enumFlagToVisConv}, ConverterParameter={x:Static pmpenum:ControlLeftAlign_e.DoubleIndent}}"/>
+                        <Grid Width="12" Height="12" Margin="{x:Static local:PropertyManagerPageControlHostPanel.Margin}" Grid.Column="1" Visibility="{Binding Path=Align, Converter={StaticResource enumFlagToVisConv}, ConverterParameter={x:Static pmpenum:ControlLeftAlign_e.DoubleIndent}}"/>
+                        <Image Source="{Binding Path=Icon}" RenderOptions.BitmapScalingMode="Fant" Grid.Column="1" HorizontalAlignment="Center" Margin="{x:Static local:PropertyManagerPageControlHostPanel.Margin}" Width="12" Height="12">
                             <Image.Style>
                                 <Style TargetType="{x:Type Image}">
                                     <Style.Triggers>
@@ -42,8 +44,9 @@
                             </Image.Style>
                         </Image>
                         <ContentPresenter Content="{Binding Path=.}" ContentTemplate="{Binding Path=Template}"
-                                          ToolTip="{Binding Path=Tooltip}" Height="{Binding Path=Height}"
-                                          IsEnabled="{Binding Path=Enabled}" Margin="2" Grid.Column="2">
+                                          ToolTip="{Binding Path=Tooltip}"
+                                          Height="{Binding Path=Height}" Width="{Binding Path=Width}"
+                                          IsEnabled="{Binding Path=Enabled}" Margin="{x:Static local:PropertyManagerPageControlHostPanel.Margin}" Grid.Column="2">
                             <ContentPresenter.Style>
                                 <Style TargetType="{x:Type ContentPresenter}">
                                     <Style.Triggers>
@@ -61,5 +64,11 @@
                 </Grid>
             </DataTemplate>
         </ItemsControl.ItemTemplate>
-    </ItemsControl>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <local:PropertyManagerPageControlHostPanel/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+    </ScrollViewer>
 </UserControl>

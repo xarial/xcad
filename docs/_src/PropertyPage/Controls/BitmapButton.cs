@@ -19,7 +19,8 @@ public class BitmapButtonDataModel
     //---
 
     //--- Size
-    [BitmapButton(typeof(Resources), nameof(Resources.BitmapSample), 48, 48)]
+    [BitmapButton(typeof(Resources), nameof(Resources.BitmapSample))]
+    [ControlOptions(width: 48, height: 48)]
     public Action Button2 { get; set; } = new Action(() => { });
     //---
 

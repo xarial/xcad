@@ -30,7 +30,10 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
         string Label { get; }
         ControlLeftAlign_e Align { get; }
         DataTemplate Template { get; }
+        double? Width { get; }
         double? Height { get; }
+        double? Top { get; }
+        double? Left { get; }
     }
 
     internal abstract class WpfPropertyManagerPageControl<TVal> : Control<TVal>, IWpfPropertyManagerPageControl, INotifyPropertyChanged
@@ -45,7 +48,10 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
 
         public ControlLeftAlign_e Align { get; }
 
-        public double? Height { get; }
+        public virtual double? Width { get; }
+        public virtual double? Height { get; }
+        public virtual double? Top { get; }
+        public virtual double? Left { get; }
 
         private bool m_Enabled;
         private bool m_Visible;
@@ -66,6 +72,8 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
 
             var opts = GetControlOptions(atts);
 
+            InitData(opts, atts);
+
             m_Visible = opts.Options.HasFlag(AddControlOptions_e.Visible);
             m_Enabled = opts.Options.HasFlag(AddControlOptions_e.Enabled);
 
@@ -85,6 +93,33 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
             else 
             {
                 Height = null;
+            }
+
+            if (opts.Width > 0)
+            {
+                Width = Convert.ToDouble(opts.Width);
+            }
+            else
+            {
+                Width = null;
+            }
+
+            if (opts.Left != -1)
+            {
+                Left = Convert.ToDouble(opts.Left);
+            }
+            else
+            {
+                Left = null;
+            }
+
+            if (opts.Top != -1)
+            {
+                Top = Convert.ToDouble(opts.Top);
+            }
+            else
+            {
+                Top = null;
             }
 
             var commonIcon = atts.ControlDescriptor?.Icon;
@@ -137,6 +172,10 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prpName));
         }
 
+        protected virtual void InitData(IControlOptionsAttribute opts, IAttributeSet atts)
+        {
+        }
+
         private IControlOptionsAttribute GetControlOptions(IAttributeSet atts)
         {
             ControlOptionsAttribute opts;
@@ -151,6 +190,27 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
             }
 
             return opts;
+        }
+    }
+
+    internal static class WpfGroupExtension
+    {
+        internal static WpfPropertyManagerPagePage FindParentPage(this IGroup thisGroup) 
+        {
+            switch (thisGroup)
+            {
+                case WpfPropertyManagerPagePage page:
+                    return page;
+
+                case WpfPropertyManagerPageGroup group:
+                    return group.ParentPage;
+
+                case WpfPropertyManagerPageTab tab:
+                    return tab.ParentPage;
+
+                default:
+                    throw new NotSupportedException();
+            }
         }
     }
 }

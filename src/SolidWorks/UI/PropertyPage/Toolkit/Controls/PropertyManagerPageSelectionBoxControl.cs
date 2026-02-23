@@ -109,7 +109,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                 }
             }
 
-            ctrl.Height = height;
+            ctrl.Height = (short)height;
 
             var filters = GetDefaultFilters(atts);
 
@@ -144,7 +144,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
                     if (selAtt.Filters?.Any() == true)
                     {
                         filters = selAtt.Filters
-                            .SelectMany(f => SwSelectionHelper.GetSelectionType(f) ?? new swSelectType_e[0])
+                            .SelectMany(f => SwSelectionHelper.GetSelectionType(f) ?? Array.Empty<swSelectType_e>())
                             .Distinct().ToArray();
                     }
                 }

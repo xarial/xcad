@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using Xarial.XCad.UI;
@@ -53,6 +54,7 @@ namespace Xarial.XCad.Toolkit.Base
     }
 
     /// <inheritdoc/>
+    [DebuggerDisplay("{" + nameof(TargetSize) + "." + nameof(Size.Width) + "} x {" + nameof(TargetSize) + "." + nameof(Size.Height) + "}")]
     public class IconSpec : IIconSpec
     {
         /// <summary>

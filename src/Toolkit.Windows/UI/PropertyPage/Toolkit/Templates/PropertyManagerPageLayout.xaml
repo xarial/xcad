@@ -76,6 +76,8 @@
                 Visibility="{Binding Path=Message, Converter={StaticResource notNullToVisConv}}">
             <TextBlock Text="{Binding Path=Message}" Margin="2" TextWrapping="Wrap"/>
         </Border>
+        
         <local:PropertyManagerPageControlsHost Grid.Row="3" Margin="2"/>
+        
     </Grid>
 </UserControl>
