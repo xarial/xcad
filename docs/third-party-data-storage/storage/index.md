@@ -12,18 +12,18 @@ Use this approach when it is required to store multiple data structures which ne
 
 To simplify the handling of the storage lifecycle, use the Documents Manager API from the xCAD framework:
 
-{% code-snippet { file-name: ~ThirdPartyData.*, regions: [StorageHandler] } %}
+<<< @/_src/ThirdPartyData.cs#StorageHandler
 
 ## Reading data
 
 **IXDocument::OpenStorage** method throws an exception when storage does not exist. Use **IXDocument::TryOpenStorage** extension method which returns null for the storage which not exists on reading.
 
-{% code-snippet { file-name: ~ThirdPartyData.*, regions: [StorageLoad] } %}
+<<< @/_src/ThirdPartyData.cs#StorageLoad
 
 ## Writing data
 
 **IXDocument::OpenStorage** method will always return the pointer to the storage (stream is automatically created if it doesn't exist).
 
-{% code-snippet { file-name: ~ThirdPartyData.*, regions: [StorageSave] } %}
+<<< @/_src/ThirdPartyData.cs#StorageSave
 
 Explore the methods of **IStorage** for information of how to create sub streams or sub storages and enumerate the existing elements.

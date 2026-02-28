@@ -21,7 +21,7 @@ using Xarial.XCad.Toolkit.Utils;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
 {
-    public interface ISwDmConfigurationCollection : IXConfigurationRepository 
+    public interface ISwDmConfigurationCollection : IXConfigurationRepository
     {
         new ISwDmConfiguration this[string name] { get; }
         new ISwDmConfiguration Active { get; }
@@ -30,7 +30,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
     internal abstract class SwDmConfigurationCollection : ISwDmConfigurationCollection
     {
         #region Not Supported
-        public event ConfigurationActivatedDelegate ConfigurationActivated 
+        public event ConfigurationActivatedDelegate ConfigurationActivated
         {
             add => throw new NotSupportedException();
             remove => throw new NotSupportedException();
@@ -38,10 +38,10 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public void AddRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken) => throw new NotSupportedException();
         public IXConfiguration PreCreate() => throw new NotSupportedException();
         public T PreCreate<T>() where T : IXConfiguration => throw new NotSupportedException();
-        #endregion
+        #endregion Not Supported
 
         IXConfiguration IXRepository<IXConfiguration>.this[string name] => this[name];
-        
+
         IXConfiguration IXConfigurationRepository.Active
         {
             get => Active;
@@ -50,13 +50,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public ISwDmConfiguration this[string name] => (ISwDmConfiguration)RepositoryHelper.Get(this, name);
 
-        public ISwDmConfiguration Active 
+        public ISwDmConfiguration Active
         {
-            get 
+            get
             {
                 var confName = m_Doc.Document.ConfigurationManager.GetActiveConfigurationName();
 
-                if (string.IsNullOrEmpty(confName)) 
+                if (string.IsNullOrEmpty(confName))
                 {
                     throw new InvalidConfigurationsException("Name of the active configuration cannot be extracted");
                 }
@@ -72,8 +72,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 if (m_Doc.IsVersionNewerOrEqual(SwDmVersion_e.Sw2019))
                 {
                     var count = ((ISwDMConfigurationMgr2)m_Doc.Document.ConfigurationManager).GetConfigurationCount2(out SwDMConfigurationError err);
-                    
-                    if (err != SwDMConfigurationError.SwDMConfigurationError_None) 
+
+                    if (err != SwDMConfigurationError.SwDMConfigurationError_None)
                     {
                         throw new InvalidConfigurationsException(err);
                     }
@@ -86,11 +86,11 @@ namespace Xarial.XCad.SwDocumentManager.Documents
                 }
             }
         }
-         
+
         private readonly SwDmDocument3D m_Doc;
         private readonly Dictionary<ISwDMConfiguration, ISwDmConfiguration> m_ConfigurationsCache;
 
-        internal SwDmConfigurationCollection(SwDmDocument3D doc) 
+        internal SwDmConfigurationCollection(SwDmDocument3D doc)
         {
             m_Doc = doc;
             m_ConfigurationsCache = new Dictionary<ISwDMConfiguration, ISwDmConfiguration>();
@@ -128,7 +128,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 conf = ((ISwDMConfigurationMgr2)m_Doc.Document.ConfigurationManager).GetConfigurationByName2(name, out SwDMConfigurationError err);
 
-                if (err == SwDMConfigurationError.SwDMConfigurationError_NameNotFound) 
+                if (err == SwDMConfigurationError.SwDMConfigurationError_NameNotFound)
                 {
                     ent = null;
                     return false;
@@ -155,13 +155,13 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             return true;
         }
 
-        public void RemoveRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken) 
+        public void RemoveRange(IEnumerable<IXConfiguration> ents, CancellationToken cancellationToken)
         {
             var activeConfName = m_Doc.Document.ConfigurationManager.GetActiveConfigurationName();
 
-            foreach (ISwDmConfiguration conf in ents) 
+            foreach (ISwDmConfiguration conf in ents)
             {
-                if (string.Equals(conf.Name, activeConfName, StringComparison.CurrentCultureIgnoreCase)) 
+                if (string.Equals(conf.Name, activeConfName, StringComparison.CurrentCultureIgnoreCase))
                 {
                     throw new Exception("Cannot delete active configuration");
                 }
@@ -175,7 +175,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         public IEnumerable Filter(bool reverseOrder, params RepositoryFilterQuery[] filters) => RepositoryHelper.FilterDefault(this, filters, reverseOrder);
     }
 
-    public interface ISwDmAssemblyConfigurationCollection : ISwDmConfigurationCollection, IXAssemblyConfigurationRepository 
+    public interface ISwDmAssemblyConfigurationCollection : ISwDmConfigurationCollection, IXAssemblyConfigurationRepository
     {
         new ISwDmAssemblyConfiguration this[string name] { get; }
         new ISwDmAssemblyConfiguration Active { get; set; }
@@ -195,16 +195,16 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             m_Assm = assm;
         }
-        
+
         ISwDmAssemblyConfiguration ISwDmAssemblyConfigurationCollection.this[string name] => (ISwDmAssemblyConfiguration)base[name];
 
-        IXAssemblyConfiguration IXAssemblyConfigurationRepository.Active 
+        IXAssemblyConfiguration IXAssemblyConfigurationRepository.Active
         {
             get => (ISwDmAssemblyConfiguration)base.Active;
             set => (this as IXConfigurationRepository).Active = value;
         }
-        
-        ISwDmAssemblyConfiguration ISwDmAssemblyConfigurationCollection.Active 
+
+        ISwDmAssemblyConfiguration ISwDmAssemblyConfigurationCollection.Active
         {
             get => (ISwDmAssemblyConfiguration)base.Active;
             set => (this as IXConfigurationRepository).Active = value;
@@ -235,7 +235,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
         {
             m_Part = part;
         }
-        
+
         ISwDmPartConfiguration ISwDmPartConfigurationCollection.this[string name] => (ISwDmPartConfiguration)base[name];
 
         IXPartConfiguration IXPartConfigurationRepository.Active

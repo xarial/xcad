@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Windows.Controls;
 using Xarial.XCad.Annotations;
 using Xarial.XCad.Base;
 using Xarial.XCad.Base.Attributes;
@@ -49,11 +48,10 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 using Xarial.XCad.Utils.CustomFeature;
 using Xarial.XCad.Utils.Diagnostics;
 using Xarial.XCad.Utils.Reflection;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 {
-    public class MacroFeatureEntityId 
+    public class MacroFeatureEntityId
     {
         public int FirstId { get; set; }
         public int SecondId { get; set; }
@@ -63,7 +61,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
     public abstract class SwMacroFeatureDefinition : IXCustomFeatureDefinition, ISwComFeature, IXServiceConsumer
     {
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        protected class MacroFeatureRegenerateData 
+        protected class MacroFeatureRegenerateData
         {
             internal ISwApplication Application { get; set; }
             internal ISwDocument Document { get; set; }
@@ -107,14 +105,14 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         /// <summary>
         /// Called when macro feature is rebuild
         /// </summary>
-        public event PostRebuildMacroFeatureDelegate PostRebuild 
+        public event PostRebuildMacroFeatureDelegate PostRebuild
         {
-            add 
+            add
             {
                 m_PostRebuild += value;
                 m_HandlePostRebuild = m_PostRebuild != null;
             }
-            remove 
+            remove
             {
                 m_PostRebuild -= value;
                 m_HandlePostRebuild = m_PostRebuild != null;
@@ -163,7 +161,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         private readonly Func<SwMacroFeatureDefinition, IFeature, SwDocument, SwApplication, SwMacroFeature> m_MacroFeatInstFact;
 
-        internal SwMacroFeatureDefinition(Func<SwMacroFeatureDefinition, IFeature, SwDocument, SwApplication, SwMacroFeature> macroFeatInstFact) 
+        internal SwMacroFeatureDefinition(Func<SwMacroFeatureDefinition, IFeature, SwDocument, SwApplication, SwMacroFeature> macroFeatInstFact)
         {
             m_MacroFeatInstFact = macroFeatInstFact;
 
@@ -243,7 +241,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
                 return OnEditDefinition(Application, doc, m_MacroFeatInstFact.Invoke(this, feature as IFeature, doc, Application));
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
                 m_Logger.Log(ex);
                 return HandleEditException(ex);
@@ -275,7 +273,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 {
                     contextDoc = doc;
                 }
-                
+
                 var macroFeatInst = m_MacroFeatInstFact.Invoke(this, feature as IFeature, contextDoc, Application);
 
                 var res = OnRebuild(Application, doc, macroFeatInst);
@@ -308,7 +306,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 {
                     return ex.Message;
                 }
-                else 
+                else
                 {
                     return "Unknown regeneration error";
                 }
@@ -323,7 +321,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                 var doc = (SwDocument)Application.Documents[modelDoc as IModelDoc2];
                 return (int)OnUpdateState(Application, doc, m_MacroFeatInstFact.Invoke(this, feature as IFeature, doc, Application));
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
                 m_Logger.Log(ex);
                 return HandleStateException(ex);
@@ -349,7 +347,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             m_IsSubscribedToIdle = false;
             ((SldWorks)Application.Sw).OnIdleNotify -= OnIdleNotify;
 
-            foreach (var data in m_RebuildFeaturesQueue) 
+            foreach (var data in m_RebuildFeaturesQueue)
             {
                 DispatchPostBuildData(data);
             }
@@ -384,9 +382,9 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             => OnEditDefinition((ISwApplication)app, (ISwDocument)model, (SwMacroFeature)feature);
 
         CustomFeatureRebuildResult IXCustomFeatureDefinition.OnRebuild(IXApplication app, IXDocument model, IXCustomFeature feature)
-            => OnRebuild((ISwApplication) app, (ISwDocument) model, (ISwMacroFeature)feature);
+            => OnRebuild((ISwApplication)app, (ISwDocument)model, (ISwMacroFeature)feature);
 
-        CustomFeatureState_e IXCustomFeatureDefinition.OnUpdateState(IXApplication app, IXDocument model, IXCustomFeature feature) 
+        CustomFeatureState_e IXCustomFeatureDefinition.OnUpdateState(IXApplication app, IXDocument model, IXCustomFeature feature)
             => OnUpdateState((ISwApplication)app, (ISwDocument)model, (SwMacroFeature)feature);
 
         public virtual bool OnEditDefinition(ISwApplication app, ISwDocument model, ISwMacroFeature feature)
@@ -418,19 +416,19 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             switch (res)
             {
                 case CustomFeatureBodyRebuildResult bodyRes:
-                    
+
                     //TODO: get updateEntityIds from the parameters
                     var bodiesSw = new List<IBody2>();
 
-                    if (bodyRes.Bodies != null) 
+                    if (bodyRes.Bodies != null)
                     {
-                        foreach (var body in bodyRes.Bodies) 
+                        foreach (var body in bodyRes.Bodies)
                         {
                             if (body is ISwBody)
                             {
                                 bodiesSw.Add(((ISwBody)body).Body);
                             }
-                            else 
+                            else
                             {
                                 throw new InvalidCastException($"Only bodies of type '{nameof(ISwBody)}' are supported");
                             }
@@ -441,7 +439,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                     {
                         return GetBodyResult(app, model, bodiesSw.ToArray(), featData, true);
                     }
-                    else 
+                    else
                     {
                         return GetStatusResult(true, "");
                     }
@@ -496,7 +494,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
                         if (faces is object[])
                         {
                             var faceIds = (faces as object[]).ToDictionary(x => (Face2)x, x => new MacroFeatureEntityId());
-                            
+
                             AssignFaceIds(app, model, faceIds);
 
                             foreach (var faceId in faceIds)
@@ -536,7 +534,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
 
         protected bool m_HandlePostRebuild;
 
-        public virtual void AssignFaceIds(ISldWorks app, IModelDoc2 model, IReadOnlyDictionary<Face2, MacroFeatureEntityId> faces) 
+        public virtual void AssignFaceIds(ISldWorks app, IModelDoc2 model, IReadOnlyDictionary<Face2, MacroFeatureEntityId> faces)
         {
             int nextId = 0;
 
@@ -649,7 +647,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             swDim.ReferencePoints = refPts;
 
             var swDispDim = ((SwDimension)dim).DisplayDimension;
-            if (swDispDim.Type2 == (int)swDimensionType_e.swAngularDimension) 
+            if (swDispDim.Type2 == (int)swDimensionType_e.swAngularDimension)
             {
                 swDispDim.IGetAnnotation().SetPosition2(
                     (pts[1].X + pts[0].X) / 2,
@@ -700,7 +698,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         /// <inheritdoc/>
-        public virtual bool OnEditDefinition(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feature) 
+        public virtual bool OnEditDefinition(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feature)
         {
             return true;
         }
@@ -752,7 +750,7 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         {
             m_ParamsParser = new CustomFeatureParametersParser();
 
-            m_Editor = new Lazy<SwMacroFeatureEditor<TParams, TPage>>(() => 
+            m_Editor = new Lazy<SwMacroFeatureEditor<TParams, TPage>>(() =>
             {
                 var page = new SwPropertyManagerPage<TPage>(Application, m_SvcProvider, CreatePageHandler(), CreateDynamicControls);
 
@@ -829,8 +827,8 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
         }
 
         /// <inheritdoc/>
-        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat, 
-            out AlignDimensionDelegate<TParams> alignDim) 
+        public virtual ISwBody[] CreateGeometry(ISwApplication app, ISwDocument doc, ISwMacroFeature<TParams> feat,
+            out AlignDimensionDelegate<TParams> alignDim)
         {
             alignDim = null;
             return CreateGeometry(app, doc, feat);
@@ -862,24 +860,24 @@ namespace Xarial.XCad.SolidWorks.Features.CustomFeature
             var data = feat.Parameters;
 
             //see the description of SwMacroFeatureEditBody for the explanation
-            m_ParamsParser.TraverseParametersDefinition(data, (obj, prp) => { }, (dim, obj, prp) => { }, 
+            m_ParamsParser.TraverseParametersDefinition(data, (obj, prp) => { }, (dim, obj, prp) => { },
                 (obj, prp) =>
                 {
                     var objData = prp.GetValue(obj);
 
                     if (objData is IList)
                     {
-                        for(int i = 0; i < ((IList)objData).Count; i++)
+                        for (int i = 0; i < ((IList)objData).Count; i++)
                         {
                             var body = ((IList)objData)[i];
 
-                            if (body is SwBody) 
+                            if (body is SwBody)
                             {
                                 ((IList)objData)[i] = CreateEditBody(((SwBody)body).Body, (SwDocument)doc, (SwApplication)app, true);
                             }
                         }
                     }
-                    else if(objData is SwBody)
+                    else if (objData is SwBody)
                     {
                         prp.SetValue(obj, CreateEditBody(((SwBody)objData).Body, (SwDocument)doc, (SwApplication)app, true));
                     }

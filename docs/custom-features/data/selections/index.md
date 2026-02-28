@@ -4,7 +4,7 @@ caption: Selections
 description: Managing selections of SOLIDWORKS macro feature using the xCAD framework
 order: 2
 ---
-{% code-snippet { file-name: ~CustomFeature\MacroFeatureSelectionParams.* } %}
+<<< @/_src/CustomFeature/MacroFeatureSelectionParams.cs
 
 Parameters of **IXSelObject** will be recognized as selection objects and stored appropriately in macro feature.
 

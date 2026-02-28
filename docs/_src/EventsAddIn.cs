@@ -11,7 +11,7 @@ using Xarial.XCad.SolidWorks;
 
 namespace Xarial.XCad.Documentation
 {
-    //--- EventHandlers
+    #region EventHandlers
     public class MyDocumentHandler : IDocumentHandler
     {
         private IXDocument m_Model;
@@ -27,7 +27,7 @@ namespace Xarial.XCad.Documentation
 
             m_Model.Closing += OnModelClosing;
             m_Model.Selections.NewSelection += OnNewSelection;
-            
+
             m_DescPrp.ValueChanged += OnPropertyValueChanged;
             m_D1Dim.ValueChanged += OnDimensionValueChanged;
         }
@@ -61,16 +61,16 @@ namespace Xarial.XCad.Documentation
             m_D1Dim.ValueChanged -= OnDimensionValueChanged;
         }
     }
-    //---
+    #endregion EventHandlers
 
     [ComVisible(true), Guid("A57F10A3-D23F-40C9-92DA-D4AE92E4FE8C")]
-    public class EventsAddIn : SwAddInEx    
-    {   
+    public class EventsAddIn : SwAddInEx
+    {
         public override void OnConnect()
         {
-            //--- RegisterHandler
+            #region RegisterHandler
             Application.Documents.RegisterHandler<MyDocumentHandler>();
-            //---
+            #endregion RegisterHandler
         }
     }
 }

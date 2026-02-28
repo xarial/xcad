@@ -13,19 +13,19 @@ namespace Xarial.XCad.Documentation
 {
     namespace V1
     {
-        //--- OldParams
+        #region OldParams
         [ParametersVersion("1.0", typeof(MacroFeatureParamsVersionConverter))]
         public class MacroFeatureParams
         {
             public string Param1 { get; set; }
             public int Param2 { get; set; }
         }
-        //---
+        #endregion OldParams
     }
 
     namespace V2
     {
-        //--- NewParams
+        #region NewParams
         [ParametersVersion("2.0", typeof(MacroFeatureParamsVersionConverter))]
         public class MacroFeatureParams
         {
@@ -33,15 +33,15 @@ namespace Xarial.XCad.Documentation
             public int Param2 { get; set; }
             public string Param3 { get; set; }//new parameter added
         }
-        //---
+        #endregion NewParams
     }
 
-    //--- Converter
+    #region Converter
     public class MacroFeatureParamsVersionConverter : ParametersVersionConverter
     {
         private class VersConv_1_0To2_0 : IParameterConverter
         {
-            public void Convert(IXDocument model, IXCustomFeature feat, ref Dictionary<string, object> parameters, 
+            public void Convert(IXDocument model, IXCustomFeature feat, ref Dictionary<string, object> parameters,
                 ref CustomFeatureSelectionInfo[] selection, ref IXDimension[] dispDims, ref IXBody[] editBodies)
             {
                 var paramVal = parameters["Param1"];
@@ -58,5 +58,5 @@ namespace Xarial.XCad.Documentation
             //add more version converters
         }
     }
-    //---
+    #endregion Converter
 }

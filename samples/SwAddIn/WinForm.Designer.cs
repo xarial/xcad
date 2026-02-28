@@ -57,7 +57,7 @@
 
         }
 
-        #endregion
+        #endregion  Windows Form Designer generated code
 
         private System.Windows.Forms.Label lblMsg;
     }

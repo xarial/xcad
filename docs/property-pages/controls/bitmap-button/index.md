@@ -18,25 +18,25 @@ This control allows to assign image onto the [button](../button/) or [toggle](..
 
 Decorate the property of type **Action** with **Xarial.XCad.UI.PropertyPage.Attributes.BitmapButtonAttribute** in order to create bitmap button control.
 
-{% code-snippet { file-name: ~PropertyPage\Controls\BitmapButton.*, regions: [Button] } %}
+<<< @/_src/PropertyPage/Controls/BitmapButton.cs#Button
 
 ## Toggle
 
 Decorate the property of type **bool** with **Xarial.XCad.UI.PropertyPage.Attributes.BitmapButtonAttribute** in order to create bitmap toggle control.
 
-{% code-snippet { file-name: ~PropertyPage\Controls\BitmapButton.*, regions: [Toggle] } %}
+<<< @/_src/PropertyPage/Controls/BitmapButton.cs#Toggle
 
 ## Size
 
 Default size of the button is 24x24 pixels. Use the **width** and **height** parameters of the constructor to assign custom size.
 
-{% code-snippet { file-name: ~PropertyPage\Controls\BitmapButton.*, regions: [Size] } %}
+<<< @/_src/PropertyPage/Controls/BitmapButton.cs#Size
 
 ## Standard
 
 Use constructor overload to specify standard bitmap for the button.
 
-{% code-snippet { file-name: ~PropertyPage\Controls\BitmapButton.*, regions: [Standard] } %}
+<<< @/_src/PropertyPage/Controls/BitmapButton.cs#Standard
 
 ![Standard icons for bitmap button](standard-icons.png)
 

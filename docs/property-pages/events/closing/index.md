@@ -10,7 +10,8 @@ order: 1
 
 Framework passes the reason of close and **closing argument** which allows to cancel property manager page closing and display error to the user as a tooltip.
 
-{% code-snippet { file-name: ~PropertyPage\Events.*, regions: [Closing] } %}
+<<< @/_src/PropertyPage/Events.cs#Closing
+<<< @/_src/PropertyPage/Events.cs#Closing2
 
 This event is raised when Property Manager Page dialog is still visible. There should be no rebuild operations performed within this handler, it includes the direct rebuilds but also any new features or geometry creation or modification (with an exception of temp bodies). Note that some operations such as saving may also be unsupported. In general if certain operation cannot be performed from the user interface while property page is opened it shouldn't be called from the closing event via API as well. Otherwise this could cause instability including crashes. Use [Post closing event](#post-closing-event) event to perform any rebuild operations.
 
@@ -22,4 +23,5 @@ In some cases it is required to perform this operation while property manager pa
 
 Use this handler to perform the required operations.
 
-{% code-snippet { file-name: ~PropertyPage\Events.*, regions: [Closed] } %}
+<<< @/_src/PropertyPage/Events.cs#Closed
+<<< @/_src/PropertyPage/Events.cs#Closed2

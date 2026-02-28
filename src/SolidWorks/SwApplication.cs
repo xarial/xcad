@@ -58,15 +58,15 @@ namespace Xarial.XCad.SolidWorks
             where TObj : ISwObject;
     }
 
-    public interface ISwApplicationOptions : ISwOptions, IXApplicationOptions 
+    public interface ISwApplicationOptions : ISwOptions, IXApplicationOptions
     {
     }
 
-    internal class SwApplicationOptions : SwOptions, ISwApplicationOptions 
+    internal class SwApplicationOptions : SwOptions, ISwApplicationOptions
     {
         private readonly SwApplication m_App;
 
-        internal SwApplicationOptions(SwApplication app) 
+        internal SwApplicationOptions(SwApplication app)
         {
             m_App = app;
             Drawings = new SwDrawingsApplicationOptions(app);
@@ -97,7 +97,7 @@ namespace Xarial.XCad.SolidWorks
         #region WinApi
         [DllImport("user32.dll")]
         static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-        #endregion
+        #endregion WinApi
 
         IXDocumentRepository IXApplication.Documents => Documents;
         IXMacro IXApplication.OpenMacro(string path) => OpenMacro(path);
@@ -295,7 +295,7 @@ namespace Xarial.XCad.SolidWorks
 
         public SwMaterialsDatabaseRepository MaterialDatabases { get; private set; }
 
-        internal SwApplication(ISldWorks app, IXServiceCollection customServices) 
+        internal SwApplication(ISldWorks app, IXServiceCollection customServices)
             : this(app, default(Action<SwApplication>))
         {
             customServices = customServices ?? new ServiceCollection();
@@ -371,7 +371,7 @@ namespace Xarial.XCad.SolidWorks
                     Services.GetService<IMemoryGeometryBuilderDocumentProvider>(),
                     Services.GetService<IMemoryGeometryBuilderToleranceProvider>());
             }
-            else 
+            else
             {
                 Debug.Assert(false, "App has been already initialized. Must be only once");
             }
@@ -449,7 +449,7 @@ namespace Xarial.XCad.SolidWorks
 
             var ext = Path.GetExtension(path);
 
-            switch (ext.ToLower()) 
+            switch (ext.ToLower())
             {
                 case VSTA_FILE_EXT:
                     return new SwVstaMacro(this, path);
@@ -476,7 +476,7 @@ namespace Xarial.XCad.SolidWorks
         {
             m_HideOnStartup = State.HasFlag(ApplicationState_e.Hidden);
 
-            using (var appStarter = new SwApplicationStarter(State, Version)) 
+            using (var appStarter = new SwApplicationStarter(State, Version))
             {
                 var logger = Logger ?? new TraceLogger("xCAD.SwApplication");
 
@@ -486,7 +486,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        private void WatchStartupCompleted(SldWorks sw) 
+        private void WatchStartupCompleted(SldWorks sw)
         {
             sw.OnIdleNotify += OnLoadFirstIdleNotify;
         }
@@ -494,7 +494,7 @@ namespace Xarial.XCad.SolidWorks
         private int OnLoadFirstIdleNotify()
         {
             Debug.Assert(!m_IsStartupNotified, "This event shoud only be fired once");
-            
+
             if (!m_IsStartupNotified)
             {
                 if (Sw?.StartupProcessCompleted == true)
@@ -525,7 +525,7 @@ namespace Xarial.XCad.SolidWorks
             return HResult.S_OK;
         }
 
-        private ApplicationState_e GetApplicationState() 
+        private ApplicationState_e GetApplicationState()
         {
             //TODO: find the state
             return ApplicationState_e.Default;
@@ -537,7 +537,7 @@ namespace Xarial.XCad.SolidWorks
             {
                 return new SwProgress(prgBar);
             }
-            else 
+            else
             {
                 throw new Exception("Failed to create progress");
             }
@@ -551,7 +551,7 @@ namespace Xarial.XCad.SolidWorks
 
             var bmpType = icon != null ? swBitMaps.swBitMapUserDefined : swBitMaps.swBitMapNone;
 
-            using (var bmp = CreateTooltipIcon(icon)) 
+            using (var bmp = CreateTooltipIcon(icon))
             {
                 Sw.HideBubbleTooltip();
 
@@ -561,7 +561,7 @@ namespace Xarial.XCad.SolidWorks
             }
         }
 
-        private IImageCollection CreateTooltipIcon(IXImage icon) 
+        private IImageCollection CreateTooltipIcon(IXImage icon)
         {
             if (icon != null)
             {
@@ -569,7 +569,7 @@ namespace Xarial.XCad.SolidWorks
 
                 return iconsCreator.ConvertIcon(new TooltipIcon(icon));
             }
-            else 
+            else
             {
                 return null;
             }
@@ -579,7 +579,7 @@ namespace Xarial.XCad.SolidWorks
             where TObj : ISwObject
             => SwObjectFactory.FromDispatch<TObj>(disp, (SwDocument)doc, this);
 
-        public IXObjectTracker CreateObjectTracker(string name) 
+        public IXObjectTracker CreateObjectTracker(string name)
             => new SwObjectTracker(this, name);
 
         internal void Release(bool close)
@@ -638,7 +638,7 @@ namespace Xarial.XCad.SolidWorks
     /// <summary>
     /// Additional methods of <see cref="ISwApplication"/>
     /// </summary>
-    public static class SwApplicationExtension 
+    public static class SwApplicationExtension
     {
         /// <summary>
         /// Checks if the current version of the SOLIDWORKS applicating equals or newver than the specified version
@@ -649,8 +649,8 @@ namespace Xarial.XCad.SolidWorks
         /// <param name="servicePackRev">Revision</param>
         /// <returns>True if current version is newer or equal</returns>
         /// <remarks>Use this method for forward compatibility</remarks>
-        public static bool IsVersionNewerOrEqual(this ISwApplication app, SwVersion_e version, 
-            int? servicePack = null, int? servicePackRev = null) 
+        public static bool IsVersionNewerOrEqual(this ISwApplication app, SwVersion_e version,
+            int? servicePack = null, int? servicePackRev = null)
         {
             return app.Sw.IsVersionNewerOrEqual(version, servicePack, servicePackRev);
         }
@@ -661,13 +661,13 @@ namespace Xarial.XCad.SolidWorks
         /// <param name="app">Application</param>
         /// <returns>True if in process</returns>
         /// <remarks>This method also checks the UI thread</remarks>
-        public static bool IsInProcess(this ISwApplication app) 
+        public static bool IsInProcess(this ISwApplication app)
         {
             if (Process.GetCurrentProcess().Id == app.Process.Id)
             {
                 return Thread.CurrentThread.ManagedThreadId == 1;
             }
-            else 
+            else
             {
                 return false;
             }

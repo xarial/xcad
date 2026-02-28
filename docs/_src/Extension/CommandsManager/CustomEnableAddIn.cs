@@ -11,7 +11,7 @@ namespace Xarial.XCad.Documentation
     [ComVisible(true), Guid("E02CA015-09D7-4428-A2D8-C2E20E0EA52E")]
     public class CustomEnableAddIn : SwAddInEx
     {
-        //--- CustomEnableState
+        #region CustomEnableState
         public enum Commands_e
         {
             Command1,
@@ -35,6 +35,6 @@ namespace Xarial.XCad.Documentation
                     break;
             }
         }
-        //---
+        #endregion CustomEnableState
     }
 }

@@ -72,7 +72,7 @@ namespace __TemplateNamePlaceholderSwAddIn__.Sw
         {
 #if (_AddCommandManager_ || _AddPropertyPage_ || _AddMacroFeature_)
             //creating command manager based on enum
-            CommandManager.AddCommandGroup<Commands_e>().CommandClick += OnButtonClick;
+            CommandManager.AddCommandGroup`<Commands_e>`().CommandClick += OnButtonClick;
 #if _AddPropertyPage_
             //property page will be created based on the data model and this model will be automatically bound (two-ways)
             m_BoxPage = CreatePage<BoxPropertyPage>();

@@ -38,7 +38,7 @@ namespace Xarial.XCad.SwDocumentManager.Geometry
         public IXMemoryBody Copy() => throw new NotSupportedException();
         public void Transform(TransformMatrix transform) => throw new NotSupportedException();
         public IXMaterial Material { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
-        #endregion
+        #endregion Not Supported
 
         public SwDmBody(SwDmPart part) : base(null, part.OwnerApplication, part)
         {

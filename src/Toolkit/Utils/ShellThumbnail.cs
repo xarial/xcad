@@ -6,19 +6,15 @@
 //*********************************************************************
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Xarial.XCad.Toolkit.Utils
 {
     /// <summary>
     /// Represents the thumbnai
     /// </summary>
-    public interface IShellThumbnail : IDisposable 
+    public interface IShellThumbnail : IDisposable
     {
         /// <summary>
         /// hBitmap of the thumbnail image
@@ -70,9 +66,9 @@ namespace Xarial.XCad.Toolkit.Utils
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool DeleteObject([In] IntPtr hObject);
 
-        #endregion
+        #endregion Windows API
 
-        public ShellThumbnail(string filePath, int width = 1024, int height = 1024) 
+        public ShellThumbnail(string filePath, int width = 1024, int height = 1024)
         {
             if (!File.Exists(filePath))
             {
@@ -99,7 +95,7 @@ namespace Xarial.XCad.Toolkit.Utils
                     DeleteObject(BitmapHandle);
                 }
             }
-            catch 
+            catch
             {
             }
         }

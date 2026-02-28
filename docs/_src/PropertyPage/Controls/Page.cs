@@ -4,26 +4,26 @@ using Xarial.XCad.Documentation.Properties;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Enums;
 
-//--- Options
+#region Options
 [PageOptions(PageOptions_e.CancelButton
 | PageOptions_e.OkayButton)]
 public class DataModelPageOpts
 {
 }
-//---
+#endregion Options
 
-//--- Attribution
+#region Attribution
 [Icon(typeof(Resources), nameof(Resources.PageIcon))]
 [Message("Sample message for property page", "Sample Page")]
 [DisplayName("Sample Page")]
 public class DataModelPageAtts
 {
 }
-//---
+#endregion Attribution
 
-//--- HelpLinks
+#region HelpLinks
 [Help("<Help URL>", "<What's New URL>")]
 public class DataModelHelpLinks
 {
 }
-//---
+#endregion HelpLinks

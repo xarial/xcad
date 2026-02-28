@@ -6,7 +6,7 @@ order: 3
 ---
 xCAD framework can be used to create out-of-process (stand-alone) applications, such as Console, Windows Forms, WPF etc. in .NET Framework or .NET Core.
 
-{% youtube id: 0ubF-INE7bg %}
+<YouTube id="0ubF-INE7bg" />
 
 ## SOLIDWORKS
 
@@ -18,7 +18,7 @@ Call **SwApplicationFactory.Create** to connect to SOLIDWORKS instance in one of
 
 In order to connect to existing (running process of SOLIDWORKS) use **SwApplicationFactory.FromProcess** method and pass the pointer to [Process](https://docs.microsoft.com/en-us/dotnet/api/system.diagnostics.process?view=netcore-3.1)
 
-{% code-snippet { file-name: ~StandAlone.* } %}
+<<< @/_src/StandAlone.cs
 
 Refer [Console Model Generator](https://github.com/xarial/xcad-examples/tree/master/ModelGeneratorConsole) example which demonstrates how to access xCAD.API from .NET Core console.
 

@@ -9,7 +9,7 @@ namespace Xarial.XCad.Documentation
     [ComVisible(true), Guid("E574D882-4223-4FB3-9160-0F54655FB6D9")]
     public class MultiTargetAddIn : SwAddInEx
     {
-        //--- Major
+        #region Major
         public void ReadDescriptionProperty()
         {
             var prpMgr = Application.Sw.IActiveDoc2.Extension.CustomPropertyManager[""];
@@ -17,7 +17,7 @@ namespace Xarial.XCad.Documentation
 
             string val;
             string resVal;
-            
+
             if (Application.IsVersionNewerOrEqual(SwVersion_e.Sw2018))
             {
                 bool wasRes;
@@ -33,12 +33,12 @@ namespace Xarial.XCad.Documentation
             {
                 prpMgr.Get4(prpName, false, out val, out resVal);
             }
-            
+
             Logger.Log($"{prpName} = {resVal} [{val}]");
         }
-        //---
+        #endregion Major
 
-        //--- Minor
+        #region Minor
         public void GetTolerance(IDimension dim)
         {
             var dimTol = dim.Tolerance;
@@ -57,6 +57,6 @@ namespace Xarial.XCad.Documentation
                 maxTol = dimTol.GetMaxValue();
             }
         }
-        //---
+        #endregion Minor
     }
 }

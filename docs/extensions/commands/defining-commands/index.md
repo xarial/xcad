@@ -8,7 +8,7 @@ order: 1
 
 xCAD framework allows defining the commands in the enumeration (enum). In this case the enumeration value become the id of the corresponding command.
 
-{% code-snippet { file-name: ~Extension\CommandsManager\DefiningCommands.* } %}
+<<< @/_src/Extension/CommandsManager/DefiningCommands.cs
 
 ## Commands Decoration
 
@@ -32,7 +32,7 @@ Transparency is supported. xCAD framework will automatically assign the required
 
 Icons can be referenced from any static class. Usually this should be a resource class. It is required to specify the type of the resource class as first parameter, and the resource names as additional parameters. Use *nameof* keyword to load the resource name to avoid usage of 'magic' strings.
 
-{% code-snippet { file-name: ~Extension\CommandsManager\CommandsAttribution.* } %}
+<<< @/_src/Extension/CommandsManager/CommandsAttribution.cs
 
 Refer [Command Group Icons Example](https://github.com/xarial/xcad-examples/tree/master/CommandGroupIcons) for the demonstration of hosting different icons with various sizes in SOLIDWORKS toolbar. menu and command tab box.
 
@@ -40,13 +40,13 @@ Refer [Command Group Icons Example](https://github.com/xarial/xcad-examples/tree
 
 Each command can be assigned with the operation scope (i.e. the environment where this command can be executed, e.g. Part, Assembly etc.). Scope can be assigned with **CommandItemInfoAttribute** attribute by specifying the values in *suppWorkspaces* parameter of the attribute's constructor. The **WorkspaceTypes_e** is a flag enumeration, so it is possible to combine the workspaces.
 
-Framework will automatically disable/enable the commands based on the active environment as per the specified scope. For additional logic for assigning the state visit [Custom Enable Command State](/extension/commands/command-states/) article.
+Framework will automatically disable/enable the commands based on the active environment as per the specified scope. For additional logic for assigning the state visit [Custom Enable Command State](../../../extensions/commands/command-states/index) article.
 
-{% code-snippet { file-name: ~Extension\CommandsManager\CommandsScope.* } %}
+<<< @/_src/Extension/CommandsManager/CommandsScope.cs
 
 ## User Assigned Command Group IDs
 
 **CommandGroupInfoAttribute** allows to assign the static command id to the group. This should be applied to the enumerator definition. If this attribute is not used SwEx framework will assign the ids automatically.
 
-{% code-snippet { file-name: ~Extension\CommandsManager\CommandGroupId.* } %}
+<<< @/_src/Extension/CommandsManager/CommandGroupId.cs
 

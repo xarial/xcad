@@ -45,7 +45,7 @@ namespace Toolkit.Tests
             public DataModelMock2 Group2 { get; set; }
         }
 
-        #endregion
+        #endregion Mocks
 
         [Test]
         public void TestBindSimple()
@@ -71,7 +71,7 @@ namespace Toolkit.Tests
             var d3 = (bindings.ElementAt(2) as PropertyInfoBinding<DataModelMock1>).ControlDescriptor;
 
             Assert.AreEqual(3, bindings.Count());
-            
+
             Assert.AreEqual("Field1", d1.Name);
             Assert.AreEqual(typeof(string), d1.DataType);
 
@@ -212,7 +212,7 @@ namespace Toolkit.Tests
             IEnumerable<IBinding> bindings;
 
             IPage page = null;
-            
+
             IRawDependencyGroup dependencies;
 
             binder.Bind<DataModelMock1>(

@@ -11,9 +11,9 @@ using Xarial.XCad.Geometry.Structures;
 
 namespace Xarial.XCad.Features.CustomFeature
 {
-     /// <summary>
-     /// Instance of the custom feature
-     /// </summary>
+    /// <summary>
+    /// Instance of the custom feature
+    /// </summary>
     public interface IXCustomFeature : IXFeature
     {
         /// <summary>
@@ -57,7 +57,7 @@ namespace Xarial.XCad.Features.CustomFeature
     /// <summary>
     /// Additional methods for <see cref="IXCustomFeature"/>
     /// </summary>
-    public static class XCustomFeatureExtension 
+    public static class XCustomFeatureExtension
     {
         /// <summary>
         /// Gets the actual transformation of the entity in case of the in-context editing

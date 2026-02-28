@@ -20,6 +20,6 @@ The value of state will be preassigned based on the workspace and can be changed
 
 > This method allows to implement the toggle button in toolbar and menu. To set the checked state use the *Checked*.
 
-{% code-snippet { file-name: ~Extension\CommandsManager\CustomEnableAddIn.*, regions: [CustomEnableState] } %}
+<<< @/_src/Extension/CommandsManager/CustomEnableAddIn.cs#CustomEnableState
 
 Refer [Toggle Command Example](https://github.com/xarial/xcad-examples/tree/master/ToggleCommand) for the demonstration of how to achieve check box effect for toolbar button in SOLIDWORKS using the command states.

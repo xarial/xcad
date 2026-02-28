@@ -11,7 +11,7 @@ using Xarial.XCad.UI.PropertyPage.Enums;
 
 public class ComboBoxDataModel
 {
-    //--- Simple
+    #region Simple
     public enum Options_e
     {
         Option1,
@@ -21,8 +21,8 @@ public class ComboBoxDataModel
 
     [ComboBoxOptions(ComboBoxStyle_e.Sorted)]
     public Options_e Options { get; set; }
-    //---
-    //--- ItemsText
+    #endregion Simple
+    #region ItemsText
     public enum OptionsCustomized_e
     {
         [Title("First Option")] //static title
@@ -33,8 +33,8 @@ public class ComboBoxDataModel
     }
 
     public OptionsCustomized_e Options2 { get; set; }
-    //---
-    //--- CustomItemsProvider
+    #endregion ItemsText
+    #region CustomItemsProvider
     public class CustomStringItemsProvider : SwCustomItemsProvider<string>
     {
         public override IEnumerable<string> ProvideItems(ISwApplication app, IControl[] dependencies)
@@ -54,8 +54,8 @@ public class ComboBoxDataModel
     [ComboBox(typeof(CustomIntItemsProvider))]
     [ControlTag(nameof(Options4))]
     public int Options4 { get; set; }
-    //---
-    //--- CustomItemsProviderDependency
+    #endregion CustomItemsProvider
+    #region CustomItemsProviderDependency
     public class CustomComboBoxItem
     {
         public string BaseName { get; }
@@ -86,5 +86,5 @@ public class ComboBoxDataModel
 
     [ComboBox(typeof(CustomDependencyProvider), nameof(Options3), nameof(Options4))]
     public CustomComboBoxItem Options5 { get; set; }
-    //---
+    #endregion CustomItemsProviderDependency
 }

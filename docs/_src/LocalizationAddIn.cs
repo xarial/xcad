@@ -11,7 +11,7 @@ using Xarial.XCad.Features;
 
 namespace Xarial.XCad.Documentation
 {
-    //--- PMPage
+    #region PMPage
     [Title(typeof(Resources), nameof(Resources.LocalizedPmPageTitle))]
     public class LocalizedPmPage
     {
@@ -23,9 +23,9 @@ namespace Xarial.XCad.Documentation
         [Summary(typeof(Resources), nameof(Resources.NumericFieldDescription))]
         public double NumericField { get; set; }
     }
-    //---
+    #endregion PMPage
 
-    //--- MacroFeature
+    #region MacroFeature
     [Title(typeof(Resources), nameof(Resources.MacroFeatureBaseName))]
     [ComVisible(true)]
     public class LocalizedMacroFeature : SwMacroFeatureDefinition
@@ -39,7 +39,7 @@ namespace Xarial.XCad.Documentation
                     Result = true
                 };
             }
-            else 
+            else
             {
                 return new CustomFeatureRebuildResult()
                 {
@@ -49,12 +49,12 @@ namespace Xarial.XCad.Documentation
             }
         }
     }
-    //---
+    #endregion MacroFeature
 
     [ComVisible(true), Guid("CD96ACAE-57E6-400F-927A-27D912407663")]
     public class LocalizationAddIn : SwAddInEx
     {
-        //--- Commands
+        #region Commands
         [Title(typeof(Resources), nameof(Resources.ToolbarTitle))]
         [Summary(typeof(Resources), nameof(Resources.ToolbarHint))]
         public enum Commands_e
@@ -67,7 +67,7 @@ namespace Xarial.XCad.Documentation
             [Summary(typeof(Resources), nameof(Resources.CreateMacroFeatureCommandHint))]
             CreateMacroFeature
         }
-        //---
+        #endregion Commands
 
         [ComVisible(true)]
         public class PMPageHandler : SwPropertyManagerPageHandler
