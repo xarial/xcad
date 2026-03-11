@@ -90,7 +90,7 @@ namespace Xarial.XCad.Toolkit.Services
 
                 foreach (var doc in m_App.Documents) 
                 {
-                    TryInitHandlers(doc);
+                    TryInitHandlers(doc, out _);
                 }
             }
         }
@@ -149,7 +149,7 @@ namespace Xarial.XCad.Toolkit.Services
         }
 
         private void OnDocumentLoaded(IXDocument doc)
-            => TryInitHandlers(doc);
+            => TryInitHandlers(doc, out _);
 
         /// <summary>
         /// Retrieves the specific handle of this document
@@ -158,10 +158,27 @@ namespace Xarial.XCad.Toolkit.Services
         /// <param name="doc">Document</param>
         /// <returns>Handler</returns>
         /// <exception cref="Exception">Handler not registered</exception>
-        public THandler GetHandler<THandler>(IXDocument doc) 
+        public THandler GetHandler<THandler>(IXDocument doc)
             where THandler : IDocumentHandler
         {
-            var handlers = m_DocsMap[doc].Where(h => typeof(THandler).IsAssignableFrom(h.GetType()));
+            if (!m_DocsMap.TryGetValue(doc, out var allHandlers))
+            {
+                //NOTE: when document opened with API, DocumentActivate event is raised before DocumentLoad
+                //which may result in exception (handler is not yet registered) if accessed from DocumentActivate handler
+                if (doc.IsAlive)
+                {
+                    if (!TryInitHandlers(doc, out allHandlers)) 
+                    {
+                        throw new Exception("Failed to init handlers for the document");
+                    }
+                }
+                else 
+                {
+                    throw new Exception("Handler of disconnected document cannot be accessed");
+                }
+            }
+
+            var handlers = allHandlers.Where(h => typeof(THandler).IsAssignableFrom(h.GetType()));
 
             if (handlers.Any())
             {
@@ -169,17 +186,17 @@ namespace Xarial.XCad.Toolkit.Services
 
                 return (THandler)handlers.First();
             }
-            else 
+            else
             {
                 throw new Exception("Handler of the specified type is not registered for the specified document");
             }
         }
 
-        private void TryInitHandlers(IXDocument doc) 
+        private bool TryInitHandlers(IXDocument doc, out List<IDocumentHandler> handlers) 
         {
             if (!m_DocsMap.ContainsKey(doc))
             {
-                var handlers = new List<IDocumentHandler>();
+                handlers = new List<IDocumentHandler>();
 
                 foreach (var handlerInfo in m_Handlers)
                 {
@@ -196,6 +213,13 @@ namespace Xarial.XCad.Toolkit.Services
                 m_DocsMap.Add(doc, handlers);
 
                 doc.Destroyed += OnDocumentDestroyed;
+
+                return true;
+            }
+            else 
+            {
+                handlers = null;
+                return false;
             }
         }
 
