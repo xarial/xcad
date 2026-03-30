@@ -17,6 +17,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Xarial.XCad.Base;
 using Xarial.XCad.Data;
 using Xarial.XCad.Enums;
 using Xarial.XCad.Exceptions;
@@ -375,6 +376,8 @@ namespace Xarial.XCad.SolidWorks.Graphics
             if (IsCommitted)
             {
                 Callout.Display(false);
+
+                Release();
             }
         }
 
@@ -426,6 +429,25 @@ namespace Xarial.XCad.SolidWorks.Graphics
         }
 
         protected abstract ICallout NewCallout(int rowsCount, ISwCalloutHandler handler);
+
+        protected void Release()
+        {
+            if (m_Creator.IsCreated)
+            {
+                var callout = m_Creator.Element;
+
+                if (callout != null)
+                {
+                    m_Creator.Set(null);
+
+                    Marshal.ReleaseComObject(callout);
+
+                    GC.Collect();
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                }
+            }
+        }
 
         private bool OnRowValueChanged(SwCalloutBaseHandler handler, int rowIndex, string newValue)
         {
@@ -614,7 +636,16 @@ namespace Xarial.XCad.SolidWorks.Graphics
 
         public override void Dispose()
         {
-            //NOTE: select callout cannot be hidden (hides automatically when owner object is deselected)
+            if (m_Creator.IsCreated)
+            {
+                //NOTE: select callout cannot be hidden (hides automatically when owner object is deselected)
+                if (Owner.IsSelected)
+                {
+                    m_Sel.Remove(Owner);
+                }
+
+                Release();
+            }
         }
     }
 }
