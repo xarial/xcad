@@ -45,6 +45,7 @@ using Xarial.XCad.SolidWorks.Utils;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Data;
 using Xarial.XCad.Toolkit.Utils;
+using Xarial.XCad.Toolkit.Windows.Utils;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SolidWorks.Documents
@@ -336,7 +337,14 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                         if (!string.IsNullOrEmpty(path))
                         {
-                            return System.IO.Path.GetFileName(path);
+                            if (FileExplorer.IsFileExtensionShown)
+                            {
+                                return System.IO.Path.GetFileName(path);
+                            }
+                            else
+                            {
+                                return System.IO.Path.GetFileNameWithoutExtension(path);
+                            }
                         }
                         else 
                         {

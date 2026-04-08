@@ -142,9 +142,28 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
         }
 
         private void OnMetadataChanged(IMetadata metadata, object val)
-            => m_MetadataDependencies[metadata].ForEach(s => s.Update());
+        {
+            if (m_MetadataDependencies.TryGetValue(metadata, out var states))
+            {
+                states.ForEach(s => s.Update());
+            }
+            else 
+            {
+                throw new KeyNotFoundException($"Metadata '{metadata.Name}' is not found in dependencies");
+            }
+        }
+        //m_MetadataDependencies[metadata].ForEach(s => s.Update());
 
         private void OnBindingChanged(IBinding binding)
-            => m_ControlDependencies[binding].ForEach(u => u.Update());
+        {
+            if (m_ControlDependencies.TryGetValue(binding, out var states))
+            {
+                states.ForEach(u => u.Update());
+            }
+            else 
+            {
+                throw new KeyNotFoundException($"Metadata of control '{binding.ControlDescriptor.Name}' is not found in dependencies");
+            }
+        }
     }
 }

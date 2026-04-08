@@ -15,6 +15,7 @@ using Xarial.XCad.Geometry;
 using Xarial.XCad.Base.Enums;
 using System.Linq;
 using Xarial.XCad.SolidWorks.Documents;
+using Xarial.XCad.Base;
 
 namespace Xarial.XCad.SolidWorks
 {
@@ -24,13 +25,13 @@ namespace Xarial.XCad.SolidWorks
 
         private readonly int m_TrackDefId;
 
-        private readonly ISwApplication m_SwApp;
+        private readonly SwApplication m_SwApp;
 
         private readonly List<ISwObject> m_TrackedObjects;
 
         private readonly List<IXDocument> m_TrackedDocuments;
 
-        internal SwObjectTracker(ISwApplication app, string name)
+        internal SwObjectTracker(SwApplication app, string name)
         {
             m_TrackDefName = name;
             m_SwApp = app;
@@ -202,25 +203,25 @@ namespace Xarial.XCad.SolidWorks
 
         public int GetTrackingId(IXObject obj)
         {
-            object trackIds;
+            object trackIdsObj;
             int trackRes;
 
             switch (obj)
             {
                 case ISwFace face:
-                    trackRes = face.Face.GetTrackingIDs(m_TrackDefId, out trackIds);
+                    trackRes = face.Face.GetTrackingIDs(m_TrackDefId, out trackIdsObj);
                     break;
 
                 case ISwEdge edge:
-                    trackRes = edge.Edge.GetTrackingIDs(m_TrackDefId, out trackIds);
+                    trackRes = edge.Edge.GetTrackingIDs(m_TrackDefId, out trackIdsObj);
                     break;
 
                 case ISwVertex vertex:
-                    trackRes = vertex.Vertex.GetTrackingIDs(m_TrackDefId, out trackIds);
+                    trackRes = vertex.Vertex.GetTrackingIDs(m_TrackDefId, out trackIdsObj);
                     break;
 
                 case ISwBody body:
-                    trackRes = body.Body.GetTrackingIDs(m_TrackDefId, out trackIds);
+                    trackRes = body.Body.GetTrackingIDs(m_TrackDefId, out trackIdsObj);
                     break;
 
                 default:
@@ -232,12 +233,16 @@ namespace Xarial.XCad.SolidWorks
                 throw new Exception($"Failed to find tracking id. Error code: {(swTrackingIDError_e)trackRes}");
             }
 
-            if (((int[])trackIds).Any() != true)
+            var trackIds = (int[])trackIdsObj ?? Array.Empty<int>();
+
+            if (trackIds.Any())
+            {
+                return trackIds.First();
+            }
+            else 
             {
                 throw new Exception("No tracking ids found");
             }
-
-            return ((int[])trackIds).First();
         }
 
         public void Dispose()
@@ -248,8 +253,9 @@ namespace Xarial.XCad.SolidWorks
                 {
                     Untrack(trackedObj);
                 }
-                catch 
+                catch (Exception ex)
                 {
+                    m_SwApp.Logger.Log(ex);
                 }
             }
 

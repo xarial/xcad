@@ -18,6 +18,8 @@ using SolidWorks.Interop.sldworks;
 using System.IO;
 using Xarial.XCad.Services;
 using System.Diagnostics;
+using Xarial.XCad.Toolkit.Windows.Utils;
+using Xarial.XCad.Documents;
 
 namespace Xarial.XCad.SolidWorks.Data
 {
@@ -150,7 +152,42 @@ namespace Xarial.XCad.SolidWorks.Data
                 case swBOMPartNumberSource_e.swBOMPartNumber_ConfigurationName:
                     return conf.Name;
                 case swBOMPartNumberSource_e.swBOMPartNumber_DocumentName:
-                    return Path.GetFileNameWithoutExtension(m_Conf.OwnerDocument.Name);
+                    var path = m_Conf.OwnerDocument.Path;
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        return Path.GetFileNameWithoutExtension(path);
+                    }
+                    else
+                    {
+                        var name = m_Conf.OwnerDocument.Name;
+
+                        string ext;
+
+                        switch (m_Conf.OwnerDocument)
+                        {
+                            case IXPart _:
+                                ext = ".sldprt";
+                                break;
+
+                            case IXAssembly _:
+                                ext = ".sldasm";
+                                break;
+
+                            case IXDrawing _:
+                                ext = ".slddrw";
+                                break;
+
+                            default:
+                                throw new NotSupportedException();
+                        }
+
+                        if (name.EndsWith(ext, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            name = name.Substring(0, name.Length - ext.Length);
+                        }
+
+                        return name;
+                    }
                 case swBOMPartNumberSource_e.swBOMPartNumber_ParentName:
                     return GetPartNumber(conf.GetParent());
                 case swBOMPartNumberSource_e.swBOMPartNumber_UserSpecified:

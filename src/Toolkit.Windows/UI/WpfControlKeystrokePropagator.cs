@@ -48,7 +48,7 @@ namespace Xarial.XCad.Toolkit.Windows.UI
 
         private void OnElementUnloaded(object sender, RoutedEventArgs e)
         {
-            m_HwndSrc.RemoveHook(m_HwndSrcHook);
+            m_HwndSrc?.RemoveHook(m_HwndSrcHook);
         }
 
         private IntPtr OnChildHwndSourceHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

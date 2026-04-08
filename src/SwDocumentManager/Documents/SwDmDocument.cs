@@ -30,6 +30,7 @@ using Xarial.XCad.SolidWorks.Data;
 using Xarial.XCad.SwDocumentManager.Data;
 using Xarial.XCad.Toolkit;
 using Xarial.XCad.Toolkit.Data;
+using Xarial.XCad.Toolkit.Windows.Utils;
 using Xarial.XCad.UI;
 
 namespace Xarial.XCad.SwDocumentManager.Documents
@@ -175,7 +176,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
                 if (!string.IsNullOrEmpty(path))
                 {
-                    if (IsFileExtensionShown)
+                    if (FileExplorer.IsFileExtensionShown)
                     {
                         return System.IO.Path.GetFileName(path);
                     }
@@ -228,7 +229,7 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             {
                 if (IsCommitted)
                 {
-                    if (m_IsReadOnly.Value)
+                    if (m_IsReadOnly == true)
                     {
                         return DocumentState_e.ReadOnly;
                     }
@@ -547,29 +548,6 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
 
             return true;
-        }
-
-        private bool IsFileExtensionShown
-        {
-            get
-            {
-                try
-                {
-                    const string REG_KEY = @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced";
-                    const int UNCHECKED = 0;
-                    var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(REG_KEY);
-
-                    if (key != null)
-                    {
-                        return (int)key.GetValue("HideFileExt") == UNCHECKED;
-                    }
-                }
-                catch
-                {
-                }
-
-                return false;
-            }
         }
 
         public IXDocumentOptions Options => throw new NotImplementedException();
