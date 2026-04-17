@@ -112,6 +112,8 @@ namespace Xarial.XCad.SolidWorks.Documents
         public IEnumerable<ISwComponent> Unordered => IterateChildren(false)
             .Select(RootAssembly.CreateObjectFromDispatch<SwComponent>);
 
+        public abstract IEnumerable<IXComponent> All { get; }
+
         private readonly EntityCache<IXComponent> m_Cache;
 
         private readonly RepositoryHelper<IXComponent> m_RepoHelper;
@@ -155,7 +157,7 @@ namespace Xarial.XCad.SolidWorks.Documents
                     throw new Exception("Components cannot be extracted for the Large Design Review assembly");
                 }
 
-                return (IterateChildren(true) ?? new IComponent2[0])
+                return (IterateChildren(true) ?? Array.Empty<IComponent2>())
                     .Select(c => RootAssembly.CreateObjectFromDispatch<SwComponent>(c)).GetEnumerator();
             }
             else 

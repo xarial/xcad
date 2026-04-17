@@ -233,6 +233,17 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         protected bool IsActiveConfiguration => m_Assm.Model.GetActiveConfiguration() == m_Conf;
 
+        public override IEnumerable<IXComponent> All 
+        {
+            get
+            {
+                ValidateSpeedPak();
+
+                return (m_Assm.Assembly.GetComponents(false) as object[] ?? Array.Empty<object>())
+                    .Cast<IComponent2>().Select(RootAssembly.CreateObjectFromDispatch<SwComponent>);
+            }
+        }
+
         protected override bool TryGetByName(string name, out IXComponent ent)
         {
             var comp = RootAssembly.Assembly.GetComponentByName(name);
@@ -290,7 +301,16 @@ namespace Xarial.XCad.SolidWorks.Documents
         }
 
         private IEnumerable<IComponent2> IterateUnorderedComponents()
-            => (m_Conf.GetRootComponent3(!IsActiveConfiguration).GetChildren() as object[] ?? new object[0]).Cast<IComponent2>();
+        {
+            if (IsActiveConfiguration)
+            {
+                return (m_Assm.Assembly.GetComponents(true) as object[] ?? Array.Empty<object>()).Cast<IComponent2>();
+            }
+            else 
+            {
+                return (m_Conf.GetRootComponent3(true).GetChildren() as object[] ?? Array.Empty<object>()).Cast<IComponent2>();
+            }
+        }
 
         protected override int GetTotalChildrenCount()
         {

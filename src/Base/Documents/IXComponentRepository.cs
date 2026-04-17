@@ -25,6 +25,11 @@ namespace Xarial.XCad.Documents
         /// Returns the total count of components including all nested components
         /// </summary>
         int TotalCount { get; }
+
+        /// <summary>
+        /// Returns all componetns, including all nested components
+        /// </summary>
+        IEnumerable<IXComponent> All { get; }
     }
 
     /// <summary>

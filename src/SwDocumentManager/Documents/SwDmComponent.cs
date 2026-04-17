@@ -667,6 +667,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
 
         public int Count => 0;
 
+        public IEnumerable<IXComponent> All => Enumerable.Empty<IXComponent>();
+
         public IEnumerator<IXComponent> GetEnumerator()
         {
             yield break; 

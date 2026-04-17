@@ -86,6 +86,8 @@ namespace Xarial.XCad.SwDocumentManager.Documents
             }
         }
 
+        public IEnumerable<IXComponent> All => this.TryFlatten();
+
         private object[] GetComponents(ISwDMConfiguration conf) 
         {
             ValidateSpeedPak(conf);
