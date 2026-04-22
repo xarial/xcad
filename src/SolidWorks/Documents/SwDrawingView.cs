@@ -1539,6 +1539,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
                 m_ActiveConf = (SwPartConfiguration)part.Configurations.Active;
 
+                //NOTE: storing body name before changing the configuration as it may change the pointer
+                var bodyName = body.Name;
+
                 if (conf != null)
                 {
                     if (!string.Equals(m_ActiveConf.Name, conf.Name, StringComparison.CurrentCultureIgnoreCase))
@@ -1547,14 +1550,14 @@ namespace Xarial.XCad.SolidWorks.Documents
                     }
                 }
 
-                if (part.Bodies.TryGet(body.Name, out var corrBody))
+                if (part.Bodies.TryGet(bodyName, out var corrBody))
                 {
                     m_SelGrp = new SelectionGroup(part, true);
                     m_SelGrp.Add(((ISwBody)corrBody).Body);
                 }
                 else
                 {
-                    throw new Exception("Failed to find corresponding shete metal body in the configuration");
+                    throw new Exception("Failed to find corresponding sheet metal body in the configuration");
                 }
             }
 

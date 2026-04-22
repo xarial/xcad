@@ -350,9 +350,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
                     }
                 }
 
-                var x = GetDirection(axesLines[0], pt1);
-                var y = GetDirection(axesLines[1], pt1);
-                var z = x.Cross(y);
+                var xLen = GetDirection(axesLines[0], pt1);
+                var yLen = GetDirection(axesLines[1], pt1);
+                var zLen = GetDirection(axesLines[2], pt1);
 
                 double unitConvFactor = 1;
 
@@ -362,9 +362,9 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
                     unitConvFactor = userUnit.GetConversionFactor();
                 }
 
-                return new Box3D(x.GetLength() * unitConvFactor, y.GetLength() * unitConvFactor, z.GetLength() * unitConvFactor,
+                return new Box3D(xLen.GetLength() * unitConvFactor, yLen.GetLength() * unitConvFactor, zLen.GetLength() * unitConvFactor,
                     centerPt.Scale(unitConvFactor),
-                    x.Normalize(), y.Normalize(), z.Normalize());
+                    xLen.Normalize(), yLen.Normalize(), xLen.Cross(yLen).Normalize());
             }
             else
             {
@@ -692,7 +692,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
         {
             if (!VisibleOnly)
             {
-                throw new NotSupportedException("Only avisible components can be considered when performing approximate bounding box calculation");
+                throw new NotSupportedException("Only visible components can be considered when performing approximate bounding box calculation");
             }
 
             var comps = (this as IXAssemblyBoundingBox).Scope;
@@ -761,7 +761,7 @@ namespace Xarial.XCad.SolidWorks.Geometry.Evaluation
         {
             if (!VisibleOnly)
             {
-                throw new NotSupportedException("Only avisible components can be considered when performing approximate bounding box calculation");
+                throw new NotSupportedException("Only visible components can be considered when performing approximate bounding box calculation");
             }
 
             swBoundingBoxOptions_e bboxOptionsDefault = 0;
