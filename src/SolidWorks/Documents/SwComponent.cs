@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -1075,15 +1076,27 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 ValidateSpeedPak();
 
-                foreach (var comp in new OrderedComponentsCollection(
-                    () => ((object[])m_Comp.Component.GetChildren() ?? new object[0]).Cast<IComponent2>().ToArray(),
-                    m_Comp.Component.FirstFeature(),
-                    m_Comp.OwnerApplication.Logger))
+                if (ordered)
                 {
-                    yield return comp;
+                    foreach (var comp in new OrderedComponentsCollection(
+                        () => GetChildrenComponents(),
+                        m_Comp.Component.FirstFeature(),
+                        m_Comp.OwnerApplication.Logger))
+                    {
+                        yield return comp;
+                    }
+                }
+                else 
+                {
+                    foreach (var childComp in GetChildrenComponents()) 
+                    {
+                        yield return childComp;
+                    }
                 }
             }
         }
+
+        private IComponent2[] GetChildrenComponents() => ((object[])m_Comp.Component.GetChildren() ?? Array.Empty<object>()).Cast<IComponent2>().ToArray();
 
         protected override int GetTotalChildrenCount()
         {

@@ -1217,6 +1217,46 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void GetDocumentsTest()
+        {
+            string[] docPaths;
+            string workFolder;
+            string p1;
+            string p2;
+            string p3;
+            string p4;
+            bool e1;
+            bool e2;
+            bool e3;
+
+            using (var doc = OpenDataDocument(@"Assembly4\Assembly1.SLDASM"))
+            {
+                workFolder = Path.Combine(doc.WorkFolderPath, "Assembly4");
+
+                docPaths = Application.Documents.Select(d => d.Path.ToLower()).ToArray();
+
+                p1 = ((ISwDocument)Application.Documents["Part1"]).Model.GetPathName();
+                p2 = ((ISwDocument)Application.Documents["SubAssem1.SLDASM"]).Model.GetPathName();
+                p3 = ((ISwDocument)Application.Documents[Path.Combine(workFolder, "Part2.sldprt")]).Model.GetPathName();
+                p4 = Application.Documents[Application.Sw.IActiveDoc2].Model.GetPathName();
+
+                e1 = Application.Documents.TryGet("_Part1", out _);
+                e2 = Application.Documents.TryGet("_SubAssem1.SLDASM", out _);
+                e3 = Application.Documents.TryGet(Path.Combine(workFolder, "_Part2.sldprt"), out _);
+            }
+
+            CollectionAssert.AreEquivalent(new string[] { Path.Combine(workFolder, "Assembly1.SLDASM").ToLower(), Path.Combine(workFolder, "Part1.SLDPRT").ToLower(), Path.Combine(workFolder, "Part2.SLDPRT").ToLower(), Path.Combine(workFolder, "SubAssem1.SLDASM").ToLower(), Path.Combine(workFolder, "SubSubAssem1.SLDASM").ToLower() }, docPaths);
+            Assert.AreEqual(Path.Combine(workFolder, "Part1.SLDPRT").ToLower(), p1.ToLower());
+            Assert.AreEqual(Path.Combine(workFolder, "SubAssem1.SLDASM").ToLower(), p2.ToLower());
+            Assert.AreEqual(Path.Combine(workFolder, "Part2.SLDPRT").ToLower(), p3.ToLower());
+            Assert.AreEqual(Path.Combine(workFolder, "Part2.SLDPRT").ToLower(), p3.ToLower());
+            Assert.AreEqual(Path.Combine(workFolder, "Assembly1.SLDASM").ToLower(), p4.ToLower());
+            Assert.IsFalse(e1);
+            Assert.IsFalse(e2);
+            Assert.IsFalse(e3);
+        }
+
+        [Test]
         public void DocumentLoadingEventsTest()
         {
             ISwAssembly assm = null;
@@ -1658,45 +1698,6 @@ namespace SolidWorks.Tests.Integration
 
             Assert.AreEqual(0, lightweightCompsCount1);
             Assert.AreNotEqual(0, lightweightCompsCount2);
-        }
-
-        [Test]
-        public void GetAllComponentsTest()
-        {
-            string[] resolvedComps;
-            string[] lightweightComps;
-
-            var autoLoadLw = Application.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight);
-
-            try
-            {
-                Application.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight, true);
-
-                using (var dataFile = GetDataFile(@"Assembly4\Assembly1.SLDASM"))
-                {
-                    var assm1 = Application.Documents.PreCreate<ISwAssembly>();
-                    assm1.Path = dataFile.FilePath;
-                    assm1.State = DocumentState_e.Default;
-                    assm1.Commit();
-                    resolvedComps = assm1.Configurations.Active.Components.All.Select(c => ((ISwComponent)c).Component.Name2).ToArray();
-                    assm1.Close();
-
-                    var assm2 = Application.Documents.PreCreate<ISwAssembly>();
-                    Application.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight, false);
-                    assm2.Path = dataFile.FilePath;
-                    assm2.State = DocumentState_e.Lightweight;
-                    assm2.Commit();
-                    lightweightComps = assm2.Configurations.Active.Components.All.Select(c => ((ISwComponent)c).Component.Name2).ToArray();
-                    assm2.Close();
-                }
-            }
-            finally
-            {
-                Application.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight, autoLoadLw);
-            }
-
-            CollectionAssert.AreEquivalent(new string[] { "SubAssem1-1", "SubAssem1-1/Part1-2", "SubAssem1-1/SubSubAssem1-1", "SubAssem1-1/SubSubAssem1-1/Part2-2", "SubAssem1-1/SubSubAssem1-1/Part2-3", "SubAssem1-1/SubSubAssem1-1/Part2-4", "SubAssem1-1/SubSubAssem1-1/Part2-5", "SubAssem1-1/SubSubAssem1-1/Part2-1", "SubAssem1-1/Part1-1", "Part1-1" }, resolvedComps);
-            CollectionAssert.AreEquivalent(new string[] { "SubAssem1-1", "SubAssem1-1/Part1-2", "SubAssem1-1/SubSubAssem1-1", "SubAssem1-1/SubSubAssem1-1/Part2-2", "SubAssem1-1/SubSubAssem1-1/Part2-3", "SubAssem1-1/SubSubAssem1-1/Part2-4", "SubAssem1-1/SubSubAssem1-1/Part2-5", "SubAssem1-1/SubSubAssem1-1/Part2-1", "SubAssem1-1/Part1-1", "Part1-1" }, lightweightComps);
         }
 
         [Test]

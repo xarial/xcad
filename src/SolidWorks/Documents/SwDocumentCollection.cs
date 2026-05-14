@@ -145,7 +145,7 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         //NOTE: Creation of SwDocument has some additional API calls (e.g. subscribing the save event, caching the path)
         //this may have a performance effect when called very often (e.g. within the IXCommandGroup.CommandStateResolve)
-        //cahcing of the document allows to reuse the instance and improves the performance
+        //caching of the document allows to reuse the instance and improves the performance
         private IModelDoc2 m_CachedNativeDoc;
         private SwDocument m_CachedDoc;
 
@@ -218,14 +218,9 @@ namespace Xarial.XCad.SolidWorks.Documents
 
         public IEnumerator<IXDocument> GetEnumerator()
         {
-            var openDocs = m_App.Sw.GetDocuments() as object[];
-
-            if (openDocs != null)
+            foreach (var model in IterateDocuments())
             {
-                foreach (IModelDoc2 model in openDocs)
-                {
-                    yield return CreateDocument(model);
-                }
+                yield return CreateDocument(model);
             }
         }
 
@@ -238,7 +233,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             try
             {
-                m_DocumentOpened?.Invoke(CreateDocument(FindModel(fileName, fileName)));
+                m_DocumentOpened?.Invoke(CreateDocument(ForceFindModel(fileName, fileName)));
             }
             catch (Exception ex)
             {
@@ -266,7 +261,7 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             try
             {
-                m_DocumentLoaded?.Invoke(CreateDocument(FindModel(docTitle, docPath)));
+                m_DocumentLoaded?.Invoke(CreateDocument(ForceFindModel(docTitle, docPath)));
             }
             catch (Exception ex)
             {
@@ -276,7 +271,16 @@ namespace Xarial.XCad.SolidWorks.Documents
             return HResult.S_OK;
         }
 
-        private ModelDoc2 FindModel(string docTitle, string docPath)
+        /// <summary>
+        /// Force finds the model by document title or path
+        /// </summary>
+        /// <param name="docTitle">Document title</param>
+        /// <param name="docPath">Full document path</param>
+        /// <returns>Pointer to model</returns>
+        /// <exception cref="Exception">Model is not found</exception>
+        /// <remarks>This method should be used where model is expected to be loaded (e.g. from load or new events).
+        /// This method is not performance efficient to use to find document if not known if it is opened or note</remarks>
+        private IModelDoc2 ForceFindModel(string docTitle, string docPath)
         {
             var docName = docPath;
 
@@ -293,7 +297,7 @@ namespace Xarial.XCad.SolidWorks.Documents
             }
             else
             {
-                foreach (ModelDoc2 model in m_App.Sw.GetDocuments() as object[] ?? new object[0])
+                foreach (var model in IterateDocuments())
                 {
                     if (!string.IsNullOrEmpty(docPath))
                     {
@@ -343,20 +347,29 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             var model = m_App.Sw.GetOpenDocument(name);
 
-            if (model == null)
-            {
-                model = (ModelDoc2)m_App.Sw.GetOpenDocumentByName(name);
-            }
-
             if (model != null)
             {
                 ent = CreateDocument(model);
                 return true;
             }
-            else 
+            else if (TryFindExistingDocumentByPath(name, out var doc))
             {
-                ent = null;
-                return false;
+                ent = doc;
+                return true;
+            }
+
+            ent = null;
+            return false;
+        }
+
+        private IEnumerable<IModelDoc2> IterateDocuments()
+        {
+            var model = m_App.Sw.IGetFirstDocument2();
+
+            while (model != null)
+            {
+                yield return model;
+                model = model.IGetNext();
             }
         }
 
@@ -375,15 +388,17 @@ namespace Xarial.XCad.SolidWorks.Documents
         {
             if (!string.IsNullOrEmpty(path))
             {
-                doc = (SwDocument)this.FirstOrDefault(
-                    d => string.Equals(d.Path, path, StringComparison.CurrentCultureIgnoreCase));
-            }
-            else 
-            {
-                doc = null;
+                var model = (IModelDoc2)m_App.Sw.GetOpenDocumentByName(path);
+
+                if (model != null) 
+                {
+                    doc = CreateDocument(model);
+                    return true;
+                }
             }
 
-            return doc != null;
+            doc = null;
+            return false;
         }
 
         private SwDocument CreateDocument(IModelDoc2 nativeDoc)

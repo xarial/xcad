@@ -249,6 +249,45 @@ namespace SolidWorks.Tests.Integration
         }
 
         [Test]
+        public void GetAllComponentsTest()
+        {
+            string[] resolvedComps;
+            string[] lightweightComps;
+
+            var autoLoadLw = Application.Sw.GetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight);
+
+            try
+            {
+                Application.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight, true);
+
+                using (var dataFile = GetDataFile(@"Assembly4\Assembly1.SLDASM"))
+                {
+                    var assm1 = Application.Documents.PreCreate<ISwAssembly>();
+                    assm1.Path = dataFile.FilePath;
+                    assm1.State = DocumentState_e.Default;
+                    assm1.Commit();
+                    resolvedComps = assm1.Configurations.Active.Components.All.Select(c => ((ISwComponent)c).Component.Name2).ToArray();
+                    assm1.Close();
+
+                    var assm2 = Application.Documents.PreCreate<ISwAssembly>();
+                    Application.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight, false);
+                    assm2.Path = dataFile.FilePath;
+                    assm2.State = DocumentState_e.Lightweight;
+                    assm2.Commit();
+                    lightweightComps = assm2.Configurations.Active.Components.All.Select(c => ((ISwComponent)c).Component.Name2).ToArray();
+                    assm2.Close();
+                }
+            }
+            finally
+            {
+                Application.Sw.SetUserPreferenceToggle((int)swUserPreferenceToggle_e.swAutoLoadPartsLightweight, autoLoadLw);
+            }
+
+            CollectionAssert.AreEquivalent(new string[] { "SubAssem1-1", "SubAssem1-1/Part1-2", "SubAssem1-1/SubSubAssem1-1", "SubAssem1-1/SubSubAssem1-1/Part2-2", "SubAssem1-1/SubSubAssem1-1/Part2-3", "SubAssem1-1/SubSubAssem1-1/Part2-4", "SubAssem1-1/SubSubAssem1-1/Part2-5", "SubAssem1-1/SubSubAssem1-1/Part2-1", "SubAssem1-1/Part1-1", "Part1-1" }, resolvedComps);
+            CollectionAssert.AreEquivalent(new string[] { "SubAssem1-1", "SubAssem1-1/Part1-2", "SubAssem1-1/SubSubAssem1-1", "SubAssem1-1/SubSubAssem1-1/Part2-2", "SubAssem1-1/SubSubAssem1-1/Part2-3", "SubAssem1-1/SubSubAssem1-1/Part2-4", "SubAssem1-1/SubSubAssem1-1/Part2-5", "SubAssem1-1/SubSubAssem1-1/Part2-1", "SubAssem1-1/Part1-1", "Part1-1" }, lightweightComps);
+        }
+
+        [Test]
         public void VirtualComponentsTest() 
         {
             string[] compNames;

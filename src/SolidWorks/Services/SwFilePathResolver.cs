@@ -117,12 +117,11 @@ namespace Xarial.XCad.SolidWorks.Services
         {
             var title = Path.GetFileNameWithoutExtension(path);
 
-            var doc = m_App.Documents.FirstOrDefault(d => string.Equals(Path.GetFileNameWithoutExtension(d.Name),
-                title, StringComparison.CurrentCultureIgnoreCase));
+            var model = m_App.Sw.GetOpenDocument(title);
 
-            if (doc != null)
+            if (model != null)
             {
-                loadedPath = doc.Path;
+                loadedPath = model.GetPathName();
                 return true;
             }
             else 
@@ -160,6 +159,6 @@ namespace Xarial.XCad.SolidWorks.Services
         {
         }
 
-        protected override string[] GetSearchFolders() => new string[0];
+        protected override string[] GetSearchFolders() => Array.Empty<string>();
     }
 }
