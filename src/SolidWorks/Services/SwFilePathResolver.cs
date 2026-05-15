@@ -15,6 +15,8 @@ using System.Linq;
 using SolidWorks.Interop.swconst;
 using Xarial.XCad.SolidWorks.Exceptions;
 using Xarial.XCad.Documents.Exceptions;
+using Xarial.XCad.Base;
+using Xarial.XCad.Base.Enums;
 
 namespace Xarial.XCad.SolidWorks.Services
 {
@@ -108,6 +110,8 @@ namespace Xarial.XCad.SolidWorks.Services
     {
         private readonly ISwApplication m_App;
 
+        private readonly IXLogger m_Logger;
+
         public SwFilePathResolver(ISwApplication app)
         {
             m_App = app;
@@ -115,13 +119,20 @@ namespace Xarial.XCad.SolidWorks.Services
 
         protected override bool TryGetLoadedDocumentPath(string path, out string loadedPath)
         {
-            var title = Path.GetFileNameWithoutExtension(path);
+            var title = Path.GetFileName(path);
 
             var model = m_App.Sw.GetOpenDocument(title);
 
             if (model != null)
             {
                 loadedPath = model.GetPathName();
+
+                if (!string.Equals(Path.GetExtension(path), Path.GetExtension(loadedPath), StringComparison.CurrentCultureIgnoreCase))
+                {
+                    loadedPath = "";
+                    return false;
+                }
+
                 return true;
             }
             else 

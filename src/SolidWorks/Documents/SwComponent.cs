@@ -345,6 +345,11 @@ namespace Xarial.XCad.SolidWorks.Documents
                             path = CachedPath;
                         }
 
+                        if (!string.Equals(Path.GetExtension(path), Path.GetExtension(CachedPath), StringComparison.CurrentCultureIgnoreCase)) 
+                        {
+                            throw new Exception("Failed to get referenced document");
+                        }
+
                         if (((SwDocumentCollection)OwnerApplication.Documents).TryFindExistingDocumentByPath(path, out SwDocument doc))
                         {
                             return (ISwDocument3D)doc;
