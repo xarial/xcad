@@ -116,8 +116,10 @@ namespace StandAlone
 
             using (var doc = app.Documents.Open(path, DocumentState_e.ReadOnly)) 
             {
-                var table = ((IXDrawing)doc).Sheets.Active.Annotations.Filter<IXBomTable>().First();
-                
+                var table = ((IXDrawing)doc).Annotations.Filter<IXBomTable>().First();
+
+                var data = table.Read();
+
                 foreach (var row in table.Rows) 
                 {
                     var comps = row.Components;

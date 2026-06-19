@@ -53,6 +53,8 @@ namespace Xarial.XCad.SwDocumentManager.Annotations
 
             private readonly int m_HeaderRowIndex;
 
+            private readonly string[,] m_Data;
+
             public SwDmTableDataReader(ISwDMTable table, int headerRowIndex, bool visOnly)
             {
                 if (!visOnly) 
@@ -66,10 +68,40 @@ namespace Xarial.XCad.SwDocumentManager.Annotations
                 
                 m_IsClosed = false;
 
-                m_RowsCount = table.GetRowCount();
-                m_ColumnsCount = table.GetColumnCount();
-
                 m_CurrentRowIndex = -1 + (m_HeaderRowIndex == 0 ? 1 : 0);
+
+                if (!TryReadTable(table, out m_RowsCount, out m_ColumnsCount, out m_Data)) 
+                {
+                    m_Data = null;
+                    m_RowsCount = table.GetRowCount();
+                    m_ColumnsCount = table.GetColumnCount();
+                }
+            }
+
+            private bool TryReadTable(ISwDMTable table, out int rowsCount, out int colsCount, out string[,] data)
+            {
+                var content = (string[])((ISwDMTable3)table).GetTableCellText(out var error, out rowsCount, out colsCount);
+
+                if (error == SwDmTableError.SwDmTableErrorNone)
+                {
+                    data = new string[rowsCount, colsCount];
+
+                    if (content.Length == rowsCount * colsCount) 
+                    {
+                        for (int i = 0; i < rowsCount; i++) 
+                        {
+                            for (int j = 0; j < colsCount; j++)
+                            {
+                                data[i, j] = content[i * colsCount + j];
+                            }
+                        }
+
+                        return true;
+                    }
+                }
+
+                data = null;
+                return false;
             }
 
             public bool IsClosed => m_IsClosed;
@@ -158,15 +190,22 @@ namespace Xarial.XCad.SwDocumentManager.Annotations
 
             private string GetCellTextAt(int rowIndex, int columnIndex)
             {
-                var err = m_Table.GetCellText(rowIndex, columnIndex, out var cellText);
-
-                if (err == SwDmTableError.SwDmTableErrorNone)
+                if (m_Data != null)
                 {
-                    return cellText;
+                    return m_Data[rowIndex, columnIndex];
                 }
                 else
                 {
-                    throw new Exception($"Failed to read cell text at {m_CurrentRowIndex}:{columnIndex}. Error code: {err}");
+                    var err = m_Table.GetCellText(rowIndex, columnIndex, out var cellText);
+
+                    if (err == SwDmTableError.SwDmTableErrorNone)
+                    {
+                        return cellText;
+                    }
+                    else
+                    {
+                        throw new Exception($"Failed to read cell text at {m_CurrentRowIndex}:{columnIndex}. Error code: {err}");
+                    }
                 }
             }
 
