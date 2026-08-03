@@ -221,7 +221,7 @@ namespace Web.Blazor.Models
             Controls = new ControlsTab();
             Behavior = new BehaviorTab();
             CheckAction = OnCheck;
-        }
++        }
 
         private void OnCheck()
         {
