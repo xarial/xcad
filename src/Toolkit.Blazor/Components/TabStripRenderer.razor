@@ -7,13 +7,13 @@
 {
     BlazorPropertyManagerPageTab activeTab;
 
-    if (m_ActiveIndex < visibleTabs.Count)
+    if (m_ActiveTab != null && visibleTabs.Contains(m_ActiveTab))
     {
-        activeTab = visibleTabs[m_ActiveIndex];
+        activeTab = m_ActiveTab;
     }
     else
     {
-        activeTab = visibleTabs.Last();    
+        activeTab = visibleTabs.First();
     }
 
     <div class="xcad-tabstrip">
@@ -40,16 +40,10 @@
     [Parameter, EditorRequired]
     public IReadOnlyList<BlazorPropertyManagerPageTab> Tabs { get; set; }
 
-    private int m_ActiveIndex;
+    private BlazorPropertyManagerPageTab m_ActiveTab;
 
     private void SelectTab(BlazorPropertyManagerPageTab tab)
     {
-        var visibleTabs = Tabs.Where(t => t.Visible).ToList();
-        var index = visibleTabs.IndexOf(tab);
-
-        if (index >= 0)
-        {
-            m_ActiveIndex = index;
-        }
+        m_ActiveTab = tab;
     }
 }

@@ -72,7 +72,7 @@ namespace Xarial.XCad.Toolkit.Blazor.Controls
             {
                 IsInvalid = false;
 
-                if (m_Value != value)
+                if (!Equals(m_Value, value))
                 {
                     m_Value = value;
                     NotifyInvalidated();

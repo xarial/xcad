@@ -42,7 +42,7 @@ namespace Xarial.XCad.Toolkit.PageBuilder
 
             public new bool Equals(object x, object y) => (bool)m_EqualsMethod.Invoke(m_Instance, new object[] { x, y });
 
-            public int GetHashCode(object obj) => (int)m_EqualsMethod.Invoke(m_Instance, new object[] { obj });
+            public int GetHashCode(object obj) => (int)m_GetHashCodeMethod.Invoke(m_Instance, new object[] { obj });
         }
 
         private class DefaultEqualityComparer : IEqualityComparer

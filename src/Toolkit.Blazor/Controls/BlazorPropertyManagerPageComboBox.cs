@@ -38,7 +38,15 @@ namespace Xarial.XCad.Toolkit.Blazor.Controls
             }
 
             protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
-                => m_ComboBox.NotifyInvalidated();
+            {
+                if (m_ComboBox.m_SelectedItem != null)
+                {
+                    var curVal = m_ComboBox.m_SelectedItem.Value;
+                    m_ComboBox.m_SelectedItem = newItems?.FirstOrDefault(i => CompareValues(i.Value, curVal));
+                }
+
+                m_ComboBox.NotifyInvalidated();
+            }
         }
 
         protected override event ControlValueChangedDelegate<TVal> ValueChanged;

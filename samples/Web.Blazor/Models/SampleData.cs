@@ -98,10 +98,7 @@ namespace Web.Blazor.Models
 
             private void OnAddItem()
             {
-                var selItem = SelectedItem;
                 ItemsSource = m_ItemsSource.Union(new MyItem[] { new MyItem($"Item #{m_ItemsSource.Length + 1}") }).ToArray();
-                SelectedItem = null;
-                SelectedItem = selItem;
                 this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SelectedItem)));
             }
         }

@@ -44,7 +44,7 @@
     {
         if (m_Dynamic?.Instance is IComponent component)
         {
-            _ = component.SetParametersAsync(ParameterView.Empty);
+            _ = InvokeAsync(() => component.SetParametersAsync(ParameterView.Empty));
         }
     }
 
