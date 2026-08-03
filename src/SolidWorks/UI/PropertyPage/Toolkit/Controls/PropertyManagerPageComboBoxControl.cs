@@ -10,6 +10,7 @@ using SolidWorks.Interop.swconst;
 using System;
 using System.Collections;
 using System.Linq;
+using Xarial.XCad.Toolkit.PageBuilder;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Windows.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;

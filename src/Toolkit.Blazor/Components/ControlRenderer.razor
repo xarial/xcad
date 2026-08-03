@@ -1,0 +1,132 @@
+﻿@namespace Xarial.XCad.Toolkit.Blazor.Components
+
+@if (Control.Visible)
+{
+    @switch (Control)
+    {
+        case IBlazorPropertyManagerPageControlsHost host:
+            <fieldset class="xcad-group" disabled="@(!host.Enabled)" title="@host.Tooltip">
+                @if (!string.IsNullOrEmpty(host.Name))
+                {
+                    <legend>@host.Name</legend>
+                }
+                <ControlHostRenderer Controls="host.Controls" />
+            </fieldset>
+            break;
+
+        case BlazorPropertyManagerPageTextBox textBox:
+            <div class="xcad-row">
+                @if (!string.IsNullOrEmpty(textBox.Label))
+                {
+                    <label title="@textBox.Tooltip">@textBox.Label</label>
+                }
+                <input type="text" class="xcad-input" disabled="@(!textBox.Enabled)"
+                       value="@textBox.Text"
+                       @oninput="e => textBox.SetTextFromUi(e.Value as string)" />
+            </div>
+            break;
+
+        case BlazorPropertyManagerPageNumberBox numberBox:
+            <div class="xcad-row">
+                @if (!string.IsNullOrEmpty(numberBox.Label))
+                {
+                    <label title="@numberBox.Tooltip">@numberBox.Label</label>
+                }
+                <div class="xcad-numberbox">
+                    <input type="text" inputmode="decimal"
+                           class="xcad-input xcad-numberbox-input @(numberBox.IsInvalid ? "xcad-input-invalid" : "")"
+                           disabled="@(!numberBox.Enabled)"
+                           title="@(numberBox.IsInvalid ? "Enter a numeric value" : numberBox.Tooltip)"
+                           value="@numberBox.Text"
+                           @oninput="e => numberBox.SetTextFromUi(e.Value as string)" />
+                    <div class="xcad-numberbox-spinner">
+                        <button type="button" class="xcad-numberbox-spinner-btn" tabindex="-1"
+                                disabled="@(!numberBox.Enabled)" @onclick="numberBox.Increment">
+                            ▲
+                        </button>
+                        <button type="button" class="xcad-numberbox-spinner-btn" tabindex="-1"
+                                disabled="@(!numberBox.Enabled)" @onclick="numberBox.Decrement">
+                            ▼
+                        </button>
+                    </div>
+                </div>
+            </div>
+            break;
+
+        case BlazorPropertyManagerPageCheckBox checkBox:
+            <div class="xcad-row xcad-row-checkbox">
+                <label title="@checkBox.Tooltip">
+                    <input type="checkbox" disabled="@(!checkBox.Enabled)"
+                           checked="@checkBox.Checked"
+                           @onchange="e => checkBox.SetCheckedFromUi((bool)e.Value)" />
+                    @checkBox.Name
+                </label>
+            </div>
+            break;
+
+        case IBlazorComboBoxControl comboBox:
+            <div class="xcad-row">
+                @if (!string.IsNullOrEmpty(comboBox.Label))
+                {
+                    <label title="@comboBox.Tooltip">@comboBox.Label</label>
+                }
+                <select class="xcad-input" disabled="@(!comboBox.Enabled)"
+                        value="@IndexOf(comboBox)"
+                        @onchange="e => SelectByIndex(comboBox, e.Value as string)">
+                    @{
+                        var items = comboBox.Items ?? Array.Empty<ItemsControlItem>();
+                    }
+                    @for (var i = 0; i < items.Length; i++)
+                    {
+                        var item = items[i];
+                        <option value="@i">@item.DisplayName</option>
+                    }
+                </select>
+            </div>
+            break;
+
+        case BlazorPropertyManagerPageCustomControl customControl:
+            <div class="xcad-row">
+                @if (!string.IsNullOrEmpty(customControl.Label))
+                {
+                    <label title="@customControl.Tooltip">@customControl.Label</label>
+                }
+                <div class="xcad-custom-control @(!customControl.Enabled ? "xcad-custom-control-disabled" : "")">
+                    <CustomControlHost Control="customControl" />
+                </div>
+            </div>
+            break;
+
+        case BlazorPropertyManagerPageButton button:
+            <div class="xcad-row">
+                <button type="button" class="xcad-button" disabled="@(!button.Enabled)"
+                        title="@button.Tooltip"
+                        @onclick="button.Click">
+                    @button.Name
+                </button>
+            </div>
+            break;
+    }
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public IBlazorPropertyManagerPageControl Control { get; set; }
+
+    private static string IndexOf(IBlazorComboBoxControl comboBox)
+    {
+        var items = comboBox.Items ?? Array.Empty<ItemsControlItem>();
+        var idx = Array.IndexOf(items, comboBox.SelectedItem);
+        return idx >= 0 ? idx.ToString() : "";
+    }
+
+    private static void SelectByIndex(IBlazorComboBoxControl comboBox, string indexText)
+    {
+        var items = comboBox.Items ?? Array.Empty<ItemsControlItem>();
+
+        if (int.TryParse(indexText, out var idx) && idx >= 0 && idx < items.Length)
+        {
+            comboBox.SetSelectedItemFromUi(items[idx]);
+        }
+    }
+}

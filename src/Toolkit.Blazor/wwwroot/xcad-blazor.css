@@ -1,0 +1,209 @@
+.xcad-page {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    font-family: system-ui, sans-serif;
+    font-size: 0.9rem;
+    min-width: 320px;
+}
+
+.xcad-page-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.xcad-page-message {
+    color: #555;
+}
+
+.xcad-page-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.xcad-page-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    border-top: 1px solid #ddd;
+    padding-top: 0.75rem;
+}
+
+.xcad-group {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.xcad-group legend {
+    padding: 0 0.35rem;
+    font-weight: 600;
+}
+
+.xcad-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.xcad-row label {
+    min-width: 140px;
+    flex-shrink: 0;
+}
+
+.xcad-row-checkbox label {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.xcad-input {
+    flex: 1;
+    padding: 0.3rem 0.4rem;
+    border: 1px solid #bbb;
+    border-radius: 3px;
+}
+
+.xcad-input-invalid {
+    border-color: #dc2626;
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.xcad-numberbox {
+    display: flex;
+    flex: 1;
+}
+
+.xcad-numberbox-input {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: none;
+}
+
+.xcad-numberbox-spinner {
+    display: flex;
+    flex-direction: column;
+    width: 1.4rem;
+    flex-shrink: 0;
+}
+
+.xcad-numberbox-spinner-btn {
+    flex: 1;
+    padding: 0;
+    line-height: 1;
+    font-size: 0.6rem;
+    border: 1px solid #bbb;
+    background: #f2f2f2;
+    cursor: pointer;
+}
+
+.xcad-numberbox-spinner-btn:first-child {
+    border-top-right-radius: 3px;
+    border-bottom: none;
+}
+
+.xcad-numberbox-spinner-btn:last-child {
+    border-bottom-right-radius: 3px;
+}
+
+.xcad-numberbox-spinner-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.xcad-custom-control {
+    flex: 1;
+}
+
+.xcad-custom-control-disabled {
+    pointer-events: none;
+    opacity: 0.55;
+}
+
+.xcad-button {
+    padding: 0.35rem 0.9rem;
+    border: 1px solid #bbb;
+    border-radius: 3px;
+    background: #f2f2f2;
+    cursor: pointer;
+}
+
+.xcad-button-primary {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+}
+
+.xcad-button:disabled,
+.xcad-input:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.xcad-tabstrip {
+    display: flex;
+    flex-direction: column;
+}
+
+.xcad-tabstrip-headers {
+    display: flex;
+    gap: 0.15rem;
+    border-bottom: 1px solid #ccc;
+}
+
+.xcad-tab-header {
+    padding: 0.4rem 0.9rem;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    background: #f2f2f2;
+    cursor: pointer;
+    position: relative;
+    top: 1px;
+}
+
+.xcad-tab-header-active {
+    background: #fff;
+    font-weight: 600;
+    border-bottom: 1px solid #fff;
+}
+
+.xcad-tab-header:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.xcad-tabstrip-body {
+    border: 1px solid #ccc;
+    border-top: none;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.xcad-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.xcad-dialog {
+    background: #fff;
+    border-radius: 6px;
+    padding: 1.25rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    max-height: 90vh;
+    overflow: auto;
+}

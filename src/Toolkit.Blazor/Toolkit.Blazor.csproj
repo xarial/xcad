@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <AssemblyName>Xarial.XCad.Toolkit.Blazor</AssemblyName>
+    <RootNamespace>Xarial.XCad.Toolkit.Blazor</RootNamespace>
+    <TargetFrameworks>net9.0;net8.0;net7.0;net6.0</TargetFrameworks>
+    <PackageId>Xarial.XCad.Toolkit.Blazor</PackageId>
+    <PackageTags>cad,blazor,ui</PackageTags>
+    <Description>Utility classes for implementing xCAD.NET - Framework for developing CAD applications for web-based Blazor application</Description>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageIconUrl>https://xcad.xarial.com/icon-toolkit.png</PackageIconUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RazorLangVersion>Latest</RazorLangVersion>
+  </PropertyGroup>
+
+  <Import Project="..\..\common\common.props" />
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DocumentationFile>Xarial.XCad.Toolkit.Blazor.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="icon.png" pack="true" PackagePath="" Link="_Pack\icon.png" />
+    <None Include="..\..\LICENSE.md" pack="true" PackagePath="" Link="_Pack\LICENSE.md" />
+    <None Include="..\..\README.md" pack="true" PackagePath="" Link="_Pack\README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="_Pack\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Base\Base.csproj" />
+    <ProjectReference Include="..\Toolkit\Toolkit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='net6.0'">
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='net7.0'">
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='net8.0'">
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'=='net9.0'">
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.0" />
+  </ItemGroup>
+
+</Project>

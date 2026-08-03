@@ -1,0 +1,55 @@
+@namespace Xarial.XCad.Toolkit.Blazor.Components
+
+@{
+    var visibleTabs = Tabs.Where(t => t.Visible).ToList();
+}
+@if (visibleTabs.Any())
+{
+    BlazorPropertyManagerPageTab activeTab;
+
+    if (m_ActiveIndex < visibleTabs.Count)
+    {
+        activeTab = visibleTabs[m_ActiveIndex];
+    }
+    else
+    {
+        activeTab = visibleTabs.Last();    
+    }
+
+    <div class="xcad-tabstrip">
+        <div class="xcad-tabstrip-headers" role="tablist">
+            @foreach (var tab in visibleTabs)
+            {
+                var t = tab;
+                <button type="button" role="tab"
+                        class="xcad-tab-header @(ReferenceEquals(t, activeTab) ? "xcad-tab-header-active" : "")"
+                        disabled="@(!t.Enabled)"
+                        title="@t.Tooltip"
+                        @onclick="() => SelectTab(t)">
+                    @t.Header
+                </button>
+            }
+        </div>
+        <div class="xcad-tabstrip-body">
+            <ControlHostRenderer Controls="activeTab.Controls" />
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<BlazorPropertyManagerPageTab> Tabs { get; set; }
+
+    private int m_ActiveIndex;
+
+    private void SelectTab(BlazorPropertyManagerPageTab tab)
+    {
+        var visibleTabs = Tabs.Where(t => t.Visible).ToList();
+        var index = visibleTabs.IndexOf(tab);
+
+        if (index >= 0)
+        {
+            m_ActiveIndex = index;
+        }
+    }
+}

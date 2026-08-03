@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Exceptions;
+using Xarial.XCad.Toolkit.PageBuilder;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Windows.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;

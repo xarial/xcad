@@ -7,6 +7,7 @@
 
 using System;
 using System.Windows;
+using Xarial.XCad.Toolkit.PageBuilder;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Templates;
 using Xarial.XCad.UI.PropertyPage.Base;

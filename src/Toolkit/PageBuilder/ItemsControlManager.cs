@@ -20,7 +20,7 @@ using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.Reflection;
 
-namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage
+namespace Xarial.XCad.Toolkit.PageBuilder
 {
     public abstract class ItemsControlManager<TVal>
     {

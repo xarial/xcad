@@ -1,0 +1,30 @@
+@namespace Xarial.XCad.Toolkit.Blazor.Components
+@typeparam TModel
+@inherits PropertyPageComponentBase<TModel>
+
+@if (Page != null && Page.IsOpen)
+{
+    <div class="xcad-page">
+        @if (!string.IsNullOrEmpty(Page.Title))
+        {
+            <div class="xcad-page-title">@Page.Title</div>
+        }
+        @if (!string.IsNullOrEmpty(Page.Message))
+        {
+            <div class="xcad-page-message">@Page.Message</div>
+        }
+        <div class="xcad-page-body">
+            <ControlHostRenderer Controls="Page.RootControls" />
+        </div>
+        <div class="xcad-page-footer">
+            @if (Page.Buttons.HasFlag(PageButtons_e.Okay))
+            {
+                <button type="button" class="xcad-button xcad-button-primary" @onclick="() => Page.Close(false)">OK</button>
+            }
+            @if (Page.Buttons.HasFlag(PageButtons_e.Cancel))
+            {
+                <button type="button" class="xcad-button" @onclick="() => Page.Close(true)">Cancel</button>
+            }
+        </div>
+    </div>
+}

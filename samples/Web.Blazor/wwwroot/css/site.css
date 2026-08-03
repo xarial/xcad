@@ -1,0 +1,60 @@
+body {
+    font-family: system-ui, sans-serif;
+    margin: 2rem;
+    background: #fafafa;
+}
+
+.demo-panel {
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.demo-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.demo-actions button {
+    padding: 0.5rem 1rem;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.demo-embedded-panel {
+    border: 1px dashed #999;
+    border-radius: 6px;
+    padding: 1rem;
+    background: #fff;
+}
+
+.drop-zone {
+    border: 2px dashed #999;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    background: #fafafa;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.drop-zone-active {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.drop-zone-placeholder {
+    color: #777;
+    font-size: 0.85rem;
+}
+
+.drop-zone-files {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    text-align: left;
+    font-size: 0.85rem;
+}
+

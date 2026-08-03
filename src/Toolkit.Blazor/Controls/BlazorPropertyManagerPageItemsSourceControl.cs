@@ -1,4 +1,4 @@
-﻿//*********************************************************************
+//*********************************************************************
 //xCAD
 //Copyright(C) 2026 Xarial Pty Limited
 //Product URL: https://www.xcad.net
@@ -6,15 +6,14 @@
 //*********************************************************************
 
 using Xarial.XCad.Toolkit.PageBuilder;
-using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.UI.PropertyPage.Base;
 using Xarial.XCad.UI.PropertyPage.Structures;
 using Xarial.XCad.Utils.PageBuilder.Base;
 using Xarial.XCad.Utils.PageBuilder.PageElements;
 
-namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
+namespace Xarial.XCad.Toolkit.Blazor.Controls
 {
-    internal abstract class WpfPropertyManagerPageItemsSourceControl<TVal> : WpfPropertyManagerPageControl<TVal>, IItemsControl
+    public abstract class BlazorPropertyManagerPageItemsSourceControl<TVal> : BlazorPropertyManagerPageControl<TVal>, IItemsControl
     {
         protected override event ControlValueChangedDelegate<TVal> ValueChanged;
 
@@ -24,14 +23,14 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
             set
             {
                 ItemsControlManager.Items = value;
-                NotifyPropertyChanged();
+                NotifyInvalidated();
             }
         }
 
         protected ItemsControlManager<TVal> ItemsControlManager { get; }
 
-        public WpfPropertyManagerPageItemsSourceControl(IXApplication app, IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata, IIconsCreator iconConv)
-            : base(parentGroup, atts, metadata, iconConv)
+        protected BlazorPropertyManagerPageItemsSourceControl(IXApplication app, IGroup parentGroup, IAttributeSet atts, IMetadata[] metadata)
+            : base(parentGroup, atts, metadata)
         {
             ItemsControlManager = CreateItemsControlManager(app, atts, metadata);
             ItemsControlManager.Init();
@@ -40,7 +39,6 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
         public override void Update()
         {
             base.Update();
-
             ItemsControlManager.Update();
         }
 

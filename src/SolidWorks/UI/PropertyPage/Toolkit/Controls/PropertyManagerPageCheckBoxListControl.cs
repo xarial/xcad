@@ -20,6 +20,7 @@ using System.Windows.Documents;
 using Xarial.XCad.Reflection;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.PropertyPage.Exceptions;
+using Xarial.XCad.Toolkit.PageBuilder;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Windows.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;

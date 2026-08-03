@@ -1,0 +1,79 @@
+@page "/"
+@using Web.Blazor.Models
+@using Xarial.XCad.UI.PropertyPage.Enums
+@using Xarial.XCad.UI.PropertyPage.Structures
+@inject IServiceProvider Services
+@implements IDisposable
+
+<div class="demo-panel">
+    <h1>xCAD.NET for Blazor</h1>
+
+    <div class="demo-actions">
+        <button @onclick="OpenAsPopup">Open As Popup</button>
+        <button @onclick="ToggleEmbedded">@(m_ShowEmbedded ? "Hide Embedded Panel" : "Show Embedded Panel")</button>
+    </div>
+
+    @if (m_ShowEmbedded)
+    {
+        <div class="demo-embedded-panel">
+            <PropertyPageView TModel="SampleData" Page="m_EmbeddedPage" />
+        </div>
+    }
+</div>
+
+<PropertyPageDialog TModel="SampleData" Page="m_PopupPage" />
+
+@code {
+
+    private readonly SampleData m_PopupModel = new();
+    private readonly SampleData m_EmbeddedModel = new();
+
+    private BlazorPropertyManagerPage<SampleData> m_PopupPage;
+    private BlazorPropertyManagerPage<SampleData> m_EmbeddedPage;
+
+    private bool m_ShowEmbedded;
+
+    protected override void OnInitialized()
+    {
+        m_PopupPage = new BlazorPropertyManagerPage<SampleData>(null, Services);
+        m_PopupPage.DataChanged += OnPopupChanged;
+        m_PopupPage.Closing += OnPageClosing;
+        m_PopupPage.Closed += OnPageClosed;
+
+        m_EmbeddedPage = new BlazorPropertyManagerPage<SampleData>(null, Services);
+        m_EmbeddedPage.DataChanged += OnEmbeddedDataChanged;
+        m_EmbeddedPage.Show(m_EmbeddedModel);
+    }
+
+    private void OpenAsPopup()
+    {
+        m_PopupPage.Show(m_PopupModel);
+    }
+
+    private void ToggleEmbedded()
+    {
+        m_ShowEmbedded = !m_ShowEmbedded;
+    }
+
+    private void OnEmbeddedDataChanged()
+    {
+    }
+
+    private void OnPopupChanged()
+    {
+    }
+
+    private void OnPageClosing(PageCloseReasons_e reason, PageClosingArg arg)
+    {
+    }
+
+    private void OnPageClosed(PageCloseReasons_e reason)
+    {
+    }
+
+    public void Dispose()
+    {
+        m_PopupPage?.Dispose();
+        m_EmbeddedPage?.Dispose();
+    }
+}

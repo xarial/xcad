@@ -5,7 +5,7 @@
     <RootNamespace>Xarial.XCad.Toolkit.Windows</RootNamespace>
     <TargetFrameworks>net9.0-windows;net8.0-windows;net7.0-windows;net6.0-windows;netcoreapp3.1;net461</TargetFrameworks>
     <PackageId>Xarial.XCad.Toolkit.Windows</PackageId>
-    <PackageTags>cad,solidworks</PackageTags>
+    <PackageTags>cad,windows,ui</PackageTags>
     <Description>Utility classes for implementing xCAD.NET - Framework for developing CAD applications for Windows platforms</Description>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>

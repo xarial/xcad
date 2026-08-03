@@ -1,0 +1,24 @@
+@page "/"
+@namespace Xarial.XCad.Toolkit.Blazor.Demo.Pages
+@using Web.Blazor
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>xCAD Blazor.Server Property Page Demo</title>
+    <base href="~/" />
+    <link rel="stylesheet" href="css/site.css" />
+    <link rel="stylesheet" href="_content/Xarial.XCad.Toolkit.Blazor/xcad-blazor.css" />
+</head>
+<body>
+    <component type="typeof(App)" render-mode="ServerPrerendered" />
+
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>

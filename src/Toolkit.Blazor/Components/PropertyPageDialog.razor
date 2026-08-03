@@ -1,0 +1,12 @@
+@namespace Xarial.XCad.Toolkit.Blazor.Components
+@typeparam TModel
+@inherits PropertyPageComponentBase<TModel>
+
+@if (Page != null && Page.IsOpen)
+{
+    <div class="xcad-dialog-backdrop">
+        <div class="xcad-dialog">
+            <PropertyPageView TModel="TModel" Page="Page" />
+        </div>
+    </div>
+}

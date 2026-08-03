@@ -28,6 +28,7 @@ using Xarial.XCad.Documents;
 using System.Runtime.InteropServices;
 using System.Reflection;
 using Xarial.XCad.Toolkit.Windows.UI.PropertyPage;
+using Xarial.XCad.Toolkit.PageBuilder;
 
 namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 {

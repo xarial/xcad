@@ -1,0 +1,53 @@
+@namespace Xarial.XCad.Toolkit.Blazor.Demo.Controls
+@using Xarial.XCad.UI.PropertyPage
+@implements IXCustomControl
+
+<div class="drop-zone @(m_IsDragOver ? "drop-zone-active" : "")"
+     @ondragenter="() => m_IsDragOver = true"
+     @ondragleave="() => m_IsDragOver = false"
+     @ondragover="() => { }" @ondragover:preventDefault="true"
+     @ondrop="OnDrop" @ondrop:preventDefault="true">
+    @if (m_FileNames.Count > 0)
+    {
+        <div class="drop-zone-files">
+            @foreach (var name in m_FileNames)
+            {
+                <div class="drop-zone-file">📄 @name</div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="drop-zone-placeholder">Drag &amp; drop a file here</div>
+    }
+</div>
+
+@code {
+
+    public event CustomControlValueChangedDelegate ValueChanged;
+
+    public object Value
+    {
+        get => m_FileNames;
+        set
+        {
+            m_FileNames.Clear();
+
+            if (value is IEnumerable<string>)
+            {
+                m_FileNames.AddRange((IEnumerable<string>)value);
+            }        }
+    }
+
+    private readonly List<string> m_FileNames = new();
+    private bool m_IsDragOver;
+
+    private void OnDrop(DragEventArgs e)
+    {
+        m_IsDragOver = false;
+        
+        m_FileNames.AddRange(e.DataTransfer?.Files ?? Array.Empty<string>());
+
+        ValueChanged?.Invoke(this, Value);
+    }
+}

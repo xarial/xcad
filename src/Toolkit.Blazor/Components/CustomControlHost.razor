@@ -1,0 +1,58 @@
+@namespace Xarial.XCad.Toolkit.Blazor.Components
+@implements IDisposable
+
+<DynamicComponent @ref="m_Dynamic" Type="Control.ComponentType" />
+
+@code {
+    [Parameter, EditorRequired]
+    public BlazorPropertyManagerPageCustomControl Control { get; set; }
+
+    private DynamicComponent m_Dynamic;
+    private object m_LastInstance;
+    private BlazorPropertyManagerPageCustomControl m_SubscribedControl;
+
+    protected override void OnParametersSet()
+    {
+        if (!ReferenceEquals(m_SubscribedControl, Control))
+        {
+            if (m_SubscribedControl != null)
+            {
+                m_SubscribedControl.Invalidated -= OnControlInvalidated;
+            }
+
+            m_SubscribedControl = Control;
+
+            if (m_SubscribedControl != null)
+            {
+                m_SubscribedControl.Invalidated += OnControlInvalidated;
+            }
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        var instance = m_Dynamic?.Instance;
+
+        if (!ReferenceEquals(instance, m_LastInstance))
+        {
+            m_LastInstance = instance;
+            Control.AttachInstance(instance as IXCustomControl);
+        }
+    }
+
+    private void OnControlInvalidated()
+    {
+        if (m_Dynamic?.Instance is IComponent component)
+        {
+            _ = component.SetParametersAsync(ParameterView.Empty);
+        }
+    }
+
+    public void Dispose()
+    {
+        if (m_SubscribedControl != null)
+        {
+            m_SubscribedControl.Invalidated -= OnControlInvalidated;
+        }
+    }
+}

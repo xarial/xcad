@@ -1,0 +1,13 @@
+@namespace Xarial.XCad.Toolkit.Blazor.Components
+
+<TabStripRenderer Tabs="(Controls ?? Array.Empty<IBlazorPropertyManagerPageControl>()).OfType<BlazorPropertyManagerPageTab>().ToArray()" />
+
+@foreach (var ctrl in (Controls ?? Array.Empty<IBlazorPropertyManagerPageControl>()).Where(c => !(c is BlazorPropertyManagerPageTab)))
+{
+    <ControlRenderer Control="ctrl" />
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<IBlazorPropertyManagerPageControl> Controls { get; set; }
+}

@@ -14,6 +14,7 @@ using System.Linq;
 using System.Reflection;
 using Xarial.XCad;
 using Xarial.XCad.SolidWorks.Services;
+using Xarial.XCad.Toolkit.PageBuilder;
 using Xarial.XCad.Toolkit.Services;
 using Xarial.XCad.Toolkit.Windows.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
