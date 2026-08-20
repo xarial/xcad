@@ -27,7 +27,7 @@ namespace Xarial.XCad.Reflection
         {
             var enumType = enumer.GetType();
             var enumField = enumType.GetMember(enumer.ToString()).FirstOrDefault();
-            var atts = enumField.GetCustomAttributes(typeof(TAtt), false);
+            var atts = enumField?.GetCustomAttributes(typeof(TAtt), false);
 
             if (atts != null && atts.Any())
             {

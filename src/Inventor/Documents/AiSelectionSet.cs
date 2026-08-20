@@ -24,10 +24,38 @@ namespace Xarial.XCad.Inventor.Documents
     {
         public IXSelObject this[string name] => throw new NotImplementedException();
 
-        public int Count => throw new NotImplementedException();
+        public int Count => SelectSet.Count;
 
-        public event NewSelectionDelegate NewSelection;
-        public event ClearSelectionDelegate ClearSelection;
+        public event NewSelectionDelegate NewSelection
+        {
+            add
+            {
+                SubscribeSelectSetChangeIfNeeded();
+                m_NewSelection += value;
+            }
+            remove
+            {
+                m_NewSelection -= value;
+                UnsubscribeSelectSetChangeIfNeeded();
+            }
+        }
+
+        public event ClearSelectionDelegate ClearSelection
+        {
+            add
+            {
+                SubscribeSelectSetChangeIfNeeded();
+                m_ClearSelection += value;
+            }
+            remove
+            {
+                m_ClearSelection -= value;
+                UnsubscribeSelectSetChangeIfNeeded();
+            }
+        }
+
+        private NewSelectionDelegate m_NewSelection;
+        private ClearSelectionDelegate m_ClearSelection;
 
         private readonly AiDocument m_Doc;
 
@@ -100,5 +128,49 @@ namespace Xarial.XCad.Inventor.Documents
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        private void SubscribeSelectSetChangeIfNeeded()
+        {
+            if (m_NewSelection == null && m_ClearSelection == null)
+            {
+                m_Doc.Document.DocumentEvents.OnChangeSelectSet += OnChangeSelectSet;
+            }
+        }
+
+        private void UnsubscribeSelectSetChangeIfNeeded()
+        {
+            if (m_NewSelection == null && m_ClearSelection == null)
+            {
+                m_Doc.Document.DocumentEvents.OnChangeSelectSet -= OnChangeSelectSet;
+            }
+        }
+
+        private void OnChangeSelectSet(EventTimingEnum beforeOrAfter, NameValueMap context, out HandlingCodeEnum handlingCode)
+        {
+            if (beforeOrAfter == EventTimingEnum.kAfter)
+            {
+                try
+                {
+                    var count = SelectSet.Count;
+
+                    if (count > 0)
+                    {
+                        var lastSelObj = SelectSet[count];
+                        var obj = m_Doc.OwnerApplication.CreateObjectFromDispatch<AiSelObject>(lastSelObj, m_Doc);
+                        m_NewSelection?.Invoke(m_Doc, obj);
+                    }
+                    else
+                    {
+                        m_ClearSelection?.Invoke(m_Doc);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    m_Doc.OwnerApplication.Logger.Log(ex);
+                }
+            }
+
+            handlingCode = HandlingCodeEnum.kEventHandled;
+        }
     }
 }

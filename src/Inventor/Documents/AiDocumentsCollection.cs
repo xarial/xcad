@@ -54,8 +54,28 @@ namespace Xarial.XCad.Inventor.Documents
             }
         }
 
-        public event DocumentEventDelegate DocumentActivated;
-        
+        public event DocumentEventDelegate DocumentActivated
+        {
+            add
+            {
+                if (m_DocumentActivated == null)
+                {
+                    m_App.Application.ApplicationEvents.OnActivateDocument += OnActivateDocument;
+                }
+
+                m_DocumentActivated += value;
+            }
+            remove
+            {
+                m_DocumentActivated -= value;
+
+                if (m_DocumentActivated == null)
+                {
+                    m_App.Application.ApplicationEvents.OnActivateDocument -= OnActivateDocument;
+                }
+            }
+        }
+
         public event DocumentEventDelegate DocumentLoaded
         {
             add
@@ -78,8 +98,49 @@ namespace Xarial.XCad.Inventor.Documents
             }
         }
 
-        public event DocumentEventDelegate DocumentOpened;
-        public event DocumentEventDelegate NewDocumentCreated;
+        public event DocumentEventDelegate DocumentOpened
+        {
+            add
+            {
+                if (m_DocumentOpened == null)
+                {
+                    m_App.Application.ApplicationEvents.OnOpenDocument += OnOpenDocument;
+                }
+
+                m_DocumentOpened += value;
+            }
+            remove
+            {
+                m_DocumentOpened -= value;
+
+                if (m_DocumentOpened == null)
+                {
+                    m_App.Application.ApplicationEvents.OnOpenDocument -= OnOpenDocument;
+                }
+            }
+        }
+
+        public event DocumentEventDelegate NewDocumentCreated
+        {
+            add
+            {
+                if (m_NewDocumentCreated == null)
+                {
+                    m_App.Application.ApplicationEvents.OnNewDocument += OnNewDocument;
+                }
+
+                m_NewDocumentCreated += value;
+            }
+            remove
+            {
+                m_NewDocumentCreated -= value;
+
+                if (m_NewDocumentCreated == null)
+                {
+                    m_App.Application.ApplicationEvents.OnNewDocument -= OnNewDocument;
+                }
+            }
+        }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -89,7 +150,10 @@ namespace Xarial.XCad.Inventor.Documents
 
         private readonly DocumentsHandler m_DocsHandler;
 
+        private DocumentEventDelegate m_DocumentActivated;
         private DocumentEventDelegate m_DocumentLoaded;
+        private DocumentEventDelegate m_DocumentOpened;
+        private DocumentEventDelegate m_NewDocumentCreated;
 
         private readonly RepositoryHelper<IXDocument> m_RepoHelper;
 
@@ -215,6 +279,60 @@ namespace Xarial.XCad.Inventor.Documents
             }
 
             HandlingCode = HandlingCodeEnum.kEventHandled;
+        }
+
+        private void OnActivateDocument(_Document documentObject,
+            EventTimingEnum beforeOrAfter, NameValueMap context, out HandlingCodeEnum handlingCode)
+        {
+            if (beforeOrAfter == EventTimingEnum.kAfter)
+            {
+                try
+                {
+                    m_DocumentActivated?.Invoke(CreateDocument(documentObject, m_App));
+                }
+                catch (Exception ex)
+                {
+                    m_Logger.Log(ex);
+                }
+            }
+
+            handlingCode = HandlingCodeEnum.kEventHandled;
+        }
+
+        private void OnOpenDocument(_Document documentObject, string fullDocumentName,
+            EventTimingEnum beforeOrAfter, NameValueMap context, out HandlingCodeEnum handlingCode)
+        {
+            if (beforeOrAfter == EventTimingEnum.kAfter)
+            {
+                try
+                {
+                    m_DocumentOpened?.Invoke(CreateDocument(documentObject, m_App));
+                }
+                catch (Exception ex)
+                {
+                    m_Logger.Log(ex);
+                }
+            }
+
+            handlingCode = HandlingCodeEnum.kEventHandled;
+        }
+
+        private void OnNewDocument(_Document documentObject,
+            EventTimingEnum beforeOrAfter, NameValueMap context, out HandlingCodeEnum handlingCode)
+        {
+            if (beforeOrAfter == EventTimingEnum.kAfter)
+            {
+                try
+                {
+                    m_NewDocumentCreated?.Invoke(CreateDocument(documentObject, m_App));
+                }
+                catch (Exception ex)
+                {
+                    m_Logger.Log(ex);
+                }
+            }
+
+            handlingCode = HandlingCodeEnum.kEventHandled;
         }
 
         public void Dispose()

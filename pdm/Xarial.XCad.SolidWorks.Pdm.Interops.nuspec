@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Xarial.XCad.SolidWorks.Pdm.Interops</id>
+    <version>33.1.2.4</version>
+    <authors>Xarial</authors>
+    <owners>Xarial</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectUrl>https://xcad.net/</projectUrl>
+    <iconUrl>https://xcad.xarial.com/icon.png</iconUrl>
+    <description>SOLIDWORKS® PDM Professional Interop Libraries</description>
+    <copyright>© 2026 Xarial Pty Limited</copyright>
+    <tags>cad,solidworks,pdm</tags>
+  </metadata>
+ <files>
+    <file src="..\thirdpty\EPDM.Interop.epdm.dll" target="lib\net40\EPDM.Interop.epdm.dll" />
+  </files>
+</package>

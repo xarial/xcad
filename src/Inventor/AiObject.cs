@@ -46,7 +46,20 @@ namespace Xarial.XCad.Inventor
             OwnerApplication = ownerApp;
         }
 
-        public virtual bool Equals(IXObject other) => Dispatch == ((AiObject)other).Dispatch;
+        public virtual bool Equals(IXObject other)
+        {
+            if (object.ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other is AiObject aiObj)
+            {
+                return Dispatch == aiObj.Dispatch;
+            }
+
+            return false;
+        }
 
         public void Serialize(Stream stream) => throw new NotImplementedException();
 

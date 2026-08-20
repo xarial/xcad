@@ -33,6 +33,14 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
 
             protected override void LoadItemsIntoControl(ItemsControlItem[] newItems)
             {
+                if (m_ComboBox.m_SelectedItem != null)
+                {
+                    var curVal = m_ComboBox.m_SelectedItem.Value;
+                    m_ComboBox.m_SelectedItem = newItems?.FirstOrDefault(i => CompareValues(i.Value, curVal));
+                }
+
+                m_ComboBox.NotifyPropertyChanged(nameof(m_ComboBox.Items));
+                m_ComboBox.NotifyPropertyChanged(nameof(m_ComboBox.SelectedItem));
             }
         }
 

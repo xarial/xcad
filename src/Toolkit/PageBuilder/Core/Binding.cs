@@ -92,5 +92,11 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             UpdateDataModel();
             UpdateControl();
         }
+
+        /// <inheritdoc/>
+        public virtual void Dispose()
+        {
+            Control.ValueChanged -= OnControlValueChanged;
+        }
     }
 }

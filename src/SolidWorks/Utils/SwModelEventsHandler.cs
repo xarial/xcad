@@ -18,11 +18,12 @@ namespace Xarial.XCad.SolidWorks.Utils
         where TDel : Delegate
     {
         protected readonly SwDocument m_Doc;
-        private IModelDoc2 m_Model => m_Doc.Model;
 
         protected readonly ISwApplication m_App;
 
-        internal SwModelEventsHandler(SwDocument doc, ISwApplication app) 
+        private IModelDoc2 m_Model;
+
+        internal SwModelEventsHandler(SwDocument doc, ISwApplication app)
         {
             m_App = app;
             m_Doc = doc;
@@ -30,7 +31,9 @@ namespace Xarial.XCad.SolidWorks.Utils
 
         protected override void SubscribeEvents()
         {
-            switch (m_Model) 
+            m_Model = m_Doc.Model;
+
+            switch (m_Model)
             {
                 case PartDoc part:
                     SubscribePartEvents(part);
@@ -62,6 +65,8 @@ namespace Xarial.XCad.SolidWorks.Utils
                     UnsubscribeDrawingEvents(drw);
                     break;
             }
+
+            m_Model = null;
         }
 
         protected virtual void SubscribePartEvents(PartDoc part)

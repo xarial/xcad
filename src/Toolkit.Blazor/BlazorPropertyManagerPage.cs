@@ -165,12 +165,15 @@ namespace Xarial.XCad.Toolkit.Blazor
 
         public void Dispose()
         {
+            m_Page.Binding.Dependency.Dispose();
+
             foreach (var binding in m_Page.Binding.Bindings)
             {
                 binding.Changed -= OnBindingValueChanged;
 
                 try
                 {
+                    binding.Dispose();
                     binding.Control.Dispose();
                 }
                 catch(Exception ex)

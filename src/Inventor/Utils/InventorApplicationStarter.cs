@@ -58,13 +58,14 @@ namespace Xarial.XCad.Inventor.Utils
             {
                 if (m_FilePathLazy.IsValueCreated)
                 {
-                    if (m_App != null) 
+                    if (m_App != null)
                     {
-                        for (int i = 0; i < m_App.Documents.Count; i++) 
+                        //NOTE: iterating backwards as closing a document shifts the indices of the remaining documents
+                        for (int i = m_App.Documents.Count - 1; i >= 0; i--)
                         {
                             var doc = m_App.Documents[i];
-                            
-                            if (string.Equals(doc.FullFileName, m_FilePathLazy.Value, StringComparison.CurrentCultureIgnoreCase)) 
+
+                            if (string.Equals(doc.FullFileName, m_FilePathLazy.Value, StringComparison.CurrentCultureIgnoreCase))
                             {
                                 doc.Close();
                             }

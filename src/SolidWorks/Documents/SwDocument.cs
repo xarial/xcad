@@ -321,7 +321,29 @@ namespace Xarial.XCad.SolidWorks.Documents
             {
                 if (IsCommitted)
                 {
-                    return Model.GetTitle();
+                    try
+                    {
+                        return Model.GetTitle();
+                    }
+                    catch 
+                    {
+                        //NOTE: document might be disconnected, getting the title from the cached path
+                        if (!string.IsNullOrEmpty(m_CachedFilePath))
+                        {
+                            if (FileExplorer.IsFileExtensionShown)
+                            {
+                                return System.IO.Path.GetFileName(m_CachedFilePath);
+                            }
+                            else
+                            {
+                                return System.IO.Path.GetFileNameWithoutExtension(m_CachedFilePath);
+                            }
+                        }
+                        else
+                        {
+                            return "";
+                        }
+                    }
                 }
                 else 
                 {

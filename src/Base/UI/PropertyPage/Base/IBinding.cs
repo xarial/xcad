@@ -13,7 +13,7 @@ namespace Xarial.XCad.UI.PropertyPage.Base
     /// <summary>
     /// Represents binding between UI control and data model
     /// </summary>
-    public interface IBinding
+    public interface IBinding : IDisposable
     {
         /// <summary>
         /// Event raised when binding is changed

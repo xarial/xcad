@@ -5,6 +5,7 @@
 //License: https://xcad.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Xarial.XCad.UI.PropertyPage.Base;
@@ -14,7 +15,7 @@ namespace Xarial.XCad.Utils.PageBuilder.Base
     /// <summary>
     /// Handles dependencies
     /// </summary>
-    public interface IDependencyManager
+    public interface IDependencyManager : IDisposable
     {
         /// <summary>
         /// Initializes this dependency manager

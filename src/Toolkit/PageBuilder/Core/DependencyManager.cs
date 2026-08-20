@@ -160,9 +160,33 @@ namespace Xarial.XCad.Utils.PageBuilder.Core
             {
                 states.ForEach(u => u.Update());
             }
-            else 
+            else
             {
                 throw new KeyNotFoundException($"Metadata of control '{binding.ControlDescriptor.Name}' is not found in dependencies");
+            }
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            if (m_ControlDependencies != null)
+            {
+                foreach (var dependOnBinding in m_ControlDependencies.Keys)
+                {
+                    dependOnBinding.Changed -= OnBindingChanged;
+                }
+
+                m_ControlDependencies.Clear();
+            }
+
+            if (m_MetadataDependencies != null)
+            {
+                foreach (var md in m_MetadataDependencies.Keys)
+                {
+                    md.Changed -= OnMetadataChanged;
+                }
+
+                m_MetadataDependencies.Clear();
             }
         }
     }

@@ -66,7 +66,8 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage
         /// <inheritdoc/>
         public IReadOnlyList<IBinding> Bindings => m_Page.Binding.Bindings;
 
-        public bool IsPinned { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        /// <inheritdoc/>
+        public bool IsPinned { get; set; }
 
         /// <inheritdoc/>
         public FrameworkElement Layout => m_Page.Layout;
@@ -164,12 +165,15 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage
 
         public void Dispose()
         {
+            m_Page.Binding.Dependency.Dispose();
+
             foreach (var binding in m_Page.Binding.Bindings)
             {
                 binding.Changed -= OnBindingValueChanged;
 
                 try
                 {
+                    binding.Dispose();
                     binding.Control.Dispose();
                 }
                 catch (Exception ex)

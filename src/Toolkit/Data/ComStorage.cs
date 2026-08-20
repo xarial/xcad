@@ -211,19 +211,26 @@ namespace Xarial.XCad.Toolkit.Data
         {
             Storage.EnumElements(0, IntPtr.Zero, 0, out var ssenum);
 
-            var ssstruct = new System.Runtime.InteropServices.ComTypes.STATSTG[1];
-
-            uint numReturned;
-
-            do
+            try
             {
-                ssenum.Next(1, ssstruct, out numReturned);
+                var ssstruct = new System.Runtime.InteropServices.ComTypes.STATSTG[1];
 
-                if (numReturned != 0)
+                uint numReturned;
+
+                do
                 {
-                    yield return ssstruct[0];
-                }
-            } while (numReturned > 0);
+                    ssenum.Next(1, ssstruct, out numReturned);
+
+                    if (numReturned != 0)
+                    {
+                        yield return ssstruct[0];
+                    }
+                } while (numReturned > 0);
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(ssenum);
+            }
         }
 
         /// <inheritdoc/>

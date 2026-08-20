@@ -35,10 +35,19 @@ namespace Xarial.XCad.Utils.Reflection
                         {
                             destVal = Convert.ChangeType(value, type);
                         }
-                        else if (type.IsEnum) 
+                        else if (type.IsEnum)
                         {
                             destVal = Enum.Parse(type, value?.ToString());
                         }
+                        else
+                        {
+                            throw new InvalidCastException(
+                                $"{value.GetType().Name} cannot be cast to {type.Name}");
+                        }
+                    }
+                    catch (InvalidCastException)
+                    {
+                        throw;
                     }
                     catch
                     {
