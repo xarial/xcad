@@ -449,7 +449,7 @@ namespace Xarial.XCad.Toolkit.Windows.Services
                 createdImages.Dispose();
             }
 
-            foreach (var tempDir in m_CreatedImages.Select(i => i.TempDirectory).Distinct(StringComparer.CurrentCultureIgnoreCase))
+            foreach (var tempDir in m_CreatedImages.Select(i => i.TempDirectory).Distinct(StringComparer.OrdinalIgnoreCase))
             {
                 try
                 {

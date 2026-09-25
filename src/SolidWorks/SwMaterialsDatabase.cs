@@ -60,7 +60,7 @@ namespace Xarial.XCad.SolidWorks
         {
             var dbFileName = Path.GetFileNameWithoutExtension(dbFilePath);
 
-            if (string.Equals(dbFileName, SYSTEM_DB_NAME, StringComparison.CurrentCultureIgnoreCase))
+            if (string.Equals(dbFileName, SYSTEM_DB_NAME, StringComparison.OrdinalIgnoreCase))
             {
                 return "";
             }
@@ -73,7 +73,18 @@ namespace Xarial.XCad.SolidWorks
         protected static XmlDocument LoadXmlFromFile(string dbFilePath)
         {
             var matDbXml = new XmlDocument();
-            matDbXml.LoadXml(File.ReadAllText(dbFilePath));
+
+            var readerSettings = new XmlReaderSettings
+            {
+                DtdProcessing = DtdProcessing.Prohibit,
+                XmlResolver = null
+            };
+
+            using (var reader = XmlReader.Create(dbFilePath, readerSettings))
+            {
+                matDbXml.Load(reader);
+            }
+
             return matDbXml;
         }
 
