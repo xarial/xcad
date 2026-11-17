@@ -106,9 +106,16 @@ stages:
             platform: '$(BuildPlatform)'
             configuration: '$(BuildConfiguration)'
 
+      - task: VisualStudioTestPlatformInstaller@1
+        displayName: 'Install VSTest platform'
+        inputs:
+          packageFeedSelector: 'nugetOrg'
+          versionSelector: 'latestStable'
+          
       - task: VSTest@2
         displayName: 'Run unit tests'
         inputs:
+          vsTestVersion: 'toolsInstaller'
           testAssemblyVer2: |
             **\$(BuildConfiguration)\**\*tests*.dll
             !**\obj\**
