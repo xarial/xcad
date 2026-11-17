@@ -29,5 +29,9 @@ namespace SwAddInExample
         public object Value { get; set; }
 
         public event CustomControlValueChangedDelegate ValueChanged;
+
+        public void SetMetadata(object metadata)
+        {
+        }
     }
 }

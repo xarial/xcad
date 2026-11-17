@@ -53,6 +53,10 @@ namespace SwAddInExample
             ValueChanged?.Invoke(this, value);
         }
 
+        public void SetMetadata(object metadata)
+        {
+        }
+
         public void Dispose()
         {
         }

@@ -34,5 +34,9 @@ namespace Tester.UI
                 ValueChanged?.Invoke(this, value);
             }
         }
+
+        public void SetMetadata(object metadata)
+        {
+        }
     }
 }

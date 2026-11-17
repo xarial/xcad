@@ -8,6 +8,7 @@
 using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
+using System.Linq;
 using Xarial.XCad.SolidWorks.Services;
 using Xarial.XCad.SolidWorks.UI.Toolkit;
 using Xarial.XCad.Toolkit.Services;
@@ -66,6 +67,15 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
             }
 
             m_CurrentControl = m_Creator.HostControl(m_CtrlType, out _);
+
+            if (Metadata?.Any() == true) 
+            {
+                foreach (var md in Metadata) 
+                {
+                    m_CurrentControl.SetMetadata(md.Value);
+                }
+            }
+
             m_CurrentControl.ValueChanged += OnDataContextChanged;
         }
 

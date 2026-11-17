@@ -40,7 +40,6 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
                 {
                     return new WpfCustomControl((FrameworkElement)(object)wpfCtrl);
                 }
-                    
             }
         }
 

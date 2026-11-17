@@ -341,7 +341,10 @@ namespace SwAddInExample
         [SwSelectionBoxOptions(Filters = new swSelectType_e[] { swSelectType_e.swSelANNOTATIONTABLES })]
         public ISwSelObject UnknownObject { get; set; }
 
-        [CustomControl(typeof(WpfUserControl))]
+        [Metadata(nameof(CustomControlMetadata))]
+        public string CustomControlMetadata { get; } = "TEST METADATA";
+
+        [CustomControl(typeof(WpfUserControl), nameof(CustomControlMetadata))]
         //[CustomControl(typeof(WinUserControl))]
         [ControlOptions(height: 300)]
         [ControlTag(nameof(CustomControl))]

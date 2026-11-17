@@ -39,6 +39,10 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
             set => m_Elem.DataContext = value;
         }
 
+        public void SetMetadata(object metadata)
+        {
+        }
+
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
             => ValueChanged?.Invoke(this, e.NewValue);
 
@@ -84,5 +88,8 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
         {
             m_KeystrokePropagator.Dispose();
         }
+
+        public void SetMetadata(object metadata)
+            => m_CustomWpfControl.SetMetadata(metadata);
     }
 }

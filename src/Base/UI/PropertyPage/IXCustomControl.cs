@@ -29,6 +29,12 @@ namespace Xarial.XCad.UI.PropertyPage
         event CustomControlValueChangedDelegate ValueChanged;
 
         /// <summary>
+        /// Sets metadata assigned via <see cref="Attributes.CustomControlAttribute.LinkedMetadataTag"/>
+        /// </summary>
+        /// <param name="metadata"></param>
+        void SetMetadata(object metadata);
+
+        /// <summary>
         /// Returns the data context of this control
         /// </summary>
         object Value { get; set; }

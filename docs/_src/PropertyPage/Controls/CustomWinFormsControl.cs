@@ -32,5 +32,10 @@ namespace Xarial.XCad.Documentation.PropertyPage.Controls
                 ValueChanged?.Invoke(this, m_Model);
             }
         }
+
+        public void SetMetadata(object metadata)
+        {
+            //TODO: set metadata
+        }
     }
 }
