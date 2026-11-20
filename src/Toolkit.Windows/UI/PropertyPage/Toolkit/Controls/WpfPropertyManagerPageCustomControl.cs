@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Forms.Integration;
 using Xarial.XCad.Toolkit.Services;
@@ -53,6 +54,8 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
 
         private readonly IXCustomControl m_Ctrl;
 
+        private readonly WpfPropertyManagerPagePage m_Page;
+
         public WpfPropertyManagerPageCustomControl(IGroup parentGroup, IIconsCreator iconConv,
             IAttributeSet atts, IMetadata[] metadata)
             : base(parentGroup, atts, metadata, iconConv)
@@ -67,7 +70,21 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
 
             UI = uiElem;
 
+            m_Page = parentGroup.FindParentPage();
+            m_Page.PageShowing += OnPageShowing;
+
             m_Ctrl.ValueChanged += OnDataContextChanged;
+        }
+
+        private void OnPageShowing(WpfPropertyManagerPagePage sender)
+        {
+            if (Metadata?.Any() == true)
+            {
+                foreach (var md in Metadata)
+                {
+                    m_Ctrl.SetMetadata(md.Value);
+                }
+            }
         }
 
         protected override object GetSpecificValue()
@@ -85,6 +102,7 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage.Toolkit.Controls
             {
                 base.Dispose(disposing);
 
+                m_Page.PageShowing -= OnPageShowing;
                 m_Ctrl.ValueChanged -= OnDataContextChanged;
             }
         }

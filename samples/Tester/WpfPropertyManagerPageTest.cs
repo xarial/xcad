@@ -49,7 +49,10 @@ namespace Tester
             [ControlOptions(align: ControlLeftAlign_e.Indent)]
             public Action Button1 { get; }
 
-            [CustomControl(typeof(CustomControl))]
+            [Metadata(nameof(CustomControlMetadata))]
+            public string CustomControlMetadata { get; } = "Test";
+
+            [CustomControl(typeof(CustomControl), nameof(CustomControlMetadata))]
             [ControlOptions(height: 100)]
             public string CustomControl { get; set; }
 

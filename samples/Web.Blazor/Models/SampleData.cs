@@ -75,9 +75,12 @@ namespace Web.Blazor.Models
             [Title("Add Item")]
             public Action AddItemAction { get; }
 
+            [Metadata(nameof(AttachedFilesMetadata))]
+            public string AttachedFilesMetadata { get; } = "Test";
+
             [Title("Attached Files")]
             [Description("Drag and drop reference files onto the box below")]
-            [CustomControl(typeof(FileDropZone))]
+            [CustomControl(typeof(FileDropZone), nameof(AttachedFilesMetadata))]
             public IReadOnlyList<string> AttachedFiles{ get; set; }
 
             private MyItem[] m_ItemsSource;

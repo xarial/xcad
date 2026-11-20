@@ -6,6 +6,7 @@
 //*********************************************************************
 
 using System;
+using System.Linq;
 using Xarial.XCad.UI.PropertyPage;
 using Xarial.XCad.UI.PropertyPage.Attributes;
 using Xarial.XCad.UI.PropertyPage.Base;
@@ -65,6 +66,14 @@ namespace Xarial.XCad.Toolkit.Blazor.Controls
                         m_Instance.Value = m_PendingValue;
                         m_HasPendingValue = false;
                     }
+                }
+            }
+
+            if (Metadata?.Any() == true)
+            {
+                foreach (var md in Metadata)
+                {
+                    m_Instance.SetMetadata(md.Value);
                 }
             }
         }

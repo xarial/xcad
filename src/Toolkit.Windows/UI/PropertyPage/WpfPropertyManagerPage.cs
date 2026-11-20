@@ -116,14 +116,14 @@ namespace Xarial.XCad.Toolkit.Windows.UI.PropertyPage
         {
             Model = model;
 
-            m_Page.OnPageShowing();
-
             m_ContextProvider.NotifyContextChanged(model);
 
             foreach (var binding in m_Page.Binding.Bindings ?? Enumerable.Empty<IBinding>())
             {
                 binding.UpdateControl();
             }
+
+            m_Page.OnPageShowing();
 
             ShowPage(model, m_Page.Layout, m_Page.Name);
 

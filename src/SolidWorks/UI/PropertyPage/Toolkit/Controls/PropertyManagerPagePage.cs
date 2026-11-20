@@ -266,7 +266,7 @@ namespace Xarial.XCad.SolidWorks.UI.PropertyPage.Toolkit.Controls
 
         private void OnWhatsNewRequested() => m_HelpLinkHandler.OpenWhatsNewLink(m_WhatsNewLink);
 
-        private void OnHelpRequested() => m_HelpLinkHandler.OpenWhatsNewLink(m_HelpLink);
+        private void OnHelpRequested() => m_HelpLinkHandler.OpenHelpLink(m_HelpLink);
 
         private void OnTabClicked(int tabId)
             => ActiveTabId = tabId;

@@ -9,8 +9,8 @@ namespace Tester
         [STAThread]
         static void Main(string[] args)
         {
-            //WpfPropertyManagerPageTest.TestPageBuilderAll();
-            WpfPropertyManagerPageTest.TestPageBuilderSimple();
+            WpfPropertyManagerPageTest.TestPageBuilderAll();
+            //WpfPropertyManagerPageTest.TestPageBuilderSimple();
 
             while (true) 
             {
